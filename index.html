@@ -24,6 +24,12 @@
   --surface:#FFFFFF; --bg:#FDF8EF;
   --text:#0F2A44; --text-2:#52606B; --border:#E5DED4;
   --success:#47745E; --warning:#A66E25; --danger:#A84743; --focus:#2F719D;
+  /* Gold TEXT, not gold shapes. The brand gold measures 2.15:1 on the ivory
+     page, so it can never carry a word; this is the same hue darkened until it
+     clears 4.5:1 (5.65 on ivory, 5.98 on white, 5.35 on the gold-tinted ladder row). --gold stays as it is for
+     drops, keylines and fills, where the meaning is carried by an adjacent
+     label rather than by the colour. */
+  --gold-ink:#7F5E10;
   --keyline:#FDF8EF;
   /* Help panels: Sage at 14% and 38% over the page, worked out as flat values
      rather than color-mix so the contrast can be measured at build time. */
@@ -42,6 +48,8 @@
   --keyline:#081C2E;
   --help-bg:#213947; --help-br:#365156;
   --danger-bg:#3A1F24; --danger-ink:#F2A6A2;
+  /* On navy the brand gold already measures 6.4:1, so it needs no darkening. */
+  --gold-ink:#C6A962;
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
@@ -50,6 +58,7 @@
     --keyline:#081C2E;
     --help-bg:#213947; --help-br:#365156;
   --danger-bg:#3A1F24; --danger-ink:#F2A6A2;
+  --gold-ink:#C6A962;
   }
 }
 *{box-sizing:border-box}
@@ -75,6 +84,17 @@ header.bar{
   background:color-mix(in srgb,var(--bg) 78%,transparent);
   -webkit-backdrop-filter:blur(18px) saturate(1.6);backdrop-filter:blur(18px) saturate(1.6);
   padding:.625rem 1.25rem;display:flex;align-items:center;gap:.75rem;
+}
+/* Found in v006, pre-dating it: at 320px with the text size turned up to
+   200% the header's own controls ran off the right-hand edge. The title
+   truncates, but the padding, the gaps and the sync pill did not, and two
+   44px buttons plus the pill cannot fit in 320px at that text size. The
+   padding and gaps tighten, the pill truncates, and the row may wrap to a
+   second line rather than push anything off screen. */
+@media (max-width:26rem){
+  header.bar{padding-left:.75rem;padding-right:.75rem;gap:.5rem;flex-wrap:wrap}
+  header.bar h1{flex:1 1 6rem}
+  .syncpill{min-width:0;overflow:hidden;text-overflow:ellipsis}
 }
 header.bar::after{
   content:'';position:absolute;left:0;right:0;bottom:-14px;height:14px;pointer-events:none;
@@ -109,9 +129,15 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .grow{flex:1;min-width:0}
 
 .btn{
-  min-height:var(--tap);padding:0 1.125rem;border-radius:var(--r-ctl);
+  min-height:var(--tap);padding:.4375rem 1.125rem;border-radius:var(--r-ctl);
   border:1px solid var(--ink-navy);background:var(--ink-navy);color:var(--ivory);
   font:inherit;font-weight:600;cursor:pointer;transition:transform .12s ease-out;
+  /* Found in v006, pre-dating it: with the text size at 200% a button's label
+     is wider than a 320px screen, and a flex item will not shrink below its
+     own content, so buttons were pushed off the right edge instead of
+     wrapping. The vertical padding is what lets a wrapped label have room;
+     at ordinary text sizes min-height still decides, so nothing moves. */
+  max-width:100%;min-width:0;white-space:normal;
 }
 .btn:active{transform:scale(.97)}
 .btn.ghost{background:transparent;color:var(--text);border-color:var(--border)}
@@ -134,26 +160,68 @@ label{display:block;font-size:.8125rem;font-weight:600;margin:.75rem 0 .25rem;co
   min-width:2.25rem;min-height:2.25rem;border:0;background:none;color:var(--text-2);
   font-size:1.125rem;cursor:pointer;border-radius:50%;line-height:1}
 
-.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem;margin:.75rem 0}
-@media(min-width:42rem){.stats{grid-template-columns:repeat(4,1fr)}}
-.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-card);
-      padding:.75rem;text-align:center;display:flex;flex-direction:column;justify-content:center}
-.stat b{display:block;font-family:var(--f-num);font-size:1.375rem;line-height:1.2}
-.stat span{font-size:.75rem;color:var(--text-2)}
+/* The ledger, in place of four identical boxes in a 2x2.
+   Four equal cards make everything equally important, which is the same as
+   making nothing important — your eye has nowhere to land. One number is the
+   hero and the rest sit on a ruled line under a tapered keyline. No boxes. */
+.hero{display:flex;align-items:flex-end;gap:.75rem;margin:.125rem 0 0}
+.hero b{font-family:var(--f-display);font-weight:400;font-size:4rem;line-height:.86;
+  letter-spacing:-.03em}
+.hero span{font-size:.9375rem;color:var(--text-2);padding-bottom:.4375rem}
+/* A gold rule that thins as it travels, like a brush lifting off. This is how
+   the app separates things now, instead of a 1px grey box border. */
+.keyline{height:2px;border:0;margin:.875rem 0 .75rem;
+  background:linear-gradient(90deg,var(--gold),color-mix(in srgb,var(--gold) 20%,transparent) 58%,transparent);
+  clip-path:polygon(0 0,100% 38%,100% 62%,0 100%)}
+.ledger{display:flex;align-items:baseline}
+.lcell{flex:1;min-width:0;padding-right:.625rem}
+.lcell + .lcell{border-left:1px solid var(--border);padding-left:.75rem}
+.lcell b{display:block;font-family:var(--f-display);font-weight:400;font-size:1.75rem;line-height:1.05}
+.lcell span{font-size:.75rem;color:var(--text-2)}
+
+/* Editorial header: small-caps eyebrow over a serif heading, straight off
+   page 04 of the brand guide. The eyebrow is a word, so it takes the darkened
+   --gold-ink, never the brand gold. */
+.ehead{margin:1.5rem 0 .625rem}
+.ehead .eb{font-size:.6875rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--gold-ink);font-weight:700}
+.ehead h2,.ehead h3{font-family:var(--f-display);font-weight:400;font-size:1.5rem;
+  margin:.0625rem 0 0;letter-spacing:-.015em}
 
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem}
 @media(min-width:42rem){.grid{grid-template-columns:repeat(3,1fr)}}
-.tile{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-card);
-      overflow:hidden;cursor:pointer;text-align:left;padding:0;font:inherit;color:var(--text);
-      display:flex;flex-direction:column;transition:transform .12s ease-out}
+/* Photo first. A border, then a photo, then a white caption strip is three
+   layers of chrome around the one thing you actually want to look at. The
+   name sits on a fade over the bottom of your own picture instead. */
+.tile{position:relative;display:block;aspect-ratio:1;background:var(--surface);
+      border:0;border-radius:16px;overflow:hidden;cursor:pointer;text-align:left;
+      padding:0;font:inherit;color:var(--text);transition:transform .12s ease-out}
 .tile:active{transform:scale(.98)}
-.tile .ph{aspect-ratio:1;background:var(--warm-grey);display:block;width:100%;object-fit:cover}
-/* Navy on warm grey, not secondary-grey on warm grey: the lighter pairing
-   measured 3.86 and this text is 12px. */
-.tile .ph.empty{display:flex;align-items:center;justify-content:center;
-  color:var(--ink-navy);font-size:.75rem;font-weight:500}
-.tile .meta{padding:.625rem .75rem}
+.tile .ph{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;
+  background:var(--warm-grey)}
+.tile .ph.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:.375rem;color:var(--text-2);font-size:.75rem;font-weight:500}
+.phdrop{width:1.75rem;height:3.1875rem;opacity:.5}
+/* An entry with no photograph has nothing to fade over, and a dark gradient
+   on an empty field reads as a fault rather than a design. It also meant a
+   bright beige square glaring out of the dark theme. So the placeholder keeps
+   the page surface and an ordinary caption. */
+.tile.nophoto{border:1px solid var(--border);background:var(--surface)}
+.tile.nophoto .ph{background:none}
+.tile.nophoto .ph.empty{justify-content:flex-start;padding-top:1.5rem}
+.tile.nophoto .meta{background:none;color:var(--text);padding:.625rem .6875rem}
+.tile.nophoto .meta .muted{color:var(--text-2)}
+/* The fade reaches near-opaque well before the text starts, so a bright photo
+   underneath cannot take the caption below 4.5:1. */
+.tile .meta{position:absolute;left:0;right:0;bottom:0;padding:2rem .6875rem .625rem;
+  background:linear-gradient(transparent,rgba(8,20,32,.62) 38%,rgba(8,20,32,.93));
+  color:#FDF8EF}
 .tile .meta b{display:block;font-size:.875rem;line-height:1.3}
+.tile .meta .muted{color:rgba(253,248,239,.85)}
+/* A gold drop means in progress, the sparkle means finished. Both are backed
+   by the words underneath, so neither carries meaning on colour alone. */
+.tile .mk{position:absolute;top:.5rem;right:.5rem;
+  filter:drop-shadow(0 1px 3px rgba(0,0,0,.55))}
 
 .chip{display:inline-flex;align-items:center;gap:.375rem;border:1px solid var(--border);
   background:var(--surface);color:var(--text-2);border-radius:999px;padding:0 .8125rem;
@@ -196,8 +264,14 @@ label{display:block;font-size:.8125rem;font-weight:600;margin:.75rem 0 .25rem;co
 .help dt{font-weight:700;margin-top:.5rem}
 .help dl dt:first-child{margin-top:0}
 .help dd{margin:0;color:var(--text-2)}
-.helptbl{width:100%;border-collapse:collapse;margin-top:.25rem}
-.helptbl td{padding:.3125rem .4375rem;border-bottom:1px solid var(--help-br);vertical-align:top}
+/* Found in v006, pre-dating it: a table will not shrink below its own
+   content, so at 320px with the text size at 200% the base-size chart ran
+   457px wide and pushed the page sideways. Fixed layout makes the columns
+   share the width and wrap instead. */
+.helptbl{width:100%;border-collapse:collapse;margin-top:.25rem;table-layout:fixed}
+.helptbl td{padding:.3125rem .4375rem;border-bottom:1px solid var(--help-br);
+  vertical-align:top;overflow-wrap:anywhere}
+.helptbl td:first-child{width:38%}
 .helptbl td:first-child{font-family:var(--f-num);font-size:.8125rem;white-space:nowrap;font-weight:600}
 .helptbl td:last-child{color:var(--text-2)}
 
@@ -305,11 +379,16 @@ nav.tabs[hidden]{display:none}
 .tick svg{width:.8125rem;height:.8125rem;opacity:0;transition:opacity .14s ease-out}
 .tick[aria-pressed="true"] svg{opacity:1}
 .sw{width:1.25rem;height:1.25rem;border-radius:5px;border:1px solid var(--border);flex:0 0 auto}
-.pill{font-size:.625rem;letter-spacing:.04em;text-transform:uppercase;padding:.125rem .4375rem;
-  border-radius:999px;border:1px solid var(--border);color:var(--text-2);white-space:nowrap}
-.pill.out{color:var(--danger-ink);border-color:var(--danger)}
-.grouphead{font-size:.6875rem;letter-spacing:.07em;text-transform:uppercase;color:var(--text-2);
-  margin:1rem 0 .125rem}
+/* A shopping list wants to look like paint, so the colour is a drop rather
+   than a square chip. Supplies have no colour, so theirs is a hollow one. */
+.shopdrop{width:1.0625rem;height:1.9375rem;flex:0 0 auto}
+/* No pill. A bordered capsule around one word is chrome; small caps in the
+   darkened gold says the same thing and leaves the row quiet. */
+.pill{font-size:.6875rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;
+  color:var(--gold-ink);white-space:nowrap}
+.pill.out{color:var(--danger-ink)}
+.grouphead{font-size:.6875rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--gold-ink);font-weight:700;margin:1.125rem 0 .25rem}
 
 /* --- motion that now actually runs --- */
 /* The swatch photographs had no fade while the collection photos did, so the
@@ -346,31 +425,49 @@ nav.tabs[hidden]{display:none}
 ul.tight{margin:.5rem 0;padding-left:1.15rem}
 ul.tight li{margin:.25rem 0}
 
-/* Stage strip: the stepper. Position in the run is the point, so the current
-   dot grows and the rail fills behind it. */
-/* The strip scrolls sideways rather than squeezing its eight targets below
-   44px. At 390px eight items cannot each have 44px inside a card, and at 200%
-   text they certainly cannot — shrinking them fails WCAG 2.5.5 on the one
-   platform this app runs on, so the row scrolls instead. */
-.stepper{position:relative;margin:1rem 0 .25rem;padding-top:.25rem;
-  overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-.stepper::-webkit-scrollbar{display:none}
-.stepinner{position:relative;display:flex;min-width:max-content;width:100%}
-.steprail{position:absolute;left:1.375rem;right:1.375rem;top:.6875rem;height:2px;background:var(--border)}
-.steprail i{display:block;height:100%;background:var(--success);width:0;
-  transition:width .34s var(--ease)}
-.stepitem{flex:1 0 auto;min-width:2.75rem;background:none;border:0;padding:.25rem .125rem 0;cursor:pointer;display:flex;
-  flex-direction:column;align-items:center;gap:.4375rem;font:inherit;color:var(--text-2);
-  min-height:var(--tap);transition:transform .12s ease-out}
-.stepitem:active{transform:scale(.96)}
-.dot{width:.875rem;height:.875rem;border-radius:50%;border:2px solid var(--border);
-  background:var(--surface);position:relative;z-index:1;
-  transition:background .22s var(--ease),border-color .22s,transform .22s var(--ease)}
-.stepitem[data-s="done"] .dot{background:var(--success);border-color:var(--success)}
-.stepitem[data-s="now"] .dot{background:var(--gold);border-color:var(--gold);transform:scale(1.5)}
-.stepitem[data-s="now"] .lab{color:var(--text);font-weight:700}
-.lab{font-size:.625rem;line-height:1.2;text-align:center}
-.stagenow{font-size:.9375rem;font-weight:600;margin-top:.5rem}
+/* Stage: one pot, filling.
+   This replaces a horizontal strip of eight tappable dots. Eight targets at
+   the 44px minimum need 352px with no gaps and no labels, and the phone is
+   390px — which is why the old strip scrolled sideways and its captions were
+   10px. The action people actually take is "move forward one", so that gets a
+   full-width button, and the whole list hides behind "Jump to another stage".
+   The vessel is the logo's own drop path. */
+.vessel{display:flex;align-items:center;gap:1.125rem;margin:1rem 0 .25rem}
+.pot{width:4.625rem;height:8.375rem;flex:0 0 auto}
+/* The level is a rectangle clipped to the drop and slid down out of sight.
+   It moves by transform rather than by its own y/height because CSS
+   transitions on SVG geometry attributes are not dependable on older Safari,
+   and Safari is the only browser this app is really used in. */
+.potfill{transform-box:view-box;transform-origin:0 0;
+  transition:transform .55s var(--ease),fill .45s ease-out}
+.vessel.full .potfill{fill:var(--gold)}
+.vtext{min-width:0}
+.stagename{font-family:var(--f-display);font-size:1.75rem;line-height:1.12;letter-spacing:-.01em}
+.vsub{font-size:.8125rem;color:var(--text-2);margin-top:.125rem}
+.advance,.jumpbtn{width:100%;margin-top:.625rem}
+.advance{margin-top:1rem}
+
+/* The ladder: every stage, down the page, where there is room for a whole
+   word and a real tap target. Revealed on demand, same 0fr/1fr trick the
+   help panels use so it can animate to an unknown height. */
+.ladder{display:grid;grid-template-rows:0fr;opacity:0;
+  transition:grid-template-rows .3s var(--ease),opacity .22s}
+.ladder>div{overflow:hidden;min-height:0}
+.ladder.open{grid-template-rows:1fr;opacity:1;margin-top:.75rem}
+.lrow{display:flex;align-items:center;gap:.75rem;width:100%;min-height:var(--tap);
+  padding:.1875rem .125rem;background:none;border:0;border-bottom:1px solid var(--border);
+  font:inherit;color:var(--text);text-align:left;cursor:pointer}
+.lrow:active{transform:scale(.995)}
+.lname{flex:1;min-width:0}
+.lrow[data-s="done"] .lname{color:var(--text-2)}
+.lrow[data-s="now"]{background:color-mix(in srgb,var(--gold) 15%,transparent);
+  border-radius:.5625rem;border-bottom-color:transparent;padding-left:.5625rem;padding-right:.5625rem}
+.lrow[data-s="now"] .lname{font-weight:700}
+/* The tag is a word, so it takes the darkened gold, never the brand gold. */
+.ltag{font-size:.6875rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;
+  color:var(--gold-ink)}
+.lrow[data-s="done"] .ltag{color:var(--success)}
+.ldrop{width:1.0625rem;height:1.9375rem;flex:0 0 auto}
 .card.finished{border-color:var(--gold);box-shadow:0 0 0 3px color-mix(in srgb,var(--gold) 26%,transparent)}
 .finmark{display:flex;align-items:center;gap:.5rem;margin-top:.75rem;font-size:.8125rem;
   opacity:0;transform:translateY(4px);transition:opacity .3s ease-out,transform .3s var(--ease)}
@@ -480,11 +577,14 @@ details summary{cursor:pointer;min-height:var(--tap);display:flex;align-items:ce
 @media (prefers-reduced-motion:reduce){
   *{animation-duration:.01ms!important;transition-duration:.01ms!important}
   /* put the useful fades back */
-  .photos img,.realswatch,.helpwrap,.ownwrap,.finmark,.toast,dialog,.celebrate{
-    transition-duration:.2s!important}
+  .photos img,.realswatch,.helpwrap,.ownwrap,.finmark,.toast,dialog,.celebrate,
+  .ladder{transition-duration:.2s!important}
   .finmark,.helpwrap,.ownwrap,.toast,dialog{transform:none!important}
   .celebrate.still{animation-duration:1.1s!important}
-  .stepitem[data-s="now"] .dot{transform:scale(1.5)}
+  /* The pot level still moves, because the height of the paint IS the
+     information — removing the travel would remove the meaning. It just
+     arrives quickly instead of gliding. */
+  .potfill{transition-duration:.12s!important}
 }
 </style>
 </head>
@@ -2482,6 +2582,19 @@ const TECHNIQUES = [
 
 /* --- base sizes ------------------------------------------------------------
    From a published Citadel reference chart, cross-checked. */
+/* Unit types.
+   Deliberately plain category words rather than any publisher's own
+   classifications. These eleven are the shared vocabulary of the hobby and
+   work for Warhammer, Turnip28, Trench Crusade, Bolt Action, Frostgrave and a
+   game nobody has written yet. Nothing here is copied from anyone's book, and
+   points costs and unit profiles are not in this app for exactly that reason:
+   those are the publisher's copyright and there is no licence that covers
+   reproducing them. "Type my own" carries whatever a given game calls things. */
+const UNIT_TYPES = [
+  'Infantry', 'Cavalry', 'Character', 'Monster', 'Vehicle', 'Artillery',
+  'Flyer', 'Swarm', 'Beast', 'Warmachine', 'Terrain'
+];
+
 const BASE_SIZES = [
   ['25mm',        'Small infantry'],
   ['28.5mm',      'Older infantry squads'],
@@ -2589,6 +2702,12 @@ const HELP = {
   ]},
 
   baseSize: { title:'Common base sizes', table:BASE_SIZES },
+
+  unitType: { title:'What sort of thing is it?', p:[
+    'A rough category, so you can sort and filter a collection that spans several games. Nothing depends on getting it exactly right, and you can leave it blank.',
+    'These are plain words rather than any particular game’s own classifications, so they work whatever you collect. If your game calls it something else, use Type my own.',
+    'Points costs and unit profiles are not here, and are not coming. Those are the publisher’s copyright and there is no licence that allows an app like this to reproduce them — so if you want to track points, type in the numbers from your own book and the app will add them up for you.'
+  ]},
 
   technique: { title:'What the techniques mean', dl:TECHNIQUES },
 
@@ -3027,7 +3146,7 @@ function syncPill(){
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v005';
+const APP_VERSION = 'v006';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -3437,7 +3556,44 @@ function applyTheme(){
 /* ===========================================================================
    Shared bits
    =========================================================================== */
-const stat = (n,l) => `<div class="stat"><b class="num">${esc(n)}</b><span>${esc(l)}</span></div>`;
+
+/* The logo's own drop, lifted straight out of the mark in the page header so
+   the two can never drift apart. Used as the progress vessel and as the paint
+   swatch. Its box inside the 300x380 artboard is x 119-181, y 86-196. */
+const DROP = 'M 150 86 C 144 104 133 124 126 144 C 119 162 121 174 128 183 C 139 198 161 198 172 183 C 179 174 181 162 174 144 C 167 124 156 104 150 86 Z';
+const DROP_TOP = 86, DROP_BOT = 196, DROP_H = DROP_BOT - DROP_TOP;
+/* The four-point sparkle above the mark. Reserved for finished, and used
+   nowhere else, so that it keeps meaning something. */
+const SPARKLE = 'M 150 16 C 154 34 160 39 178 43 C 160 47 154 52 150 70 C 146 52 140 47 122 43 C 140 39 146 34 150 16 Z';
+
+/* A small drop, filled or hollow. Decorative: every one of these sits beside
+   a word that says the same thing. */
+function dropSvg(cls, fill){
+  return `<svg class="${cls}" viewBox="112 76 78 130" aria-hidden="true"><path d="${DROP}"
+    ${fill ? `fill="${fill}"` : 'fill="none" stroke="var(--warm-grey)" stroke-width="9"'}
+    stroke-linejoin="round"/></svg>`;
+}
+
+/* The pot. The level is a rectangle clipped to the drop and pushed down out of
+   sight; at p=0 it sits on the bottom lip, at p=1 it covers the whole shape. */
+function potSvg(p){
+  const y = (DROP_BOT - 80 - DROP_H * p).toFixed(1);
+  return `<svg class="pot" viewBox="112 76 78 130" aria-hidden="true">
+    <defs><clipPath id="potclip"><path d="${DROP}"/></clipPath></defs>
+    <g clip-path="url(#potclip)">
+      <rect class="potfill" x="112" y="80" width="78" height="122" fill="var(--success)"
+        style="transform:translateY(${y}px)"/>
+    </g>
+    <path d="${DROP}" fill="none" stroke="var(--gold)" stroke-width="7" stroke-linejoin="round"/>
+  </svg>`;
+}
+function potWord(p){
+  if (p <= 0)  return 'not started';
+  if (p < .3)  return 'just begun';
+  if (p < .45) return 'getting there';
+  if (p < .6)  return 'half way';
+  return 'nearly there';
+}
 const backBtn = (to,label) => `<button class="btn ghost sm" data-back="${to}" style="margin:.875rem 0">&larr; ${esc(label)}</button>`;
 
 function photoImg(id, cls){
@@ -3474,24 +3630,34 @@ function screenHome(){
   const c = counts();
   const recent = data.minis.filter(m => !isDone(m))
     .sort((a,b) => (b.updated||0)-(a.updated||0)).slice(0,6);
-  let h = `<p class="muted small" style="margin:.875rem 0 .125rem">${greeting()}</p>
-    <h2 class="display" style="font-size:1.625rem;margin-bottom:.875rem">Your collection</h2>`;
+  let h = `<p class="muted small" style="margin:.875rem 0 .375rem">${greeting()}</p>`;
   if (c.entries === 0){
-    return h + `<div class="empty"><p>Nothing in here yet. Add your first miniature and the numbers start filling in.</p>
+    return h + `<h2 class="display" style="font-size:1.625rem;margin-bottom:.875rem">Your collection</h2>
+      <div class="empty"><p>Nothing in here yet. Add your first miniature and the numbers start filling in.</p>
       <div class="row wrapm" style="justify-content:center">
         <button class="btn" data-act="addMini">Add a miniature</button>
         <button class="btn ghost" data-act="addSys">Add a game system</button></div></div>`;
   }
-  h += `<div class="stats">${stat(c.backlog,'in backlog')}${stat(c.started,'in progress')}
-    ${stat(c.done+' / '+c.total,'models finished')}${stat(c.paints,'paints owned')}</div>`;
+  /* One hero number, then a ruled line. What matters on opening this app is
+     how much you have actually finished — not four equally-weighted totals in
+     four identical boxes, which gives the eye nowhere to land. */
+  h += `<div class="ehead" style="margin-top:0"><div class="eb">Your collection</div></div>
+    <div class="hero"><b>${c.done}</b><span>finished<br>of ${c.total}</span></div>
+    <hr class="keyline">
+    <div class="ledger">
+      <div class="lcell"><b>${c.started}</b><span>On the bench</span></div>
+      <div class="lcell"><b>${c.backlog}</b><span>Still waiting</span></div>
+      <div class="lcell"><b>${c.paints}</b><span>Paints owned</span></div>
+    </div>`;
   if (recent.length){
-    h += `<h3 style="margin-top:1.375rem">Continue painting</h3><div class="grid">`;
+    h += `<div class="ehead"><div class="eb">${recent.length} on the bench</div>
+      <h3>Continue painting</h3></div><div class="grid">`;
     recent.forEach(m => { h += tile(m); });
     h += `</div>`;
   }
   h += valuePanel();
 
-  h += `<h3 style="margin-top:1.5rem">Quick actions</h3><div class="row wrapm">
+  h += `<div class="ehead"><h3>Quick actions</h3></div><div class="row wrapm">
     <button class="btn" data-act="addMini">Add a miniature</button>
     <button class="btn ghost" data-act="pick">Pick something for me</button>
     <button class="btn ghost" data-act="shop">Shopping list${
@@ -3548,13 +3714,19 @@ function sortNote(m){
 
 function tile(m){
   const pid = arr(m.photos)[0];
-  const img = pid ? photoImg(pid,'ph') : `<div class="ph empty">no photo yet</div>`;
-  const sub = [sysName(m.sys), facName(m.fac)].filter(Boolean).join(' · ');
+  const img = pid ? photoImg(pid,'ph')
+    : `<div class="ph empty">${dropSvg('phdrop','')}<span>no photo yet</span></div>`;
   const n = Number(m.total)||1, d = Number(m.done)||0;
-  return `<button class="tile" data-open="${esc(m.id)}">${img}
+  /* The system and faction used to be a third line here. Over a photograph
+     that is too many words, and both are on the entry's own screen anyway. */
+  const mark = isFinished(m)
+    ? `<svg class="mk" width="19" height="19" viewBox="120 12 60 62" aria-hidden="true"><path d="${SPARKLE}" fill="var(--gold)"/></svg>`
+    : stageIx(m) > 0
+    ? `<svg class="mk" width="15" height="27" viewBox="112 76 78 130" aria-hidden="true"><path d="${DROP}" fill="var(--gold)"/></svg>`
+    : '';
+  return `<button class="tile${pid?'':' nophoto'}" data-open="${esc(m.id)}">${img}${mark}
     <span class="meta"><b class="user-text">${esc(m.name)}</b>
-    ${sub?`<span class="small muted user-text">${esc(sub)}</span>`:''}
-    <span class="small muted">${esc(m.stage)}${n>1?` · <span class="num">${d} of ${n}</span> finished`:''}</span>
+    <span class="small muted">${esc(m.stage)}${n>1?` &middot; <span class="num">${d} of ${n}</span>`:''}</span>
     ${sortNote(m)}
     </span></button>`;
 }
@@ -3628,7 +3800,7 @@ function filtered(){
     if (state.fSys && m.sys !== state.fSys) return false;
     if (state.fStage && m.stage !== state.fStage) return false;
     if (!q) return true;
-    const hay = [m.name, m.tags, m.notes, sysName(m.sys), facName(m.fac), m.stage]
+    const hay = [m.name, m.tags, m.notes, sysName(m.sys), facName(m.fac), m.stage, m.unit]
       .filter(Boolean).join(' ').toLowerCase();
     return hay.includes(q);
   }).sort(sorter());
@@ -3674,20 +3846,33 @@ function screenMini(){
   const facts = [];
   if (m.acquired) facts.push((isFinished(m) ? 'Bought ' : 'Waiting since ') + esc(waitingSince(m.acquired)));
   if (m.price != null && m.price !== '') facts.push(esc(money(m.price)));
+  if (m.unit) facts.push(esc(m.unit));
   if (m.base) facts.push(esc(m.base));
   if (facts.length) h += `<p class="small muted" style="margin-top:.25rem">${facts.join(' &middot; ')}</p>`;
 
   const stageHelp = helpBlock('stages');
+  const prog = last ? cur / last : 1;
   h += `<div class="card${fin?' finished':''}">
     <div class="flab" style="margin-top:0"><h3 style="margin:0">Progress</h3>${stageHelp.btn}</div>
-    <p class="small muted" style="margin:0">Tap a stage to move this entry to it. Everything before it counts as done.</p>
     ${stageHelp.panel}
-    <div class="stepper"><div class="stepinner"><div class="steprail"><i style="width:${(cur/last)*100}%"></i></div>`;
+    <div class="vessel${fin?' full':''}">${potSvg(prog)}
+      <div class="vtext">
+        <div class="stagename user-text">${esc(m.stage)}</div>
+        <div class="vsub">Stage <span class="num">${cur+1}</span> of <span class="num">${last+1}</span>${fin?'':' &middot; ' + potWord(prog)}</div>
+      </div>
+    </div>`;
+  if (!fin) h += `<button class="btn advance" data-adv>Move to ${esc(data.stages[cur+1])} &rarr;</button>`;
+  h += `<button class="btn ghost jumpbtn" data-jump aria-expanded="false" aria-controls="ladder">Jump to another stage</button>
+    <div class="ladder" id="ladder"><div>`;
   data.stages.forEach((s,i) => {
-    h += `<button class="stepitem" data-stage="${esc(s)}" data-s="${i<cur?'done':i===cur?'now':'todo'}"
-      aria-label="${esc(s)}"><span class="dot"></span><span class="lab">${esc(shortStage(s))}</span></button>`;
+    const st = i < cur ? 'done' : i === cur ? 'now' : 'todo';
+    h += `<button class="lrow" data-stage="${esc(s)}" data-s="${st}">
+      ${dropSvg('ldrop', i < cur ? 'var(--success)' : i === cur ? 'var(--gold)' : '')}
+      <span class="lname user-text">${esc(s)}</span>
+      ${st==='done'?'<span class="ltag">Done</span>':st==='now'?'<span class="ltag">You are here</span>':''}
+    </button>`;
   });
-  h += `</div></div><div class="stagenow">${esc(m.stage)}</div>`;
+  h += `</div></div>`;
   h += `<div class="finmark${fin?' on':''}"><i>&#10003;</i> Finished${n>1?` &mdash; all ${n} of them`:''}</div>`;
   if (n > 1){
     h += `<label for="doneN">How many of the ${n} are finished?</label>
@@ -3720,6 +3905,8 @@ function screenMini(){
   h += `<div class="card"><h3>Details</h3>
     <label for="eName">Name</label><input id="eName" value="${esc(m.name)}">
     <label for="eTotal">How many models in this entry</label><input id="eTotal" type="number" min="1" value="${n}">
+    ${chips('eUnit', UNIT_TYPES, { label:'Unit type', value:m.unit || '',
+      help:'unitType', ownPlaceholder:'Whatever your game calls it' })}
     ${field('eBase','Base size',
       `<select id="eBase"><option value="">Not set</option>
          ${BASE_SIZES.map(b => `<option value="${esc(b[0])}"${m.base === b[0] ? ' selected' : ''}>${esc(b[0])} &mdash; ${esc(b[1])}</option>`).join('')}
@@ -3735,11 +3922,6 @@ function screenMini(){
     <div class="row" style="margin-top:.875rem"><button class="btn" data-act="saveMini">Save changes</button>
     <button class="btn danger" data-act="delMini">Delete</button></div></div>`;
   return h;
-}
-function shortStage(s){
-  const map = { Unbuilt:'Unb', Built:'Built', Primed:'Prime', Basecoat:'Base',
-                Shading:'Shade', Highlights:'High', Basing:'Basing', Finished:'Fin' };
-  return map[s] || (s.length > 6 ? s.slice(0,5) : s);
 }
 
 /* ===========================================================================
@@ -4054,20 +4236,7 @@ function render(){
   });
   const slot = document.getElementById('syncslot');
   if (slot){ slot.innerHTML = ''; slot.appendChild(syncPill()); }
-  /* A render rebuilds the stage strip, which resets it to scrollLeft 0 — so
-     after a stage change the strip would snap back to "Unbuilt" and hide the
-     stage you just reached. Put it back, instantly, with no animation. */
-  scrollStripToCurrent(false);
   hydratePhotos();
-}
-
-function scrollStripToCurrent(smooth){
-  const strip = document.querySelector('.stepper');
-  const active = strip && strip.querySelector('.stepitem[data-s="now"]');
-  if (!strip || !active) return;
-  const want = active.offsetLeft - (strip.clientWidth / 2) + (active.offsetWidth / 2);
-  strip.scrollTo({ left: Math.max(0, want),
-                   behavior: (smooth && !reducedMotion()) ? 'smooth' : 'auto' });
 }
 
 /* ===========================================================================
@@ -4143,8 +4312,9 @@ function screenShop(){
 
 function shopRow(item, kind){
   const got = !!(state.ticked && state.ticked[item.id]);
-  const sw = kind === 'paint' && item.hex
-    ? `<span class="sw" style="background:${esc(item.hex)}"></span>` : '';
+  /* Paints get their real colour as a drop; supplies and any paint without a
+     photographed colour get a hollow one. An invented colour is never shown. */
+  const sw = dropSvg('shopdrop', kind === 'paint' && item.hex ? esc(item.hex) : '');
   const sub = kind === 'paint'
     ? [item.brand, item.range].filter(Boolean).join(' · ')
     : (item.note || '');
@@ -4369,29 +4539,74 @@ function reducedMotion(){
    width and the tick simply existed. Updating in place gives the transitions
    something to travel from.
 --------------------------------------------------------------------------- */
+
+/* The single place a stage changes, reached from both the big button and the
+   ladder. Having two copies of this was how the "finished" flag and the
+   celebration could drift apart. */
+function setStage(m, stage){
+  const wasFinished = isFinished(m);
+  m.stage = stage;
+  if (isDone(m) && (Number(m.total)||1) === 1) m.done = 1;
+  m.updated = Date.now(); save();
+  advanceStrip(m, !wasFinished && isFinished(m));
+}
+
 function advanceStrip(m, justFinished){
-  const box = document.querySelector('.stepinner');
-  if (!box){ render(); return; }
+  const vessel = document.querySelector('.vessel');
+  if (!vessel){ render(); return; }
 
   const idx = data.stages.indexOf(m.stage);
   const last = data.stages.length - 1;
-  const fill = box.querySelector('.steprail i');
-  if (fill) fill.style.width = ((idx / last) * 100) + '%';
-  box.querySelectorAll('.stepitem').forEach((el, i) => {
-    el.dataset.s = i < idx ? 'done' : (i === idx ? 'now' : 'todo');
+  const p = last ? idx / last : 1;
+  const done = isFinished(m);
+
+  /* The paint level. This is the one thing on screen that must travel, because
+     the height of the paint IS the information. */
+  const lvl = vessel.querySelector('.potfill');
+  if (lvl) lvl.style.transform = `translateY(${(DROP_BOT - 80 - DROP_H * p).toFixed(1)}px)`;
+  vessel.classList.toggle('full', done);
+
+  const nameEl = vessel.querySelector('.stagename');
+  if (nameEl) nameEl.textContent = m.stage;
+  const subEl = vessel.querySelector('.vsub');
+  if (subEl) subEl.innerHTML =
+    `Stage <span class="num">${idx+1}</span> of <span class="num">${last+1}</span>` +
+    (done ? '' : ' &middot; ' + potWord(p));
+
+  /* The big button names the next stage, so it has to be relabelled — and at
+     the end there is no next stage, so it goes away entirely. */
+  const adv = document.querySelector('.advance');
+  if (adv){
+    if (idx >= last) adv.remove();
+    else adv.innerHTML = `Move to ${esc(data.stages[idx+1])} &rarr;`;
+  }
+
+  /* The ladder is usually shut, but if it is open you are looking straight at
+     it, so it cannot sit stale for half a second. */
+  document.querySelectorAll('.lrow').forEach((el, i) => {
+    const st = i < idx ? 'done' : (i === idx ? 'now' : 'todo');
+    el.dataset.s = st;
+    const path = el.querySelector('.ldrop path');
+    if (path){
+      if (st === 'todo'){
+        path.setAttribute('fill','none');
+        path.setAttribute('stroke','var(--warm-grey)');
+        path.setAttribute('stroke-width','9');
+      } else {
+        path.setAttribute('fill', st === 'done' ? 'var(--success)' : 'var(--gold)');
+        path.removeAttribute('stroke'); path.removeAttribute('stroke-width');
+      }
+    }
+    const want = st === 'done' ? 'Done' : st === 'now' ? 'You are here' : '';
+    let tag = el.querySelector('.ltag');
+    if (want && !tag){ tag = document.createElement('span'); tag.className = 'ltag'; el.appendChild(tag); }
+    if (tag){ if (!want) tag.remove(); else tag.textContent = want; }
   });
 
-  const nowEl = document.querySelector('.stagenow');
-  if (nowEl) nowEl.textContent = m.stage;
-
-  /* Eight stages do not fit a phone, so the one you just reached can easily
-     be off the side of the screen. Bring it into view. */
-  scrollStripToCurrent(true);
-
-  const card = box.closest('.card');
-  if (card) card.classList.toggle('finished', isFinished(m));
+  const card = vessel.closest('.card');
+  if (card) card.classList.toggle('finished', done);
   const fin = document.querySelector('.finmark');
-  if (fin) fin.classList.toggle('on', isFinished(m));
+  if (fin) fin.classList.toggle('on', done);
 
   if (justFinished) celebrate(card);
 
@@ -4809,6 +5024,9 @@ function dlgAddMini(){
        <select id="mFac">${armyOptions(lastSys, last.fac || '')}</select>
        <input id="mFacOwn" type="text" placeholder="Your own army" style="margin-top:.5rem" hidden>
 
+       ${chips('mUnit', UNIT_TYPES, { label:'Unit type',
+         help:'unitType', ownPlaceholder:'Whatever your game calls it' })}
+
        ${field('mBase','Base size',
          `<select id="mBase"><option value="">Not set</option>
             ${BASE_SIZES.map(b => `<option value="${esc(b[0])}">${esc(b[0])} &mdash; ${esc(b[1])}</option>`).join('')}
@@ -4837,6 +5055,7 @@ function dlgAddMini(){
 
       data.minis.push({ id:uid(), name, sys, fac,
         base:$('#mBase').value || '',
+        unit:$('#mUnit') ? $('#mUnit').value.trim() : '',
         total:Math.max(1, Number($('#mTotal').value) || 1),
         /* Both optional and both stay empty rather than zero: a price of 0
            and no price recorded are different facts, and the collection
@@ -5159,17 +5378,39 @@ document.addEventListener('click', e => {
   }
   const cm = t.closest('[data-cmpmode]'); if (cm){ state.cmp.mode = cm.dataset.cmpmode; render(); return; }
 
+  /* "Jump to another stage" opens the full ladder in place. */
+  const jmp = t.closest('[data-jump]');
+  if (jmp){
+    const lad = document.getElementById('ladder');
+    if (lad){
+      const open = lad.classList.toggle('open');
+      jmp.setAttribute('aria-expanded', open ? 'true' : 'false');
+      jmp.textContent = open ? 'Hide the stage list' : 'Jump to another stage';
+    }
+    return;
+  }
+
+  /* The common action: forward one. */
+  const adv = t.closest('[data-adv]');
+  if (adv){
+    const m = data.minis.find(x => x.id === state.openMini); if (!m) return;
+    const i = stageIx(m);
+    if (i >= data.stages.length - 1) return;
+    setStage(m, data.stages[i + 1]);
+    return;
+  }
+
   const stg = t.closest('[data-stage]');
   if (stg){
     const m = data.minis.find(x => x.id === state.openMini); if (!m) return;
-    const wasFinished = isFinished(m);
-    m.stage = stg.dataset.stage;
-    if (isDone(m) && (Number(m.total)||1) === 1) m.done = 1;
-    m.updated = Date.now(); save();
-    /* Update the strip in place rather than re-rendering the screen. A full
-       render replaces every element, so the bar starts at its destination and
-       the transitions written in the stylesheet never run at all. */
-    advanceStrip(m, !wasFinished && isFinished(m));
+    setStage(m, stg.dataset.stage);
+    /* You picked from the list, so the list has done its job. */
+    const lad = document.getElementById('ladder');
+    const jb = document.querySelector('[data-jump]');
+    if (lad && lad.classList.contains('open')){
+      lad.classList.remove('open');
+      if (jb){ jb.setAttribute('aria-expanded','false'); jb.textContent = 'Jump to another stage'; }
+    }
     return;
   }
   const dp = t.closest('[data-delphoto]'); if (dp) return removePhoto(dp.dataset.delphoto);
@@ -5220,6 +5461,7 @@ function saveMiniEdits(){
   if (m.done > m.total) m.done = m.total;
   m.tags = $('#eTags').value.trim(); m.notes = $('#eNotes').value;
   m.base = $('#eBase') ? $('#eBase').value : (m.base || '');
+  if ($('#eUnit')) m.unit = $('#eUnit').value.trim();
   if ($('#ePrice')) m.price = $('#ePrice').value === '' ? null
                             : Math.max(0, Number($('#ePrice').value) || 0);
   if ($('#eAcq')) m.acquired = $('#eAcq').value || '';
