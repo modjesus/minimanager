@@ -586,8 +586,22 @@ dialog{border:1px solid var(--border);border-radius:var(--r-card);padding:0;
 dialog[open]{opacity:1;transform:scale(1)}
 @starting-style{dialog[open]{opacity:0;transform:scale(.97)}}
 dialog::backdrop{background:rgba(8,28,46,.5)}
-dialog .dlgbody{padding:1.125rem;max-height:80vh;overflow-y:auto}
+/* No top padding: the pinned header supplies it. With padding here the
+   header stuck 18px down and content scrolled through the gap above it. */
+dialog .dlgbody{padding:0 1.125rem 1.125rem;max-height:80vh;overflow-y:auto}
 dialog h2{font-family:var(--f-display);font-size:1.25rem;font-weight:400}
+/* Every dialog gets a close in its own header, pinned to the top while the
+   body scrolls under it.
+
+   The Cancel button at the foot was not enough: the "More" menu ends with
+   the full MIT licence and the trademark notice, so the only way out sat
+   below a wall of legal text and you had to scroll to leave. A way out has
+   to be where you can see it, not wherever the content happens to end. */
+.dlghead{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:.75rem;
+  background:var(--surface);border-bottom:1px solid var(--border);
+  margin:0 -1.125rem .875rem;padding:.9375rem 1.125rem .625rem}
+.dlghead h2{flex:1;min-width:0;margin:0;overflow-wrap:anywhere}
+.dlghead .iconbtn{flex:0 0 auto;font-size:1.25rem;line-height:1}
 
 .empty{text-align:center;padding:2.25rem 1.25rem;color:var(--text-2)}
 .empty p{margin:0 0 .875rem}
@@ -3261,7 +3275,7 @@ function syncPill(){
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v008';
+const APP_VERSION = 'v009';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -5391,17 +5405,24 @@ function dlgDeleteAccount(){
    Dialogs
    =========================================================================== */
 function openDialog(title, body, onOk, okLabel, cancelLabel){
-  $('#dlgBody').innerHTML = `<h2>${esc(title)}</h2>${body}
+  /* The close lives in a pinned header, not only at the foot. A long dialog
+     — the "More" menu runs to the full MIT licence — otherwise hides its
+     only way out below everything else. */
+  $('#dlgBody').innerHTML = `
+    <div class="dlghead"><h2>${esc(title)}</h2>
+      <button class="iconbtn" data-dlg="cancel" aria-label="Close">&times;</button></div>
+    ${body}
     <div class="row" style="margin-top:1rem;justify-content:flex-end">
       <button class="btn ghost" data-dlg="cancel">${esc(cancelLabel||'Cancel')}</button>
-      <button class="btn" data-dlg="ok">${esc(okLabel||'Save')}</button></div>`;
+      ${onOk ? `<button class="btn" data-dlg="ok">${esc(okLabel||'Save')}</button>` : ''}</div>`;
   const dlg = $('#dlg');
   dlg.showModal();
   dlg.onclick = e => {
     const b = e.target.closest('[data-dlg]');
     if (!b) return;
     if (b.dataset.dlg === 'cancel'){ dlg.close(); return; }
-    if (onOk() !== false) dlg.close();
+    /* A dialog with nothing to confirm — the menu — has no onOk at all. */
+    if (!onOk || onOk() !== false) dlg.close();
   };
 }
 const NAME_REQUIRED = 'Give it a name first.';
@@ -6344,7 +6365,9 @@ $('#moreBtn').addEventListener('click', () => {
      <p class="small muted">Army lists were checked against the publishers&rsquo; own material where it
        could be reached. They are a convenience, not an authority: every list in this app ends with
        &ldquo;Type my own&rdquo;, and your own spelling always wins.</p>`,
-    () => true, 'Close');
+    /* Nothing to confirm here, so no Save button and no "Cancel": one
+       honest Close at the foot, and the × pinned at the top. */
+    null, null, 'Close');
   $('#expBtn').addEventListener('click', exportData);
   $('#csvBtn').addEventListener('click', exportCsv);
   $('#impBtn').addEventListener('click', () => $('#impIn').click());
