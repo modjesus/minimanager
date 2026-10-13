@@ -247,6 +247,98 @@ nav.tabs[hidden]{display:none}
 .syncpill.s-ok{color:var(--success);border-color:var(--success)}
 .syncpill.s-error{color:var(--danger-ink);border-color:var(--danger);background:var(--danger-bg)}
 
+/* --- "optional" badge on a field label --- */
+.opt{font-weight:400;font-size:.75rem;color:var(--text-2);letter-spacing:.02em}
+
+/* --- collection value ---
+   Hidden until asked for, and deliberately never animated. A number about
+   somebody's own money arriving with a flourish is a fruit machine. */
+.valueline{display:flex;align-items:center;justify-content:space-between;gap:.75rem;
+  padding:.5rem 0;border-top:1px solid var(--border);margin-top:1.25rem}
+.vgrid{display:grid;grid-template-columns:1fr 1fr;gap:.625rem}
+.vcell{padding:.75rem;border:1px solid var(--border);border-radius:var(--r-ctl);
+  background:var(--surface);min-width:0}
+.vcell b{display:block;font-family:var(--f-num);font-size:1.25rem;line-height:1.1;
+  font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.vcell span{display:block;font-size:.6875rem;color:var(--text-2);margin-top:.1875rem}
+.vcell.done b{color:var(--success)}
+.valbar{height:8px;border-radius:999px;background:var(--border);overflow:hidden;margin-top:.625rem}
+.valbar i{display:block;height:100%;background:var(--success)}
+.barlab{font-size:.75rem;color:var(--text-2);margin:.375rem 0 0}
+
+/* --- the picker --- */
+.picker{border:1px solid var(--border);border-radius:var(--r-card);background:var(--surface);
+  padding:1rem;margin-top:.875rem;min-height:8.5rem;display:grid;place-items:center;text-align:center}
+.pickface{width:100%;min-height:4.25rem;display:grid;place-items:center}
+.pickname{font-family:var(--f-display);font-size:1.3125rem;line-height:1.15;margin:0;
+  overflow-wrap:anywhere}
+.picksub{font-size:.8125rem;color:var(--text-2);margin:.25rem 0 0;overflow-wrap:anywhere}
+.pickmeta{font-size:.75rem;color:var(--text-2);margin:.5rem 0 0}
+.pickidle{color:var(--text-2);font-size:.9375rem;margin:0}
+.pickface.flick .pickname{opacity:.45}
+.pickface.land{animation:pickland .42s cubic-bezier(.34,1.26,.5,1)}
+@keyframes pickland{0%{transform:scale(.94);opacity:.5}100%{transform:scale(1);opacity:1}}
+.btn.wide{width:100%}
+
+/* --- the shop --- */
+.tabs2{display:flex;gap:.25rem;background:var(--help-bg);padding:.25rem;border-radius:999px;
+  border:1px solid var(--help-br);margin-bottom:.5rem}
+.tabs2 button{flex:1;min-width:0;min-height:40px;border:0;border-radius:999px;background:none;
+  color:var(--text-2);font:inherit;font-weight:600;font-size:.875rem;cursor:pointer;
+  transition:background .16s,color .16s}
+.tabs2 button[aria-selected="true"]{background:var(--surface);color:var(--text)}
+.shoprow{display:flex;align-items:center;gap:.625rem;padding:.5rem 0;
+  border-bottom:1px solid var(--border)}
+.shoprow:last-of-type{border-bottom:0}
+.shoprow .nm{flex:1;min-width:0}
+.shoprow .nm b{display:block;font-size:.9375rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.shoprow .nm span{display:block;font-size:.75rem;color:var(--text-2);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.shoprow.got .nm b{text-decoration:line-through;color:var(--text-2)}
+.tick{width:1.75rem;height:1.75rem;border-radius:50%;border:2px solid var(--border);
+  background:var(--surface);color:var(--ivory);flex:0 0 auto;cursor:pointer;position:relative;
+  display:grid;place-items:center;padding:0;
+  transition:background .18s var(--ease),border-color .18s}
+.tick::after{content:"";position:absolute;top:50%;left:50%;width:var(--tap);height:var(--tap);
+  transform:translate(-50%,-50%)}
+.tick[aria-pressed="true"]{background:var(--success);border-color:var(--success)}
+.tick svg{width:.8125rem;height:.8125rem;opacity:0;transition:opacity .14s ease-out}
+.tick[aria-pressed="true"] svg{opacity:1}
+.sw{width:1.25rem;height:1.25rem;border-radius:5px;border:1px solid var(--border);flex:0 0 auto}
+.pill{font-size:.625rem;letter-spacing:.04em;text-transform:uppercase;padding:.125rem .4375rem;
+  border-radius:999px;border:1px solid var(--border);color:var(--text-2);white-space:nowrap}
+.pill.out{color:var(--danger-ink);border-color:var(--danger)}
+.grouphead{font-size:.6875rem;letter-spacing:.07em;text-transform:uppercase;color:var(--text-2);
+  margin:1rem 0 .125rem}
+
+/* --- motion that now actually runs --- */
+/* The swatch photographs had no fade while the collection photos did, so the
+   most important images in the app were the ones that popped. */
+.realswatch{opacity:0;transition:opacity .22s ease-out}
+.realswatch.in{opacity:1}
+
+/* 0fr -> 1fr is how you animate to an unknown height. */
+.helpwrap,.ownwrap{display:grid;grid-template-rows:0fr;opacity:0;margin:0;
+  transition:grid-template-rows .2s var(--ease),opacity .2s ease-out,margin .2s var(--ease)}
+.helpwrap>div,.ownwrap>div{overflow:hidden;min-height:0}
+.helpwrap.open{grid-template-rows:1fr;opacity:1;margin:.5rem 0 .25rem}
+.ownwrap.open{grid-template-rows:1fr;opacity:1;margin:.5rem 0 0}
+.helpwrap .help{margin:0}
+
+/* The tick that draws itself. Pointer-events off so it can never eat a tap. */
+.celebrate{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;
+  opacity:0;background:color-mix(in srgb,var(--gold) 12%,transparent);border-radius:var(--r-card)}
+.celebrate svg{width:5.5rem;height:5.5rem}
+.celebrate path{fill:none;stroke:var(--gold);stroke-width:9;stroke-linecap:round;
+  stroke-linejoin:round;stroke-dasharray:60;stroke-dashoffset:60}
+.celebrate.go{animation:celebfade 1.5s ease-out forwards}
+.celebrate.go path{animation:celebdraw .5s var(--ease) .1s forwards}
+.celebrate.still{opacity:1;animation:celebfade 1.1s ease-out forwards}
+.celebrate.still path{stroke-dashoffset:0}
+@keyframes celebdraw{to{stroke-dashoffset:0}}
+@keyframes celebfade{0%{opacity:0}12%{opacity:1}68%{opacity:1}100%{opacity:0}}
+.card{position:relative}
+
 /* --- destructive --- */
 .card.danger{border-color:var(--danger)}
 .card.danger h3{color:var(--danger-ink)}
@@ -382,7 +474,18 @@ details summary{cursor:pointer;min-height:var(--tap);display:flex;align-items:ce
   .card,.tile,.paintrow,.chip{border-width:2px}
   header.bar,nav.tabs{background:var(--bg);backdrop-filter:none;-webkit-backdrop-filter:none}
 }
-@media (prefers-reduced-motion:reduce){*{transition-duration:.01ms!important;animation-duration:.01ms!important}}
+/* Reduced motion means gentler, not gone. Travel, scale and bounce are what
+   cause trouble; a fade does not. Killing everything to 0.01ms also removed
+   harmless opacity changes that help you follow what just happened. */
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;transition-duration:.01ms!important}
+  /* put the useful fades back */
+  .photos img,.realswatch,.helpwrap,.ownwrap,.finmark,.toast,dialog,.celebrate{
+    transition-duration:.2s!important}
+  .finmark,.helpwrap,.ownwrap,.toast,dialog{transform:none!important}
+  .celebrate.still{animation-duration:1.1s!important}
+  .stepitem[data-s="now"] .dot{transform:scale(1.5)}
+}
 </style>
 </head>
 <body>
@@ -2401,6 +2504,30 @@ const BASE_SIZES = [
   ['20×20mm',     'Rank-and-file infantry (rectangular)']
 ];
 
+/* --- currencies ------------------------------------------------------------
+   Only the code is stored. Intl.NumberFormat then supplies the symbol and,
+   more importantly, puts it in the right place and uses the right separators
+   — 1 234,56 kr and £1,234.56 are both correct and hardcoding "£" in front
+   of a number would be wrong for most of this list. */
+const CURRENCIES = [
+  ['GBP','Pound sterling'],      ['EUR','Euro'],
+  ['USD','US dollar'],           ['CAD','Canadian dollar'],
+  ['AUD','Australian dollar'],   ['NZD','New Zealand dollar'],
+  ['SEK','Swedish krona'],       ['NOK','Norwegian krone'],
+  ['DKK','Danish krone'],        ['ISK','Icelandic króna'],
+  ['CHF','Swiss franc'],         ['PLN','Polish złoty'],
+  ['CZK','Czech koruna'],        ['HUF','Hungarian forint'],
+  ['RON','Romanian leu'],        ['BGN','Bulgarian lev'],
+  ['JPY','Japanese yen'],        ['CNY','Chinese yuan'],
+  ['HKD','Hong Kong dollar'],    ['SGD','Singapore dollar'],
+  ['KRW','South Korean won'],    ['INR','Indian rupee'],
+  ['ZAR','South African rand'],  ['BRL','Brazilian real'],
+  ['MXN','Mexican peso'],        ['ARS','Argentine peso'],
+  ['TRY','Turkish lira'],        ['ILS','Israeli new shekel'],
+  ['AED','UAE dirham'],          ['PHP','Philippine peso'],
+  ['MYR','Malaysian ringgit'],   ['THB','Thai baht']
+];
+
 /* --- the small tappable lists --------------------------------------------- */
 const CHIPS = {
   category: ['Skin','Bone','Metal','Cloth','Leather','Wood','Stone','Fur','Gems','Glass',
@@ -2514,8 +2641,11 @@ const HELP = {
    and the other device would helpfully recreate it forever.
    =========================================================================== */
 
+/* Adding to this list is only half the job: firestore.rules whitelists the
+   collection names a client may write, so a new one here without a matching
+   rules change saves locally and silently never reaches the account. */
 const SYNC_COLLECTIONS = ['minis','paints','recipes','swatches','systems',
-                          'factions','undercoats','links'];
+                          'factions','undercoats','links','supplies','wishlist'];
 
 let fb = null;              /* the initialised Firebase handles */
 let unsubscribes = [];
@@ -2897,7 +3027,7 @@ function syncPill(){
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v004';
+const APP_VERSION = 'v005';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -2940,9 +3070,10 @@ const PAINT_TYPES = ['Base','Layer','Wash','Contrast','Shade','Ink','Metallic','
 const STOCK = ['Have it','Running low','Out','Wishlist'];
 
 const BLANK = {
-  v:2, systems:[], factions:[], minis:[], stages:DEFAULT_STAGES.slice(),
+  v:3, systems:[], factions:[], minis:[], stages:DEFAULT_STAGES.slice(),
   paints:[], undercoats:UNDERCOAT_PRESETS.slice(), swatches:[],
-  recipes:[], links:[], wishlist:[], settings:{ theme:'' }
+  recipes:[], links:[], supplies:[], wishlist:[],
+  settings:{ theme:'', currency:'GBP' }
 };
 
 let data = BLANK;
@@ -2984,15 +3115,24 @@ function load(){
   /* Array.isArray on every list, never a truthy or .length check: a string has
      .length, so a corrupted systems:"x" would walk past a loose guard and then
      blank the app on first render. */
+  const st = (p.settings && typeof p.settings === 'object') ? p.settings : {};
   data = {
-    v:2,
+    v:3,
     systems:arr(p.systems), factions:arr(p.factions), minis:arr(p.minis),
     stages: arr(p.stages).length ? p.stages : DEFAULT_STAGES.slice(),
     paints:arr(p.paints),
     undercoats: mergeUndercoats(arr(p.undercoats)),
     swatches:arr(p.swatches), recipes:arr(p.recipes), links:arr(p.links),
+    /* New in v3. Anyone upgrading has neither, so they default to empty
+       rather than undefined — every list in this app must be an array by
+       the time anything reads it. */
+    supplies:arr(p.supplies),
     wishlist:arr(p.wishlist),
-    settings:(p.settings && typeof p.settings === 'object') ? p.settings : { theme:'' }
+    settings:{
+      theme: typeof st.theme === 'string' ? st.theme : '',
+      /* Pounds unless told otherwise; changeable in Your account. */
+      currency: CURRENCIES.some(c => c[0] === st.currency) ? st.currency : 'GBP'
+    }
   };
 }
 
@@ -3007,6 +3147,77 @@ function saveLocalOnly(){
 function save(){
   saveLocalOnly();
   if (typeof schedulePush === 'function') schedulePush();
+}
+
+/* --- money ----------------------------------------------------------------
+   Intl does the work. Hardcoding a symbol in front of the number would be
+   wrong for most currencies: kr goes after, yen has no decimals, and the
+   thousands separator differs. */
+let moneyFmt = null, moneyFmtFor = null;
+function money(n){
+  const code = (data.settings && data.settings.currency) || 'GBP';
+  if (moneyFmtFor !== code){
+    try {
+      moneyFmt = new Intl.NumberFormat(undefined,
+        { style:'currency', currency:code, maximumFractionDigits:2 });
+    } catch (e) {
+      moneyFmt = null;      /* unknown code: fall back rather than throw */
+    }
+    moneyFmtFor = code;
+  }
+  const v = Number(n) || 0;
+  if (!moneyFmt) return code + ' ' + v.toFixed(2);
+  /* Whole amounts read better without .00 on a small screen. */
+  return Number.isInteger(v)
+    ? moneyFmt.format(v).replace(/[.,]00(?!\d)/, '')
+    : moneyFmt.format(v);
+}
+function currencyName(code){
+  const hit = CURRENCIES.find(c => c[0] === code);
+  return hit ? hit[1] : code;
+}
+
+/* --- how long something has been waiting ---------------------------------- */
+function monthsSince(iso){
+  if (!iso) return null;
+  const then = new Date(iso + 'T00:00:00');
+  if (isNaN(then)) return null;
+  const now = new Date();
+  let m = (now.getFullYear() - then.getFullYear()) * 12 + (now.getMonth() - then.getMonth());
+  if (now.getDate() < then.getDate()) m--;
+  return m < 0 ? 0 : m;
+}
+function waitedFor(iso){
+  const m = monthsSince(iso);
+  if (m === null) return '';
+  if (m < 1) return 'this month';
+  if (m < 12) return m + ' mo';
+  const y = Math.floor(m / 12), r = m % 12;
+  return y + ' yr' + (r ? ' ' + r + ' mo' : '');
+}
+function waitingSince(iso){
+  if (!iso) return '';
+  const d = new Date(iso + 'T00:00:00');
+  if (isNaN(d)) return '';
+  return d.toLocaleDateString(undefined, { month:'long', year:'numeric' });
+}
+
+/* A model counts as unfinished until every one of its models is done. */
+function isFinished(m){
+  return m.stage === data.stages[data.stages.length - 1];
+}
+function collectionValue(){
+  let unpainted = 0, finished = 0, priced = 0;
+  arr(data.minis).forEach(m => {
+    const p = Number(m.price);
+    if (!p) return;
+    priced++;
+    if (isFinished(m)) finished += p; else unpainted += p;
+  });
+  const total = unpainted + finished;
+  return { unpainted, finished, priced, total,
+           pct: total ? Math.round((finished / total) * 100) : 0,
+           missing: arr(data.minis).length - priced };
 }
 
 /* --- photos: IndexedDB ---------------------------------------------------- */
@@ -3206,7 +3417,15 @@ const state = {
   tab:'home', openMini:null, openPaint:null, openRecipe:null,
   sub:null, view:'grid', q:'', fSys:'', fStage:'',
   pq:'', pStock:'', planner:{ paintId:null, kind:'complementary' },
-  cmp:{ mode:'paint', paintId:null, ucId:null }, pending:null
+  cmp:{ mode:'paint', paintId:null, ucId:null }, pending:null,
+  /* Deliberately not persisted: the collection value starts hidden on every
+     launch, so opening the app never confronts you with it. */
+  showValue:false,
+  sort:'', shopTab:'need',
+  /* Ticked-in-the-shop is session state, never saved. It means "crossed off
+     for this trip", which is not the same as "back in the cupboard". */
+  ticked:{},
+  pick:{ kind:'build', opts:{}, result:null, last:null }
 };
 
 function applyTheme(){
@@ -3270,17 +3489,63 @@ function screenHome(){
     recent.forEach(m => { h += tile(m); });
     h += `</div>`;
   }
+  h += valuePanel();
+
   h += `<h3 style="margin-top:1.5rem">Quick actions</h3><div class="row wrapm">
     <button class="btn" data-act="addMini">Add a miniature</button>
+    <button class="btn ghost" data-act="pick">Pick something for me</button>
+    <button class="btn ghost" data-act="shop">Shopping list${
+      needList().total ? ` <span class="n">${needList().total}</span>` : ''}</button>
     <button class="btn ghost" data-act="addPaint">Add a paint</button>
     <button class="btn ghost" data-act="newRecipe">New recipe</button>
     <button class="btn ghost" data-act="quickSwatch">Photograph a swatch</button></div>`;
   return h;
 }
+
+/* What the collection is worth.
+
+   Hidden until asked for, every time. Nobody should open this app and be met
+   with a number about their own money. It is shown beside what has been
+   FINISHED so it reads as progress rather than debt, and it does not count up
+   or animate — a figure like this arriving with a flourish is a fruit machine. */
+function valuePanel(){
+  const v = collectionValue();
+  if (!v.priced) return '';
+  if (!state.showValue){
+    return `<div class="valueline">
+      <span class="small muted">Collection value</span>
+      <button class="linkbtn" data-act="showValue">Show</button></div>`;
+  }
+  return `<div class="valueline">
+      <span class="small muted">Collection value</span>
+      <button class="linkbtn" data-act="hideValue">Hide</button></div>
+    <div class="vgrid">
+      <div class="vcell"><b class="num">${esc(money(v.unpainted))}</b><span>waiting to be painted</span></div>
+      <div class="vcell done"><b class="num">${esc(money(v.finished))}</b><span>painted and finished</span></div>
+    </div>
+    <div class="valbar"><i style="width:${v.pct}%"></i></div>
+    <p class="barlab">${v.pct}% of what you&rsquo;ve spent is finished and on the shelf.</p>
+    ${v.missing ? `<p class="small muted" style="margin:.5rem 0 0">Based on the
+      <span class="num">${v.priced}</span> of your <span class="num">${v.priced + v.missing}</span>
+      entries that have a price. The rest aren&rsquo;t counted.</p>` : ''}`;
+}
 function greeting(){
   const hr = new Date().getHours();
   return hr < 12 ? 'Good morning.' : hr < 18 ? 'Good afternoon.' : 'Good evening.';
 }
+/* When a sort is active, show the thing being sorted on. Sorting a list by
+   something invisible leaves people unable to tell whether it worked. */
+function sortNote(m){
+  if (state.sort === 'waiting'){
+    if (!m.acquired) return `<span class="small muted">no date recorded</span>`;
+    return `<span class="small muted">${isFinished(m) ? 'owned' : 'waiting'}
+      <span class="num">${esc(waitedFor(m.acquired))}</span></span>`;
+  }
+  if (state.sort === 'value' && m.price != null && m.price !== '')
+    return `<span class="small muted num">${esc(money(m.price))}</span>`;
+  return '';
+}
+
 function tile(m){
   const pid = arr(m.photos)[0];
   const img = pid ? photoImg(pid,'ph') : `<div class="ph empty">no photo yet</div>`;
@@ -3290,6 +3555,7 @@ function tile(m){
     <span class="meta"><b class="user-text">${esc(m.name)}</b>
     ${sub?`<span class="small muted user-text">${esc(sub)}</span>`:''}
     <span class="small muted">${esc(m.stage)}${n>1?` · <span class="num">${d} of ${n}</span> finished`:''}</span>
+    ${sortNote(m)}
     </span></button>`;
 }
 
@@ -3314,8 +3580,16 @@ function screenCollection(){
     if (m.sys) sysCount[m.sys] = (sysCount[m.sys]||0)+1;
     stageCount[m.stage] = (stageCount[m.stage]||0)+1;
   });
+  /* Only offer the sorts that have data behind them. A "longest waiting" chip
+     on a collection where nobody has entered a date sorts nothing. */
+  const anyDate = data.minis.some(m => m.acquired);
+  const anyPrice = data.minis.some(m => m.price != null && m.price !== '');
   h += `<div class="chips"><button class="chip" data-view="${state.view==='grid'?'list':'grid'}">
       ${state.view==='grid'?'List view':'Grid view'}</button>`;
+  if (anyDate) h += `<button class="chip" data-sort="waiting"
+      aria-pressed="${state.sort==='waiting'}">Longest waiting</button>`;
+  if (anyPrice) h += `<button class="chip" data-sort="value"
+      aria-pressed="${state.sort==='value'}">Most expensive</button>`;
   data.systems.filter(s => sysCount[s.id]).forEach(s => {
     h += `<button class="chip" data-fsys="${esc(s.id)}" aria-pressed="${state.fSys===s.id}">
       ${esc(s.name)} <span class="n">${sysCount[s.id]}</span></button>`;
@@ -3357,7 +3631,27 @@ function filtered(){
     const hay = [m.name, m.tags, m.notes, sysName(m.sys), facName(m.fac), m.stage]
       .filter(Boolean).join(' ').toLowerCase();
     return hay.includes(q);
-  }).sort((a,b) => (b.updated||0)-(a.updated||0));
+  }).sort(sorter());
+}
+
+/* Most recently touched by default. "Longest waiting" uses the date you got
+   it, which is a different fact from when you added the record — you might
+   log a box today that has sat in a cupboard for three years. Anything with
+   no date goes last rather than pretending to be new. */
+function sorter(){
+  if (state.sort === 'waiting'){
+    return (a,b) => {
+      const am = monthsSince(a.acquired), bm = monthsSince(b.acquired);
+      if (am === null && bm === null) return (b.updated||0)-(a.updated||0);
+      if (am === null) return 1;
+      if (bm === null) return -1;
+      return bm - am;
+    };
+  }
+  if (state.sort === 'value'){
+    return (a,b) => (Number(b.price)||0) - (Number(a.price)||0);
+  }
+  return (a,b) => (b.updated||0)-(a.updated||0);
 }
 
 /* ===========================================================================
@@ -3374,6 +3668,14 @@ function screenMini(){
   h += `<h2 class="display user-text" style="font-size:1.625rem">${esc(m.name)}</h2>`;
   const sub = [sysName(m.sys), facName(m.fac)].filter(Boolean).join(' · ');
   if (sub) h += `<p class="muted user-text" style="margin-top:-.25rem">${esc(sub)}</p>`;
+
+  /* "Waiting since", not "neglected for". The hobby makes its own jokes about
+     the pile of shame; the app only has to tell the truth. */
+  const facts = [];
+  if (m.acquired) facts.push((isFinished(m) ? 'Bought ' : 'Waiting since ') + esc(waitingSince(m.acquired)));
+  if (m.price != null && m.price !== '') facts.push(esc(money(m.price)));
+  if (m.base) facts.push(esc(m.base));
+  if (facts.length) h += `<p class="small muted" style="margin-top:.25rem">${facts.join(' &middot; ')}</p>`;
 
   const stageHelp = helpBlock('stages');
   h += `<div class="card${fin?' finished':''}">
@@ -3422,6 +3724,11 @@ function screenMini(){
       `<select id="eBase"><option value="">Not set</option>
          ${BASE_SIZES.map(b => `<option value="${esc(b[0])}"${m.base === b[0] ? ' selected' : ''}>${esc(b[0])} &mdash; ${esc(b[1])}</option>`).join('')}
        </select>`, 'baseSize')}
+    <label for="ePrice">What it cost <span class="opt">optional</span></label>
+    <input id="ePrice" type="number" min="0" step="0.01" inputmode="decimal"
+      value="${m.price == null ? '' : esc(String(m.price))}">
+    <label for="eAcq">When you got it <span class="opt">optional</span></label>
+    <input id="eAcq" type="date" value="${esc(m.acquired || '')}">
     ${chips('eTags', CHIPS.tag, { label:'Tags', value:m.tags || '', multi:true,
       ownPlaceholder:'Your own tags, separated by commas' })}
     <label for="eNotes">Notes</label><textarea id="eNotes" class="user-text">${esc(m.notes||'')}</textarea>
@@ -3443,9 +3750,13 @@ function screenPaints(){
   if (state.sub === 'planner') return screenPlanner();
   if (state.openPaint) return screenPaintDetail();
 
+  const nd = needList();
   let h = `<div class="row spread" style="margin:.875rem 0 .375rem">
     <h2 class="display" style="font-size:1.5rem;margin:0">Paints</h2>
-    <button class="btn sm" data-act="addPaint">Add</button></div>`;
+    <div class="row" style="margin:0">
+      ${nd.total ? `<button class="btn sm ghost" data-act="shop">Shopping
+        <span class="n">${nd.total}</span></button>` : ''}
+      <button class="btn sm" data-act="addPaint">Add</button></div></div>`;
 
   if (!data.paints.length){
     return h + `<div class="empty"><p>No paints yet. Add one from the catalogue of
@@ -3729,6 +4040,8 @@ function render(){
   let html;
   if (state.tab === 'account')       html = screenAccount();
   else if (state.tab === 'privacy')  html = screenPrivacy('home');
+  else if (state.tab === 'pick')     html = screenPick();
+  else if (state.tab === 'shop')     html = screenShop();
   else if (state.tab === 'home')     html = screenHome();
   else if (state.tab === 'coll')     html = state.openMini ? screenMini() : screenCollection();
   else if (state.tab === 'paints')   html = screenPaints();
@@ -3741,7 +4054,371 @@ function render(){
   });
   const slot = document.getElementById('syncslot');
   if (slot){ slot.innerHTML = ''; slot.appendChild(syncPill()); }
+  /* A render rebuilds the stage strip, which resets it to scrollLeft 0 — so
+     after a stage change the strip would snap back to "Unbuilt" and hide the
+     stage you just reached. Put it back, instantly, with no animation. */
+  scrollStripToCurrent(false);
   hydratePhotos();
+}
+
+function scrollStripToCurrent(smooth){
+  const strip = document.querySelector('.stepper');
+  const active = strip && strip.querySelector('.stepitem[data-s="now"]');
+  if (!strip || !active) return;
+  const want = active.offsetLeft - (strip.clientWidth / 2) + (active.offsetWidth / 2);
+  strip.scrollTo({ left: Math.max(0, want),
+                   behavior: (smooth && !reducedMotion()) ? 'smooth' : 'auto' });
+}
+
+/* ===========================================================================
+   The shop
+
+   Need and Want are the same moment — you are standing in a shop with one
+   phone — so they are one screen with two sides. Need writes itself from the
+   stock states you already set while painting; you never maintain it.
+   =========================================================================== */
+const SHOP_LOW = ['Running low','Out'];
+
+function needList(){
+  const paints = arr(data.paints).filter(p => SHOP_LOW.indexOf(p.stock) !== -1);
+  const supplies = arr(data.supplies).filter(s => SHOP_LOW.indexOf(s.stock) !== -1);
+  return { paints, supplies, total: paints.length + supplies.length };
+}
+
+function screenShop(){
+  const need = needList();
+  const want = arr(data.wishlist);
+  const tab = state.shopTab;
+
+  let h = `${backBtn('home','Home')}
+    <h2 class="display" style="font-size:1.5rem;margin:0 0 .5rem">Shopping</h2>
+    <div class="tabs2" role="tablist">
+      <button role="tab" data-shop="need" aria-selected="${tab==='need'}">Need
+        ${need.total?`<span class="n">${need.total}</span>`:''}</button>
+      <button role="tab" data-shop="want" aria-selected="${tab==='want'}">Want
+        ${want.length?`<span class="n">${want.length}</span>`:''}</button>
+    </div>`;
+
+  if (tab === 'need'){
+    if (!need.total){
+      h += `<div class="empty"><p>Nothing to buy. Mark a paint <b>Running low</b> or
+        <b>Out</b> while you&rsquo;re painting and it turns up here by itself.</p>
+        <button class="btn ghost" data-act="addSupply">Add a supply</button></div>`;
+      return h;
+    }
+    if (need.paints.length){
+      h += `<p class="grouphead">Paints</p>`;
+      need.paints.forEach(p => { h += shopRow(p, 'paint'); });
+    }
+    if (need.supplies.length){
+      h += `<p class="grouphead">Supplies</p>`;
+      need.supplies.forEach(s => { h += shopRow(s, 'supply'); });
+    }
+    const n = Object.keys(state.ticked || {}).filter(k => state.ticked[k]).length;
+    h += `<div class="row"><button class="btn ghost" data-act="addSupply">Add a supply</button></div>`;
+    if (n) h += `<div class="row"><button class="btn" data-act="restock">
+      I bought these &mdash; mark <span class="num">${n}</span> back in stock</button></div>`;
+    h += `<p class="small muted" style="margin-top:.75rem">Ticking crosses something off for
+      this trip. Nothing changes in your paints until you press the button above &mdash;
+      standing in a shop and what&rsquo;s actually in your cupboard are different things.</p>`;
+    return h;
+  }
+
+  if (!want.length){
+    h += `<div class="empty"><p>Nothing on the wishlist. Add the things you fancy next
+      &mdash; models, paints, anything.</p>
+      <button class="btn" data-act="addWish">Add something</button></div>`;
+    return h;
+  }
+  const groups = [['model','Models'],['paint','Paints'],['supply','Supplies'],['other','Anything else']];
+  groups.forEach(g => {
+    const items = want.filter(w => (w.kind || 'other') === g[0]);
+    if (!items.length) return;
+    h += `<p class="grouphead">${esc(g[1])}</p>`;
+    items.forEach(w => { h += wishRow(w); });
+  });
+  h += `<div class="row"><button class="btn ghost" data-act="addWish">Add something</button></div>`;
+  return h;
+}
+
+function shopRow(item, kind){
+  const got = !!(state.ticked && state.ticked[item.id]);
+  const sw = kind === 'paint' && item.hex
+    ? `<span class="sw" style="background:${esc(item.hex)}"></span>` : '';
+  const sub = kind === 'paint'
+    ? [item.brand, item.range].filter(Boolean).join(' · ')
+    : (item.note || '');
+  return `<div class="shoprow${got?' got':''}">
+    <button class="tick" data-tick="${esc(item.id)}" aria-pressed="${got}"
+      aria-label="${got?'Put back on the list':'Got it'}: ${esc(item.name)}">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 13 L10 18 L19 6" fill="none"
+        stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>${sw}
+    <span class="nm"><b class="user-text">${esc(item.name)}</b>
+      ${sub?`<span class="user-text">${esc(sub)}</span>`:''}</span>
+    <span class="pill${item.stock==='Out'?' out':''}">${item.stock==='Out'?'Out':'Low'}</span>
+  </div>`;
+}
+
+function wishRow(w){
+  const got = !!(state.ticked && state.ticked[w.id]);
+  const bits = [];
+  if (w.note) bits.push(w.note);
+  if (w.price != null && w.price !== '') bits.push('around ' + money(w.price));
+  return `<div class="shoprow${got?' got':''}">
+    <button class="tick" data-tick="${esc(w.id)}" aria-pressed="${got}"
+      aria-label="${got?'Untick':'Got it'}: ${esc(w.name)}">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 13 L10 18 L19 6" fill="none"
+        stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <span class="nm"><b class="user-text">${esc(w.name)}</b>
+      ${bits.length?`<span class="user-text">${esc(bits.join(' · '))}</span>`:''}</span>
+    <button class="iconbtn" data-delwish="${esc(w.id)}" aria-label="Remove ${esc(w.name)} from the wishlist">&times;</button>
+  </div>`;
+}
+
+function dlgAddSupply(){
+  openDialog('Add a supply',
+    `<p class="small muted" style="margin:0 0 .5rem">Glue, brushes, files, basing grit &mdash;
+      anything that isn&rsquo;t a paint but still runs out.</p>
+     <label for="suName">What is it?</label>
+     <input id="suName" placeholder="Plastic glue" autocomplete="off">
+     <label for="suNote">Note <span class="opt">optional</span></label>
+     <input id="suNote" placeholder="Thin, the one with the needle">
+     ${chips('suStock', ['Have it','Running low','Out'], { label:'How are you for it?',
+        value:'Running low', noOwn:true })}`,
+    () => {
+      const n = $('#suName').value.trim();
+      if (!n){ toast(NAME_REQUIRED); return false; }
+      data.supplies.push({ id:uid(), name:n, note:$('#suNote').value.trim(),
+        stock:$('#suStock').value || 'Have it', created:Date.now(), updated:Date.now() });
+      save(); render(); toast('Supply added.');
+    }, 'Add');
+}
+
+function dlgAddWish(){
+  openDialog('Add to the wishlist',
+    `<label for="wName">What do you want?</label>
+     <input id="wName" placeholder="Sons of Behemat — Mega-Gargant" autocomplete="off">
+     ${chips('wKind', ['Model','Paint','Supply','Anything else'],
+        { label:'What sort of thing?', value:'Model', noOwn:true })}
+     <label for="wNote">Note <span class="opt">optional</span></label>
+     <input id="wNote" placeholder="Age of Sigmar">
+     <label for="wPrice">Roughly what it costs <span class="opt">optional</span></label>
+     <input id="wPrice" type="number" min="0" step="0.01" inputmode="decimal">`,
+    () => {
+      const n = $('#wName').value.trim();
+      if (!n){ toast(NAME_REQUIRED); return false; }
+      const k = ($('#wKind').value || 'Model').toLowerCase();
+      data.wishlist.push({ id:uid(), name:n,
+        kind: k.indexOf('model') === 0 ? 'model' : k.indexOf('paint') === 0 ? 'paint'
+            : k.indexOf('supply') === 0 ? 'supply' : 'other',
+        note:$('#wNote').value.trim(),
+        price: $('#wPrice').value === '' ? null : Math.max(0, Number($('#wPrice').value) || 0),
+        created:Date.now(), updated:Date.now() });
+      save(); render(); toast('Added to the wishlist.');
+    }, 'Add');
+}
+
+/* Only now does anything actually change. Ticking in a shop and what is in
+   your cupboard are different facts, and guessing would corrupt the list you
+   rely on next trip. */
+function restock(){
+  const ids = Object.keys(state.ticked || {}).filter(k => state.ticked[k]);
+  if (!ids.length) return;
+  let n = 0;
+  ids.forEach(id => {
+    const p = arr(data.paints).find(x => x.id === id);
+    if (p){ p.stock = 'Have it'; p.updated = Date.now(); n++; return; }
+    const s = arr(data.supplies).find(x => x.id === id);
+    if (s){ s.stock = 'Have it'; s.updated = Date.now(); n++; }
+  });
+  state.ticked = {};
+  save(); render();
+  toast(n + (n === 1 ? ' item' : ' items') + ' marked back in stock.');
+}
+
+/* ===========================================================================
+   Pick something for me
+
+   The real problem is not randomness, it is standing in front of a shelf
+   unable to choose. So the important button is "Not that one", and the whole
+   thing is built to be pressed repeatedly: under 700ms a go, and it never
+   offers the same entry twice running.
+   =========================================================================== */
+function pickPool(){
+  const p = state.pick, lastStage = data.stages[data.stages.length - 1];
+  return arr(data.minis).filter(m => {
+    if (m.stage === lastStage) return false;            /* already done */
+    if (p.kind === 'build' && m.stage !== data.stages[0]) return false;
+    if (p.kind === 'paint' && m.stage === data.stages[0]) return false;
+    if (p.opts.quick && (Number(m.total) || 1) > 5) return false;
+    if (p.opts.sys && m.sys !== p.opts.sys) return false;
+    return true;
+  });
+}
+
+function screenPick(){
+  const p = state.pick;
+  const withMinis = {};
+  arr(data.minis).forEach(m => { if (m.sys) withMinis[m.sys] = true; });
+  const systems = arr(data.systems).filter(s => withMinis[s.id]);
+
+  let h = `${backBtn('home','Home')}
+    <h2 class="display" style="font-size:1.5rem">What should I do next?</h2>
+    <div class="chips">
+      <button class="chip" data-pk="build" aria-pressed="${p.kind==='build'}">To build</button>
+      <button class="chip" data-pk="paint" aria-pressed="${p.kind==='paint'}">To paint</button>
+      <button class="chip" data-pk="either" aria-pressed="${p.kind==='either'}">Either</button>
+    </div>
+    <div class="chips" style="margin-top:.5rem">
+      <button class="chip" data-po="old" aria-pressed="${!!p.opts.old}">Favour the oldest</button>
+      <button class="chip" data-po="quick" aria-pressed="${!!p.opts.quick}">Something quick</button>
+    </div>`;
+
+  if (systems.length > 1){
+    h += `<label for="pkSys" style="margin-top:.875rem">Only from</label>
+      <select id="pkSys"><option value="">Any game system</option>
+        ${systems.map(s => `<option value="${esc(s.id)}"${p.opts.sys===s.id?' selected':''}>${esc(s.name)}</option>`).join('')}
+      </select>`;
+  }
+
+  const pool = pickPool();
+  h += `<div class="picker" id="picker">
+    <div class="pickface" id="pickface">`;
+  if (p.result){
+    h += pickFaceHtml(p.result);
+  } else if (!pool.length){
+    h += `<p class="pickidle">Nothing matches that. Loosen one of the choices above.</p>`;
+  } else {
+    h += `<p class="pickidle">Press the button and I&rsquo;ll choose from your
+      <span class="num">${pool.length}</span>.</p>`;
+  }
+  h += `</div></div>
+    <div class="row"><button class="btn wide" data-act="doPick"${pool.length?'':' disabled'}>
+      ${p.result ? 'Pick again' : 'Pick one for me'}</button></div>`;
+  if (p.result){
+    h += `<div class="row">
+      <button class="btn ghost" data-act="doPick">Not that one</button>
+      <button class="btn ghost" data-act="openPicked">Open this</button></div>`;
+  }
+  return h;
+}
+
+function pickFaceHtml(m){
+  const sub = [sysName(m.sys), facName(m.fac)].filter(Boolean).join(' · ');
+  const n = Number(m.total) || 1;
+  const bits = [n + (n === 1 ? ' model' : ' models')];
+  if (m.acquired) bits.push('waiting ' + waitedFor(m.acquired));
+  bits.push(m.stage);
+  return `<div><p class="pickname user-text">${esc(m.name)}</p>
+    ${sub ? `<p class="picksub user-text">${esc(sub)}</p>` : ''}
+    <p class="pickmeta">${esc(bits.join(' · '))}</p></div>`;
+}
+
+/* The flick. Three names go past, decelerating, then the chosen one settles.
+   Deliberately not a spinning reel: a reel is slow, and it implies the app is
+   doing something cleverer than picking at random. */
+function runPick(){
+  const p = state.pick;
+  const pool = pickPool();
+  const face = $('#pickface');
+  if (!pool.length || !face) return;
+
+  const choices = pool.length > 1 ? pool.filter(m => m.id !== p.last) : pool;
+  let winner;
+  if (p.opts.old){
+    const dated = choices.filter(m => m.acquired);
+    winner = dated.length
+      ? dated.sort((a,b) => monthsSince(b.acquired) - monthsSince(a.acquired))[0]
+      : choices[Math.floor(Math.random() * choices.length)];
+  } else {
+    winner = choices[Math.floor(Math.random() * choices.length)];
+  }
+
+  const settle = () => {
+    p.result = winner; p.last = winner.id;
+    render();
+    const f = $('#pickface');
+    if (f && !reducedMotion()){ f.classList.remove('land'); void f.offsetWidth; f.classList.add('land'); }
+  };
+
+  if (reducedMotion() || pool.length < 2){ settle(); return; }
+
+  face.classList.add('flick');
+  [0, 110, 210].forEach(d => setTimeout(() => {
+    const f = $('#pickface');
+    if (f) f.innerHTML = pickFaceHtml(pool[Math.floor(Math.random() * pool.length)]);
+  }, d));
+  setTimeout(() => {
+    const f = $('#pickface');
+    if (f) f.classList.remove('flick');
+    settle();
+  }, 330);
+}
+function reducedMotion(){
+  try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+  catch (e) { return false; }
+}
+
+/* ---------------------------------------------------------------------------
+   Moving a model along its stages.
+
+   This is the most-used action in the app and, until now, the flattest: the
+   screen was rebuilt from scratch on every tap, so the bar jumped to its new
+   width and the tick simply existed. Updating in place gives the transitions
+   something to travel from.
+--------------------------------------------------------------------------- */
+function advanceStrip(m, justFinished){
+  const box = document.querySelector('.stepinner');
+  if (!box){ render(); return; }
+
+  const idx = data.stages.indexOf(m.stage);
+  const last = data.stages.length - 1;
+  const fill = box.querySelector('.steprail i');
+  if (fill) fill.style.width = ((idx / last) * 100) + '%';
+  box.querySelectorAll('.stepitem').forEach((el, i) => {
+    el.dataset.s = i < idx ? 'done' : (i === idx ? 'now' : 'todo');
+  });
+
+  const nowEl = document.querySelector('.stagenow');
+  if (nowEl) nowEl.textContent = m.stage;
+
+  /* Eight stages do not fit a phone, so the one you just reached can easily
+     be off the side of the screen. Bring it into view. */
+  scrollStripToCurrent(true);
+
+  const card = box.closest('.card');
+  if (card) card.classList.toggle('finished', isFinished(m));
+  const fin = document.querySelector('.finmark');
+  if (fin) fin.classList.toggle('on', isFinished(m));
+
+  if (justFinished) celebrate(card);
+
+  /* Everything else on the screen still needs the new numbers, but only
+     after the motion has had its moment. */
+  clearTimeout(advanceStrip._t);
+  advanceStrip._t = setTimeout(() => {
+    if (state.tab === 'coll' && state.openMini === m.id) render();
+  }, justFinished ? 1700 : 420);
+}
+
+/* Option B: a large tick draws itself across the card, then clears.
+   Pointer-events are off throughout so it can never swallow a tap. */
+function celebrate(card){
+  if (!card || card.querySelector('.celebrate')) return;
+  const el = document.createElement('div');
+  el.className = 'celebrate';
+  el.setAttribute('aria-hidden', 'true');
+  el.innerHTML = `<svg viewBox="0 0 48 48"><path d="M10 25 L20 35 L38 14"/></svg>`;
+  card.appendChild(el);
+  if (reducedMotion()){
+    el.classList.add('still');
+    setTimeout(() => el.remove(), 1200);
+  } else {
+    el.classList.add('go');
+    setTimeout(() => el.remove(), 1600);
+  }
 }
 
 /* ===========================================================================
@@ -3839,6 +4516,20 @@ function screenAccount(){
     <p class="small muted" style="margin:.5rem 0 0">Signing out leaves your
       collection in your account. It does not delete anything.</p>
   </div>
+  <div class="card">
+    <h3>Currency</h3>
+    <p class="small muted" style="margin:0 0 .25rem">Used wherever the app shows a price:
+      what a model cost, your collection value, wishlist estimates.</p>
+    <label for="setCurrency">Show prices in</label>
+    <select id="setCurrency">
+      ${CURRENCIES.map(c => `<option value="${esc(c[0])}"${
+        (data.settings.currency||'GBP') === c[0] ? ' selected' : ''
+      }>${esc(c[1])} &mdash; ${esc(c[0])}</option>`).join('')}
+    </select>
+    <p class="small muted" style="margin:.5rem 0 0">Changing this does not convert anything.
+      The numbers you typed stay exactly as they are &mdash; only the symbol in front of
+      them changes. Example: <b class="num">${esc(money(32.5))}</b></p>
+  </div>
   <div class="card danger">
     <h3>Delete your account</h3>
     <p class="small">This removes your collection, every photograph you have
@@ -3927,7 +4618,11 @@ function helpBlock(key){
   return {
     btn: `<button class="q" type="button" data-help="${id}" aria-expanded="false"
             aria-controls="${id}" aria-label="${esc(h.title)}">?</button>`,
-    panel: `<div class="help" id="${id}" hidden><b class="helph">${esc(h.title)}</b>${inner}</div>`
+    /* Three nested elements so the answer can grow into place: the outer one
+       animates grid-template-rows 0fr -> 1fr, which is how you transition to
+       an unknown height, and the middle one clips while it does. */
+    panel: `<div class="helpwrap" id="${id}"><div><div class="help">
+              <b class="helph">${esc(h.title)}</b>${inner}</div></div></div>`
   };
 }
 
@@ -3962,8 +4657,10 @@ function chips(id, items, opts){
         ${o.noOwn ? '' : `<button class="chip" type="button" data-own="1"
             aria-pressed="${own ? 'true' : 'false'}">Type my own</button>`}
       </div>
-      <input class="chipown" type="text" placeholder="${esc(o.ownPlaceholder || 'Type it here')}"
-        value="${esc(extra.join(', '))}"${own ? '' : ' hidden'}>
+      <div class="ownwrap${own ? ' open' : ''}"><div>
+        <input class="chipown" type="text" placeholder="${esc(o.ownPlaceholder || 'Type it here')}"
+          value="${esc(extra.join(', '))}">
+      </div></div>
     </div>${h.panel}`;
 }
 
@@ -3974,7 +4671,9 @@ function syncChips(wrap){
   const vals = [];
   wrap.querySelectorAll('.chip[data-val][aria-pressed="true"]')
       .forEach(c => vals.push(c.dataset.val));
-  if (!own.hidden) own.value.split(',').map(s => s.trim()).filter(Boolean)
+  const ownBox = own.closest('.ownwrap');
+  if (ownBox && ownBox.classList.contains('open'))
+    own.value.split(',').map(s => s.trim()).filter(Boolean)
       .forEach(v => { if (vals.indexOf(v) === -1) vals.push(v); });
   hidden.value = vals.join(wrap.hasAttribute('data-multi') ? ', ' : '');
 }
@@ -4117,6 +4816,12 @@ function dlgAddMini(){
 
        <label for="mTotal">How many models</label>
        <input id="mTotal" type="number" min="1" value="1" inputmode="numeric">
+
+       <label for="mPrice">What it cost <span class="opt">optional</span></label>
+       <input id="mPrice" type="number" min="0" step="0.01" inputmode="decimal"
+         placeholder="${esc(money(0).replace(/[\d.,\s]/g,''))}">
+       <label for="mAcq">When you got it <span class="opt">optional</span></label>
+       <input id="mAcq" type="date">
      </details>`,
     () => {
       const name = $('#mName').value.trim();
@@ -4133,6 +4838,11 @@ function dlgAddMini(){
       data.minis.push({ id:uid(), name, sys, fac,
         base:$('#mBase').value || '',
         total:Math.max(1, Number($('#mTotal').value) || 1),
+        /* Both optional and both stay empty rather than zero: a price of 0
+           and no price recorded are different facts, and the collection
+           total must not count a guess as a real figure. */
+        price: $('#mPrice').value === '' ? null : Math.max(0, Number($('#mPrice').value) || 0),
+        acquired: $('#mAcq').value || '',
         done:0, stage:data.stages[0], tags:'', notes:'', photos:[],
         created:Date.now(), updated:Date.now() });
       setLastUsed({ sys:sysName, fac:facName });
@@ -4298,8 +5008,8 @@ document.addEventListener('click', e => {
   if (q){
     const panel = document.getElementById(q.dataset.help);
     if (panel){
-      const opening = panel.hasAttribute('hidden');
-      if (opening) panel.removeAttribute('hidden'); else panel.setAttribute('hidden','');
+      const opening = !panel.classList.contains('open');
+      panel.classList.toggle('open', opening);
       q.setAttribute('aria-expanded', opening ? 'true' : 'false');
     }
     e.stopPropagation(); e.preventDefault(); return;
@@ -4318,11 +5028,13 @@ document.addEventListener('click', e => {
       if (!multi) wrap.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed','false'));
       chip.setAttribute('aria-pressed', wasOn ? 'false' : 'true');
 
+      const ownBox = own.closest('.ownwrap');
       if (chip.dataset.own){
-        own.hidden = wasOn;
+        if (ownBox) ownBox.classList.toggle('open', !wasOn);
         if (wasOn) own.value = ''; else own.focus();
       } else if (!multi){
-        own.hidden = true; own.value = '';
+        if (ownBox) ownBox.classList.remove('open');
+        own.value = '';
         const ownChip = wrap.querySelector('.chip[data-own]');
         if (ownChip) ownChip.setAttribute('aria-pressed','false');
       }
@@ -4372,6 +5084,22 @@ document.addEventListener('click', e => {
       doSignOut().catch(() => {}).finally(() => { state.tab = 'home'; render(); });
       return;
     }
+    /* --- the new screens --- */
+    if (a === 'pick'){ $('#dlg').close(); state.tab = 'pick'; state.openMini = null;
+      state.pick.result = null; render(); window.scrollTo(0,0); return; }
+    if (a === 'shop'){ $('#dlg').close(); state.tab = 'shop'; state.openMini = null;
+      render(); window.scrollTo(0,0); return; }
+    if (a === 'doPick')     return runPick();
+    if (a === 'openPicked'){
+      if (!state.pick.result) return;
+      state.openMini = state.pick.result.id; state.tab = 'coll'; render(); window.scrollTo(0,0); return;
+    }
+    if (a === 'addSupply')  return dlgAddSupply();
+    if (a === 'addWish')    return dlgAddWish();
+    if (a === 'restock')    return restock();
+    if (a === 'showValue'){ state.showValue = true; render(); return; }
+    if (a === 'hideValue'){ state.showValue = false; render(); return; }
+
     if (a === 'account'){ $('#dlg').close(); state.tab = 'account'; state.openMini = null; render(); return; }
     if (a === 'privacy'){ $('#dlg').close(); state.tab = 'privacy'; render(); return; }
     if (a === 'exportFirst') return exportData();
@@ -4405,14 +5133,44 @@ document.addEventListener('click', e => {
   const ft = t.closest('[data-fstage]'); if (ft){ state.fStage = state.fStage===ft.dataset.fstage?'':ft.dataset.fstage; render(); return; }
   const fk = t.closest('[data-fstock]'); if (fk){ state.pStock = state.pStock===fk.dataset.fstock?'':fk.dataset.fstock; render(); return; }
   const hm = t.closest('[data-harm]');  if (hm){ state.planner.kind = hm.dataset.harm; render(); return; }
+
+  /* --- sorting, the picker and the shop --- */
+  const so = t.closest('[data-sort]');
+  if (so){ state.sort = state.sort === so.dataset.sort ? '' : so.dataset.sort; render(); return; }
+  const pk = t.closest('[data-pk]');
+  if (pk){ state.pick.kind = pk.dataset.pk; state.pick.result = null; render(); return; }
+  const po = t.closest('[data-po]');
+  if (po){ const k = po.dataset.po; state.pick.opts[k] = !state.pick.opts[k];
+    state.pick.result = null; render(); return; }
+  const sh = t.closest('[data-shop]');
+  if (sh){ state.shopTab = sh.dataset.shop; render(); return; }
+  const tk = t.closest('[data-tick]');
+  if (tk){
+    const id = tk.dataset.tick;
+    state.ticked[id] = !state.ticked[id];
+    render(); return;
+  }
+  const dw = t.closest('[data-delwish]');
+  if (dw){
+    const w = arr(data.wishlist).find(x => x.id === dw.dataset.delwish);
+    data.wishlist = arr(data.wishlist).filter(x => x.id !== dw.dataset.delwish);
+    save(); render(); toast(w ? w.name + ' removed.' : 'Removed.');
+    return;
+  }
   const cm = t.closest('[data-cmpmode]'); if (cm){ state.cmp.mode = cm.dataset.cmpmode; render(); return; }
 
   const stg = t.closest('[data-stage]');
   if (stg){
     const m = data.minis.find(x => x.id === state.openMini); if (!m) return;
+    const wasFinished = isFinished(m);
     m.stage = stg.dataset.stage;
     if (isDone(m) && (Number(m.total)||1) === 1) m.done = 1;
-    m.updated = Date.now(); save(); render(); return;
+    m.updated = Date.now(); save();
+    /* Update the strip in place rather than re-rendering the screen. A full
+       render replaces every element, so the bar starts at its destination and
+       the transitions written in the stylesheet never run at all. */
+    advanceStrip(m, !wasFinished && isFinished(m));
+    return;
   }
   const dp = t.closest('[data-delphoto]'); if (dp) return removePhoto(dp.dataset.delphoto);
   const ds = t.closest('[data-delswatch]'); if (ds) return deleteSwatch(ds.dataset.delswatch);
@@ -4443,6 +5201,13 @@ document.addEventListener('change', e => {
   if (id === 'camIn')   return captureSwatch(e.target.files);
   if (id === 'impIn')   return importData(e.target.files[0]);
   if (id === 'plPaint'){ state.planner.paintId = e.target.value; render(); }
+  if (id === 'pkSys'){ state.pick.opts.sys = e.target.value || null;
+                       state.pick.result = null; render(); }
+  if (id === 'setCurrency'){
+    data.settings.currency = e.target.value;
+    moneyFmtFor = null;                    /* force the formatter to rebuild */
+    save(); render(); toast('Currency set to ' + currencyName(e.target.value) + '.');
+  }
   if (id === 'cmpPaint'){ state.cmp.paintId = e.target.value; render(); }
   if (id === 'cmpUc'){ state.cmp.ucId = e.target.value; render(); }
 });
@@ -4455,6 +5220,9 @@ function saveMiniEdits(){
   if (m.done > m.total) m.done = m.total;
   m.tags = $('#eTags').value.trim(); m.notes = $('#eNotes').value;
   m.base = $('#eBase') ? $('#eBase').value : (m.base || '');
+  if ($('#ePrice')) m.price = $('#ePrice').value === '' ? null
+                            : Math.max(0, Number($('#ePrice').value) || 0);
+  if ($('#eAcq')) m.acquired = $('#eAcq').value || '';
   m.updated = Date.now(); save(); render(); toast('Saved.');
 }
 function deleteMini(){
