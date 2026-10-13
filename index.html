@@ -505,6 +505,50 @@ ul.tight li{margin:.25rem 0}
 .aname > span{display:block;font-size:.75rem;color:var(--text-2);margin-top:.125rem}
 .apct{font-family:var(--f-display);font-size:1.5rem;line-height:1;white-space:nowrap}
 .bigpot{width:3.75rem;height:6.75rem;flex:0 0 auto}
+
+/* Getting started. Three steps, all skippable. The step marker is three
+   drops filling up — the same shape that carries progress everywhere else,
+   so the setup looks like the thing it is setting up. */
+/* Wraps: at 200% text the three drops, the counter and the way out cannot
+   share a 320px line, and the exit was pushed off the edge. */
+.setupbar{display:flex;align-items:flex-end;gap:.5rem;margin:.875rem 0 .875rem;
+  flex-wrap:wrap;row-gap:.625rem}
+.sdrop{width:1.125rem;height:2.0625rem;flex:0 0 auto}
+.sdrop.now{width:1.5rem;height:2.75rem}
+.stepcap{font-size:.6875rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;
+  color:var(--gold-ink);margin-left:.375rem;align-self:center}
+.skip{display:block;width:100%;text-align:center;background:none;border:0;color:var(--text-2);
+  font:inherit;font-size:.875rem;min-height:var(--tap);margin-top:.25rem;
+  text-decoration:underline;cursor:pointer}
+
+/* The units you reel off in step two. */
+.ulist{margin:.75rem 0 0}
+.uli{display:flex;align-items:center;gap:.625rem;padding:.375rem .125rem;
+  border-bottom:1px solid var(--border);font-size:.9375rem;min-height:var(--tap)}
+.uli .unm{flex:1;min-width:0;overflow-wrap:anywhere}
+.uli .uct{color:var(--text-2);font-size:.8125rem;white-space:nowrap}
+.udrop{width:.9375rem;height:1.6875rem;flex:0 0 auto}
+
+/* The paint tick list. This is the point of the whole flow: a rack at a
+   time instead of one dialog per pot. */
+.prow{display:flex;align-items:center;gap:.6875rem;width:100%;padding:.375rem .125rem;
+  background:none;border:0;border-bottom:1px solid var(--border);font:inherit;
+  color:var(--text);text-align:left;cursor:pointer;min-height:var(--tap)}
+.ptick{width:1.5rem;height:1.5rem;border-radius:50%;border:2px solid var(--border);
+  flex:0 0 auto;display:grid;place-items:center;background:var(--surface);
+  transition:background .16s var(--ease),border-color .16s}
+.prow[aria-pressed="true"] .ptick{background:var(--success);border-color:var(--success)}
+.ptick svg{width:.8125rem;height:.8125rem;opacity:0;transition:opacity .14s ease-out}
+.prow[aria-pressed="true"] .ptick svg{opacity:1}
+/* An SVG with no CSS size fills whatever box it is given, so leaving this
+   out turned every paint row into a full-width grey triangle with the name
+   squeezed to one letter per line. Every drop in this app needs an explicit
+   size and flex:0 0 auto. */
+.pdrop{width:1.0625rem;height:1.9375rem;flex:0 0 auto}
+.pnm{flex:1;min-width:0;font-size:.9375rem;overflow-wrap:anywhere}
+.pnm em{display:block;font-style:normal;font-size:.75rem;color:var(--text-2)}
+.pcount{font-size:.8125rem;color:var(--text-2);margin:.625rem 0 0}
+.pcount b{color:var(--text)}
 .card.finished{border-color:var(--gold);box-shadow:0 0 0 3px color-mix(in srgb,var(--gold) 26%,transparent)}
 .finmark{display:flex;align-items:center;gap:.5rem;margin-top:.75rem;font-size:.8125rem;
   opacity:0;transform:translateY(4px);transition:opacity .3s ease-out,transform .3s var(--ease)}
@@ -2509,6 +2553,26 @@ const SYSTEMS = [
   ]},
 
   /* No verified army structure, so no list. The person types their own. */
+  /* Indie and small-press games.
+     These ship with EMPTY army lists on purpose. The game's name is a
+     trademark used only so you can label your own models — that is covered
+     by the notice in the menu — but a faction list is the publisher's own
+     material, and for most of these there is no licence that would allow
+     reproducing one. Several of them do not work that way anyway: a
+     Turnip28 warband is built out of unit types, not picked from factions.
+     "Type my own" covers every one of them. */
+  { name:'Turnip28', groups:[] },
+  { name:'Trench Crusade', groups:[] },
+  { name:'Grimdark Future', groups:[] },
+  { name:'Age of Fantasy', groups:[] },
+  { name:'The 9th Age', groups:[] },
+  { name:'Kings of War', groups:[] },
+  { name:'Gaslands', groups:[] },
+  { name:'Five Parsecs from Home', groups:[] },
+  { name:'Rangers of Shadow Deep', groups:[] },
+  { name:'Battletech', groups:[] },
+  { name:'SAGA', groups:[] },
+  { name:'Flames of War', groups:[] },
   { name:'Frostgrave', groups:[] },
   { name:'Dungeons & Dragons', groups:[] },
   { name:'Pathfinder', groups:[] },
@@ -2806,7 +2870,14 @@ const SYNC_COLLECTIONS = ['minis','paints','recipes','swatches','systems',
 let fb = null;              /* the initialised Firebase handles */
 let unsubscribes = [];
 let lastPushed = null;      /* snapshot of what we last sent, for diffing */
-let syncState = { on:false, user:null, status:'off', pending:0, error:null };
+let syncState = { on:false, user:null, status:'off', pending:0, error:null,
+  /* True only once EVERY collection has reported at least one snapshot.
+     'ok' is not that signal: it is set by whichever collection answers
+     first, so a device signing in for the first time can read "ok" with a
+     mostly empty local copy while the rest is still arriving. Anything that
+     asks "is this collection empty?" has to wait for this instead. */
+  firstPullDone:false };
+let pulledOnce = new Set();
 let pushTimer = null;
 let photoQueue = new Set();
 
@@ -2977,6 +3048,8 @@ function startSync(user){
   stopSync();
   syncState.on = true;
   syncState.user = user;
+  syncState.firstPullDone = false;
+  pulledOnce = new Set();
   const { F, db } = fbInit();
   const uid = user.uid;
   syncStatus('syncing');
@@ -2994,6 +3067,11 @@ function startSync(user){
         saveLocalOnly();
         lastPushed = snapshotOf(data);
         render();
+      }
+      pulledOnce.add(c);
+      if (!syncState.firstPullDone && pulledOnce.size >= SYNC_COLLECTIONS.length){
+        syncState.firstPullDone = true;
+        render();                 /* anything waiting on a full pull can go now */
       }
       syncStatus('ok', { error: null });
     }, err => {
@@ -3183,7 +3261,7 @@ function syncPill(){
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v007';
+const APP_VERSION = 'v008';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -3577,6 +3655,9 @@ const state = {
      inside an army does not silently leave the whole collection filtered
      when you come back out of it. */
   openArmy:null, aStage:'',
+  /* Getting started. step 0 means it is not running. */
+  setup:{ step:0, only:'', sysPick:[], sysName:'', facName:'', units:[],
+          brand:'', range:'', pq:'', picked:{}, added:null },
   pq:'', pStock:'', planner:{ paintId:null, kind:'complementary' },
   cmp:{ mode:'paint', paintId:null, ucId:null }, pending:null,
   /* Deliberately not persisted: the collection value starts hidden on every
@@ -3777,6 +3858,332 @@ function tile(m){
     <span class="small muted">${esc(m.stage)}${n>1?` &middot; <span class="num">${d} of ${n}</span>`:''}</span>
     ${sortNote(m)}
     </span></button>`;
+}
+
+/* ===========================================================================
+   Getting started
+
+   Three steps, every one skippable in a single tap, and skipping leaves
+   nothing half-finished behind. It appears by itself the first time you open
+   a genuinely empty collection and never asks again; after that it lives in
+   the ... menu.
+
+   The third step is the reason this exists. A paint is otherwise added one
+   at a time, from a dialog, out of a catalogue of 9,693 — so recording the
+   forty pots on a desk means opening that dialog forty times. Step three
+   adds a whole rack at once, and the same picker is offered on the Paints
+   screen as "Add several", because that is the part worth having again.
+   =========================================================================== */
+function startSetup(only){
+  state.setup = { step: only === 'paints' ? 3 : 1, only: only || '',
+                  sysPick: arr(data.systems).map(s => s.name),
+                  sysName:'', facName:'', units:[],
+                  brand:'', range:'', pq:'', picked:{}, added:null };
+  state.openMini = null; state.openArmy = null;
+  render(); window.scrollTo(0,0);
+}
+
+/* Offered once, and only when there is genuinely nothing here.
+
+   It waits for firstPullDone, not for status 'ok'. 'ok' is set by whichever
+   collection answers first, so on a second phone this would otherwise fire
+   while the real collection was still arriving — and offer to set up a
+   collection that already has three hundred models in it. */
+let setupChecked = false;
+function maybeStartSetup(){
+  if (setupChecked || state.setup.step) return;
+  if (!syncState.firstPullDone) return;
+  setupChecked = true;
+  if (data.settings.setupDone) return;
+  if (data.minis.length || data.paints.length){
+    data.settings.setupDone = true; save(); return;
+  }
+  startSetup();
+}
+
+function endSetup(go){
+  /* Using the paint picker on its own is not "I have done the setup", so it
+     must not quietly suppress the first-run offer. */
+  const paintsOnly = state.setup.only === 'paints';
+  state.setup = { step:0, only:'', sysPick:[], sysName:'', facName:'', units:[],
+                  brand:'', range:'', pq:'', picked:{}, added:null };
+  if (!paintsOnly) data.settings.setupDone = true;
+  save();
+  if (go) state.tab = go;
+  render(); window.scrollTo(0,0);
+}
+
+/* Step 1 creates any system that was ticked and does not exist yet. Nothing
+   is ever removed: unticking a system you already had would be a destructive
+   act buried inside a setup flow, and the models filed under it would be
+   orphaned. Untick here only means "don't add it". */
+function commitSystems(){
+  const have = arr(data.systems).map(s => s.name);
+  state.setup.sysPick.forEach(n => { if (have.indexOf(n) === -1) systemIdByName(n); });
+  save();
+}
+
+/* The two selects are rebuilt on every render, so whatever is showing has to
+   be read back into state before anything re-renders. */
+function captureArmyFields(){
+  const s = state.setup;
+  const sy = $('#suSys'); if (sy) s.sysName = sy.value;
+  const fa = $('#suFac');
+  if (fa) s.facName = fa.value === '__own'
+    ? (($('#suFacOwn') && $('#suFacOwn').value.trim()) || '')
+    : fa.value;
+}
+
+function setupAddUnit(quiet){
+  const s = state.setup;
+  captureArmyFields();
+  const el = $('#suUnit'); if (!el) return;
+  const name = el.value.trim();
+  if (!name){ if (!quiet) toast('Type a name first.'); return; }
+  const cEl = $('#suCount');
+  s.units.push({ name, total: Math.max(1, Number(cEl ? cEl.value : 1) || 1) });
+  el.value = ''; if (cEl) cEl.value = '1';
+  if (quiet) return;
+  render();
+  const f = $('#suUnit'); if (f) f.focus();
+}
+
+/* Everything the flow collected, written at once. Running setup a second
+   time must not duplicate a pot you already have, so paints are matched on
+   name, brand and range before being added. */
+function commitSetup(){
+  const s = state.setup;
+  const cat = catalogue();
+  let paints = 0, minis = 0, models = 0;
+
+  Object.keys(s.picked).forEach(k => {
+    if (!s.picked[k]) return;
+    const r = cat.rows[+k]; if (!r) return;
+    if (arr(data.paints).some(p => p.name === r.n && p.brand === r.b && p.range === r.rg)) return;
+    data.paints.push({ id:uid(), name:r.n, brand:r.b, range:r.rg, code:r.c, hex:r.hex,
+      type:'', stock:'Have it', notes:'', created:Date.now(), updated:Date.now() });
+    paints++;
+  });
+
+  if (s.units.length){
+    const sysId = s.sysName ? systemIdByName(s.sysName) : '';
+    const facId = s.facName ? factionIdByName(s.facName, sysId) : '';
+    s.units.forEach(u => {
+      data.minis.push({ id:uid(), name:u.name, sys:sysId, fac:facId,
+        base:'', unit:'', total:u.total, price:null, acquired:'',
+        done:0, stage:data.stages[0], tags:'', notes:'', photos:[],
+        created:Date.now(), updated:Date.now() });
+      minis++; models += u.total;
+    });
+    if (s.sysName || s.facName) setLastUsed({ sys:s.sysName, fac:s.facName });
+  }
+
+  s.added = { minis, models, paints, army:s.facName };
+  if (s.only !== 'paints') data.settings.setupDone = true;
+  save();
+}
+
+/* The step marker, with the way out on the same row. The exit has to be at
+   the top: step three is a list of sixty paints, and an exit below it is an
+   exit you cannot see. */
+function setupBar(n){
+  let h = `<div class="setupbar">`;
+  for (let i = 1; i <= 3; i++)
+    h += potSvg(i <= n ? 1 : 0, 'sdrop' + (i === n ? ' now' : ''));
+  h += `<span class="stepcap">${n} of 3</span>
+    <button class="btn ghost sm" data-act="setupSkip"
+      style="margin-left:auto">Skip setup</button></div>`;
+  return h;
+}
+/* Paints-only has no steps to show, but still needs the same way out. */
+function setupCloseBar(){
+  return `<div class="setupbar"><button class="btn ghost sm" data-act="setupSkip">&larr; Paints</button></div>`;
+}
+
+function screenSetup(){
+  const s = state.setup;
+  if (s.step === 1) return setupSystems();
+  if (s.step === 2) return setupArmy();
+  if (s.step === 3) return setupPaints();
+  return setupDone();
+}
+
+/* --- step 1: what do you play ------------------------------------------- */
+function setupSystems(){
+  const s = state.setup;
+  let h = setupBar(1) +
+    `<div class="ehead" style="margin-top:0"><div class="eb">Getting started</div>
+      <h3>What do you play?</h3></div>
+     <p class="small muted" style="margin:0">Tick as many as you like. This only decides
+       which army lists you get offered &mdash; you can always type your own.</p>
+     <div class="chips" role="group" aria-label="Game systems">`;
+  /* Not the shared chips helper: it joins values with commas, and
+     "Warhammer 40,000" has a comma in it. */
+  SYSTEMS.forEach(sys => {
+    const on = s.sysPick.indexOf(sys.name) !== -1;
+    h += `<button class="chip" data-setupsys="${esc(sys.name)}" aria-pressed="${on}">${esc(sys.name)}</button>`;
+  });
+  h += `</div>
+    <button class="btn advance" data-act="setupNext">Next</button>
+    <button class="skip" data-act="setupSkip">Skip setup</button>`;
+  return h;
+}
+
+/* --- step 2: your first army -------------------------------------------- */
+function setupArmy(){
+  const s = state.setup;
+  const mine = arr(data.systems).map(x => x.name);
+  const sysName = s.sysName || mine[0] || '';
+  let h = setupBar(2) +
+    `<div class="ehead" style="margin-top:0"><div class="eb">Getting started</div>
+      <h3>Your first army</h3></div>`;
+  if (!mine.length){
+    h += `<p class="small muted">No game systems yet, so there are no army lists to offer.
+      You can still name an army yourself.</p>`;
+  }
+  h += `<label for="suSys">Game system</label>
+    <select id="suSys">${mine.map(n =>
+      `<option value="${esc(n)}"${n === sysName ? ' selected' : ''}>${esc(n)}</option>`).join('')}
+      <option value="">Not set</option></select>
+    <label for="suFac">Army</label>
+    <select id="suFac">${armyOptions(sysName, s.facName)}</select>
+    <input id="suFacOwn" type="text" placeholder="Your own army" style="margin-top:.5rem" hidden>
+    <label for="suUnit">Add a unit &mdash; type and press return</label>
+    <div class="row" style="gap:.5rem">
+      <input id="suUnit" class="grow" placeholder="Plague Marines" autocomplete="off">
+      <input id="suCount" class="num" inputmode="numeric" value="1" aria-label="How many models"
+        style="width:4.5rem;flex:0 0 auto;text-align:center">
+    </div>
+    <p class="small muted" style="margin:.375rem 0 0">The number is how many models are in
+      that box. A box of ten counts as one entry with a count of ten.</p>
+    <button class="btn ghost sm" data-act="setupAddUnit" style="margin-top:.625rem">Add it</button>`;
+
+  if (s.units.length){
+    h += `<div class="ulist">`;
+    s.units.forEach((u, i) => {
+      h += `<div class="uli">${dropSvg('udrop','')}
+        <span class="unm user-text">${esc(u.name)}</span>
+        <span class="uct num">&times;${u.total}</span>
+        <button class="iconbtn" data-setupdelunit="${i}" aria-label="Remove ${esc(u.name)}">&times;</button></div>`;
+    });
+    h += `</div>`;
+  }
+  h += `<button class="btn advance" data-act="setupNext">${
+      s.units.length ? `Next &mdash; add ${s.units.length === 1 ? 'this one' : `these ${s.units.length}`}` : 'Next'}</button>
+    <button class="skip" data-act="setupSkipStep">I&rsquo;ll add models later</button>`;
+  return h;
+}
+
+/* --- step 3: paints you own --------------------------------------------- */
+function setupPaints(){
+  const s = state.setup;
+  const cat = catalogue();
+  const brands = cat.brands.slice().sort((a,b) => a.localeCompare(b));
+  /* Alphabetical for finding one, but the default is a guess at what you
+     own rather than whichever brand starts with an A: the brand most of
+     your existing paints come from, then Citadel, then the largest range. */
+  const mineBy = {};
+  arr(data.paints).forEach(p => { if (p.brand) mineBy[p.brand] = (mineBy[p.brand]||0) + 1; });
+  const mineTop = Object.keys(mineBy).sort((a,b) => mineBy[b] - mineBy[a])[0];
+  const biggest = () => {
+    const n = {};
+    cat.rows.forEach(r => { n[r.b] = (n[r.b]||0) + 1; });
+    return brands.slice().sort((a,b) => (n[b]||0) - (n[a]||0))[0] || brands[0] || '';
+  };
+  const brand = s.brand || mineTop
+    || (brands.indexOf('Citadel') !== -1 ? 'Citadel' : biggest());
+
+  /* Ranges that actually exist for the chosen brand, in catalogue order. */
+  const ranges = [], rangeN = {};
+  cat.rows.forEach(r => { if (r.b !== brand) return;
+    if (ranges.indexOf(r.rg) === -1) ranges.push(r.rg);
+    rangeN[r.rg] = (rangeN[r.rg] || 0) + 1; });
+  /* Biggest range first as the default, for the same reason as the brand:
+     catalogue order would land you on Citadel Technical, which is nobody's
+     starting point. The list itself stays in the publisher's own order. */
+  const range = s.range && ranges.indexOf(s.range) !== -1 ? s.range
+    : (ranges.slice().sort((a,b) => rangeN[b] - rangeN[a])[0] || '');
+
+  const q = (s.pq || '').trim().toLowerCase();
+  const hits = [];
+  for (let i = 0; i < cat.rows.length && hits.length < 300; i++){
+    const r = cat.rows[i];
+    if (q.length >= 2){
+      if ((r.n + ' ' + r.b + ' ' + r.rg + ' ' + r.c).toLowerCase().indexOf(q) !== -1) hits.push([i, r]);
+    } else if (r.b === brand && r.rg === range) hits.push([i, r]);
+  }
+  const n = Object.keys(s.picked).filter(k => s.picked[k]).length;
+
+  let h = (s.only === 'paints' ? setupCloseBar() : setupBar(3)) +
+    `<div class="ehead" style="margin-top:0">
+      <div class="eb">${s.only === 'paints' ? 'Paints' : 'Getting started'}</div>
+      <h3>${s.only === 'paints' ? 'Add several at once' : 'Paints you own'}</h3></div>
+     <p class="small muted" style="margin:0">Pick a brand and a range and tick what&rsquo;s on
+       your shelf. They all go in together.</p>
+     <label for="suBrand">Brand</label>
+     <select id="suBrand">${brands.map(b =>
+       `<option value="${esc(b)}"${b === brand ? ' selected' : ''}>${esc(b)}</option>`).join('')}</select>
+     <label for="suRange">Range</label>
+     <select id="suRange">${ranges.map(r =>
+       `<option value="${esc(r)}"${r === range ? ' selected' : ''}>${esc(r)}</option>`).join('')}</select>
+     <label for="suPq">Or search all <span class="num">${cat.rows.length}</span></label>
+     <div class="field"><input id="suPq" type="search" value="${esc(s.pq || '')}"
+       placeholder="Mephiston, Vallejo, 72.001" autocomplete="off">
+       ${s.pq ? `<button class="clearq" data-act="setupClearQ" aria-label="Clear search">&times;</button>` : ''}</div>`;
+
+  if (!hits.length){
+    h += `<p class="small muted" style="margin-top:.75rem">${q.length >= 2
+      ? 'Nothing matches that.' : 'No paints in that range.'}</p>`;
+  } else {
+    h += `<div style="margin-top:.625rem">`;
+    hits.forEach(([i, r]) => {
+      const on = !!s.picked[i];
+      h += `<button class="prow" data-setuppaint="${i}" aria-pressed="${on}">
+        <span class="ptick"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 13 L10 18 L19 6"
+          fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        ${dropSvg('pdrop', r.hex)}
+        <span class="pnm user-text">${esc(r.n)}<em>${esc([r.b, r.rg, r.c].filter(Boolean).join(' · '))}</em></span>
+      </button>`;
+    });
+    h += `</div>`;
+    if (hits.length === 300) h += `<p class="small muted" style="margin-top:.5rem">Showing the
+      first <span class="num">300</span>. Narrow the search to see the rest.</p>`;
+  }
+
+  h += `<p class="pcount"><b class="num">${n}</b> ticked so far${
+    n ? '' : ' &mdash; tick anything you own'}</p>
+    <button class="btn advance" data-act="setupFinish"${n ? '' : ' disabled'}>${
+      n ? `Add ${n === 1 ? 'it' : `all ${n}`} and finish` : 'Add them and finish'}</button>
+    <button class="skip" data-act="${s.only === 'paints' ? 'setupSkip' : 'setupSkipStep'}">${
+      s.only === 'paints' ? 'Cancel' : 'I’ll add paints later'}</button>`;
+  return h;
+}
+
+/* --- done ---------------------------------------------------------------- */
+function setupDone(){
+  const c = counts();
+  const a = state.setup.added || { minis:0, models:0, paints:0, army:'' };
+  /* The finish screen is not a trap, but the rule is the rule: a way out at
+     the top of every screen, not only the big button under the summary. */
+  return `<div class="setupbar"><span class="stepcap">All done</span>
+      <button class="btn ghost sm" data-act="setupGo" style="margin-left:auto">Close</button></div>
+    <div class="ehead" style="margin-top:0"><div class="eb">Your collection</div></div>
+    <div class="hero"><b>${c.done}</b><span>finished<br>of ${c.total}</span></div>
+    <hr class="keyline">
+    <div class="ledger">
+      <div class="lcell"><b>${c.started}</b><span>On the bench</span></div>
+      <div class="lcell"><b>${c.backlog}</b><span>Still waiting</span></div>
+      <div class="lcell"><b>${c.paints}</b><span>Paints owned</span></div>
+    </div>
+    <div class="help" style="margin-top:1.25rem">
+      <span class="helph">You&rsquo;re set.</span>
+      <p>${a.minis ? `<span class="num">${a.minis}</span> ${a.minis === 1 ? 'entry' : 'entries'}${
+        a.army ? ` in <b class="user-text">${esc(a.army)}</b>` : ''}` : 'Nothing added yet'}${
+        a.paints ? ` and <span class="num">${a.paints}</span> paint${a.paints === 1 ? '' : 's'} on the shelf` : ''}.</p>
+      <p>Mark a paint <b>running low</b> while you&rsquo;re painting and it turns up on your
+         shopping list by itself. You can run this again any time from the <b>&hellip;</b> menu.</p>
+    </div>
+    <button class="btn advance" data-act="setupGo">Take me to my collection</button>`;
 }
 
 /* ===========================================================================
@@ -4113,9 +4520,10 @@ function screenPaints(){
   const nd = needList();
   let h = `<div class="row spread" style="margin:.875rem 0 .375rem">
     <h2 class="display" style="font-size:1.5rem;margin:0">Paints</h2>
-    <div class="row" style="margin:0">
+    <div class="row wrapm" style="margin:0">
       ${nd.total ? `<button class="btn sm ghost" data-act="shop">Shopping
         <span class="n">${nd.total}</span></button>` : ''}
+      <button class="btn sm ghost" data-act="setupPaintsOnly">Add several</button>
       <button class="btn sm" data-act="addPaint">Add</button></div></div>`;
 
   if (!data.paints.length){
@@ -4398,7 +4806,8 @@ function render(){
   if (bar) bar.classList.remove('gated');
 
   let html;
-  if (state.tab === 'account')       html = screenAccount();
+  if (state.setup.step)              html = screenSetup();
+  else if (state.tab === 'account')  html = screenAccount();
   else if (state.tab === 'privacy')  html = screenPrivacy('home');
   else if (state.tab === 'pick')     html = screenPick();
   else if (state.tab === 'shop')     html = screenShop();
@@ -4415,6 +4824,8 @@ function render(){
   const slot = document.getElementById('syncslot');
   if (slot){ slot.innerHTML = ''; slot.appendChild(syncPill()); }
   hydratePhotos();
+  /* Last, and guarded so it can only ever fire once: it renders again. */
+  maybeStartSetup();
 }
 
 /* ===========================================================================
@@ -5500,6 +5911,34 @@ document.addEventListener('click', e => {
       doSignOut().catch(() => {}).finally(() => { state.tab = 'home'; render(); });
       return;
     }
+    /* --- getting started --- */
+    if (a === 'setupStart'){ $('#dlg').close(); startSetup(); return; }
+    if (a === 'setupPaintsOnly'){ $('#dlg').close(); startSetup('paints'); return; }
+    if (a === 'setupSkip')  return endSetup();
+    if (a === 'setupGo')    return endSetup('coll');
+    if (a === 'setupClearQ'){ state.setup.pq = ''; render(); return; }
+    if (a === 'setupAddUnit') return setupAddUnit();
+    if (a === 'setupSkipStep'){
+      const s = state.setup;
+      if (s.step === 2){ s.units = []; s.step = 3; }
+      else { commitSetup(); s.step = 4; }
+      render(); window.scrollTo(0,0); return;
+    }
+    if (a === 'setupNext'){
+      const s = state.setup;
+      if (s.step === 1){ commitSystems(); s.step = 2; }
+      else if (s.step === 2){ setupAddUnit(true); s.step = 3; }
+      render(); window.scrollTo(0,0); return;
+    }
+    if (a === 'setupFinish'){
+      commitSetup();
+      if (state.setup.only === 'paints'){
+        const n = state.setup.added ? state.setup.added.paints : 0;
+        endSetup('paints'); toast(n === 1 ? 'Paint added.' : n + ' paints added.');
+      } else { state.setup.step = 4; render(); window.scrollTo(0,0); }
+      return;
+    }
+
     /* --- the new screens --- */
     if (a === 'backArmies'){ state.openArmy = null; state.aStage = '';
       render(); window.scrollTo(0,0); return; }
@@ -5584,6 +6023,34 @@ document.addEventListener('click', e => {
   }
   const cm = t.closest('[data-cmpmode]'); if (cm){ state.cmp.mode = cm.dataset.cmpmode; render(); return; }
 
+  /* --- getting started --- */
+  const ss = t.closest('[data-setupsys]');
+  if (ss){
+    const n = ss.dataset.setupsys, i = state.setup.sysPick.indexOf(n);
+    if (i === -1) state.setup.sysPick.push(n); else state.setup.sysPick.splice(i, 1);
+    render(); return;
+  }
+  const sp = t.closest('[data-setuppaint]');
+  if (sp){
+    const k = sp.dataset.setuppaint;
+    if (state.setup.picked[k]) delete state.setup.picked[k];
+    else state.setup.picked[k] = true;
+    /* Update in place: a full render would rebuild the list and throw away
+       your scroll position halfway down a rack of sixty pots. */
+    sp.setAttribute('aria-pressed', state.setup.picked[k] ? 'true' : 'false');
+    const n = Object.keys(state.setup.picked).filter(x => state.setup.picked[x]).length;
+    const cEl = document.querySelector('.pcount');
+    if (cEl) cEl.innerHTML = `<b class="num">${n}</b> ticked so far${
+      n ? '' : ' &mdash; tick anything you own'}`;
+    const btn = document.querySelector('[data-act="setupFinish"]');
+    if (btn){ btn.disabled = !n;
+      btn.innerHTML = n ? `Add ${n === 1 ? 'it' : `all ${n}`} and finish` : 'Add them and finish'; }
+    return;
+  }
+  const du = t.closest('[data-setupdelunit]');
+  if (du){ captureArmyFields();
+    state.setup.units.splice(+du.dataset.setupdelunit, 1); render(); return; }
+
   /* "Jump to another stage" opens the full ladder in place. */
   const jmp = t.closest('[data-jump]');
   if (jmp){
@@ -5640,6 +6107,21 @@ document.addEventListener('input', e => {
     m.done = Math.max(0, Math.min(Number(m.total)||1, Number(e.target.value)||0));
     m.updated = Date.now(); save();
   }
+  if (id === 'suPq'){
+    const pos = e.target.selectionStart;
+    state.setup.pq = e.target.value;
+    render();
+    const f = $('#suPq'); if (f){ f.focus(); try { f.setSelectionRange(pos,pos); } catch(err){} }
+  }
+});
+
+/* Return adds the unit and leaves the cursor where it was, so a box list can
+   be typed straight through without reaching for a button. */
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  if (e.target.id === 'suUnit' || e.target.id === 'suCount'){
+    e.preventDefault(); setupAddUnit();
+  }
 });
 
 document.addEventListener('change', e => {
@@ -5657,6 +6139,23 @@ document.addEventListener('change', e => {
   }
   if (id === 'cmpPaint'){ state.cmp.paintId = e.target.value; render(); }
   if (id === 'cmpUc'){ state.cmp.ucId = e.target.value; render(); }
+  /* --- getting started --- */
+  if (id === 'suSys'){
+    /* Changing the system swaps the army list, so a stale army is cleared
+       rather than quietly filing the models under the wrong one. */
+    state.setup.sysName = e.target.value; state.setup.facName = '';
+    render(); return;
+  }
+  if (id === 'suFac'){
+    const own = e.target.value === '__own';
+    const box = $('#suFacOwn');
+    if (box){ box.hidden = !own; if (own) box.focus(); }
+    if (!own) state.setup.facName = e.target.value;
+    return;
+  }
+  if (id === 'suBrand'){ state.setup.brand = e.target.value; state.setup.range = '';
+                         state.setup.pq = ''; render(); return; }
+  if (id === 'suRange'){ state.setup.range = e.target.value; render(); return; }
 });
 
 function saveMiniEdits(){
@@ -5809,6 +6308,12 @@ $('#moreBtn').addEventListener('click', () => {
      <div class="row wrapm" style="margin-top:.625rem">
        <button class="btn ghost sm" data-act="account">Account and sign out</button>
        <button class="btn ghost sm" data-act="privacy">What MiniManager keeps</button></div>
+     <hr><h3 style="font-size:.9375rem">Getting started</h3>
+     <p class="small muted">Fill an empty collection quickly, or tick a whole rack of
+       paints in one go instead of adding them one at a time.</p>
+     <div class="row wrapm" style="margin-top:.625rem">
+       <button class="btn ghost sm" data-act="setupStart">Set up my collection</button>
+       <button class="btn ghost sm" data-act="setupPaintsOnly">Add several paints</button></div>
      <hr><h3 style="font-size:.9375rem">Your data</h3>
      <p class="small muted">Take a copy whenever you like. The backup file is
        yours and works with no account at all.</p>
