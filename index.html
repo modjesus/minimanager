@@ -125,7 +125,11 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
       border-radius:var(--r-card);padding:1rem;margin:.75rem 0}
 .row{display:flex;gap:.75rem;align-items:center}
 .row.wrapm{flex-wrap:wrap}
-.spread{justify-content:space-between}
+/* Wrap, or at 200% text a heading and its button cannot both fit on one line
+   and the button is pushed off the right-hand edge — which scrolls the whole
+   page sideways. At ordinary text sizes there is room and nothing moves.
+   Found in v007; true of every heading-plus-button row since v002. */
+.spread{justify-content:space-between;flex-wrap:wrap}
 .grow{flex:1;min-width:0}
 
 .btn{
@@ -173,9 +177,12 @@ label{display:block;font-size:.8125rem;font-weight:600;margin:.75rem 0 .25rem;co
 .keyline{height:2px;border:0;margin:.875rem 0 .75rem;
   background:linear-gradient(90deg,var(--gold),color-mix(in srgb,var(--gold) 20%,transparent) 58%,transparent);
   clip-path:polygon(0 0,100% 38%,100% 62%,0 100%)}
-.ledger{display:flex;align-items:baseline}
-.lcell{flex:1;min-width:0;padding-right:.625rem}
+/* Wraps, because at 200% text three figures and their labels cannot share a
+   320px line and the row pushed the page sideways instead of giving way. */
+.ledger{display:flex;align-items:baseline;flex-wrap:wrap;row-gap:.75rem}
+.lcell{flex:1 1 6rem;min-width:0;padding-right:.625rem}
 .lcell + .lcell{border-left:1px solid var(--border);padding-left:.75rem}
+.lcell span{overflow-wrap:anywhere}
 .lcell b{display:block;font-family:var(--f-display);font-weight:400;font-size:1.75rem;line-height:1.05}
 .lcell span{font-size:.75rem;color:var(--text-2)}
 
@@ -188,8 +195,13 @@ label{display:block;font-size:.8125rem;font-weight:600;margin:.75rem 0 .25rem;co
 .ehead h2,.ehead h3{font-family:var(--f-display);font-weight:400;font-size:1.5rem;
   margin:.0625rem 0 0;letter-spacing:-.015em}
 
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem}
-@media(min-width:42rem){.grid{grid-template-columns:repeat(3,1fr)}}
+/* minmax(0,1fr), not 1fr. A grid column will not shrink below its content's
+   longest unbreakable word, so at 200% text a name like "Blightlord
+   Terminators" forced the column wider than the phone and the whole page
+   scrolled sideways. Found in v007; it has been true of the collection grid
+   since v002. */
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem}
+@media(min-width:42rem){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 /* Photo first. A border, then a photo, then a white caption strip is three
    layers of chrome around the one thing you actually want to look at. The
    name sits on a fade over the bottom of your own picture instead. */
@@ -201,7 +213,12 @@ label{display:block;font-size:.8125rem;font-weight:600;margin:.75rem 0 .25rem;co
   background:var(--warm-grey)}
 .tile .ph.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:.375rem;color:var(--text-2);font-size:.75rem;font-weight:500}
-.phdrop{width:1.75rem;height:3.1875rem;opacity:.5}
+/* flex:0 0 auto, or the watermark is squeezed to zero height as a flex item
+   when the tile is short — and the path then draws outside its own box. */
+.phdrop{width:1.75rem;height:3.1875rem;flex:0 0 auto;opacity:.5}
+/* At very large text sizes there is no room for a watermark and a caption in
+   one tile, so the watermark goes and the words stay. */
+@media (max-height:40rem),(max-width:22rem){ .phdrop{display:none} }
 /* An entry with no photograph has nothing to fade over, and a dark gradient
    on an empty field reads as a fault rather than a design. It also meant a
    bright beige square glaring out of the dark theme. So the placeholder keeps
@@ -216,7 +233,7 @@ label{display:block;font-size:.8125rem;font-weight:600;margin:.75rem 0 .25rem;co
 .tile .meta{position:absolute;left:0;right:0;bottom:0;padding:2rem .6875rem .625rem;
   background:linear-gradient(transparent,rgba(8,20,32,.62) 38%,rgba(8,20,32,.93));
   color:#FDF8EF}
-.tile .meta b{display:block;font-size:.875rem;line-height:1.3}
+.tile .meta b{display:block;font-size:.875rem;line-height:1.3;overflow-wrap:anywhere}
 .tile .meta .muted{color:rgba(253,248,239,.85)}
 /* A gold drop means in progress, the sparkle means finished. Both are backed
    by the words underneath, so neither carries meaning on colour alone. */
@@ -468,6 +485,26 @@ ul.tight li{margin:.25rem 0}
   color:var(--gold-ink)}
 .lrow[data-s="done"] .ltag{color:var(--success)}
 .ldrop{width:1.0625rem;height:1.9375rem;flex:0 0 auto}
+
+/* Armies. An army is a pot filled to how far through painting it is, so the
+   same shape carries progress at three scales: one model, one army, and the
+   whole collection. Nothing new is stored — every model has carried a game
+   system and an army since v002, so this is a view of what is already there. */
+.arow{display:flex;align-items:center;gap:.875rem;width:100%;min-height:56px;
+  padding:.5rem .125rem;background:none;border:0;border-bottom:1px solid var(--border);
+  font:inherit;color:var(--text);text-align:left;cursor:pointer;
+  transition:transform .12s ease-out}
+.arow:active{transform:scale(.995)}
+.arow:last-of-type{border-bottom:0}
+.apot{width:2.25rem;height:4.0625rem;flex:0 0 auto}
+.aname{flex:1;min-width:0}
+.aname b{display:block;font-size:1rem;line-height:1.25}
+/* Direct child only. "> span" rather than "span", because the line inside
+   holds .num spans around each figure, and a descendant selector turned
+   every one of those into a block — one number per line, 146px rows. */
+.aname > span{display:block;font-size:.75rem;color:var(--text-2);margin-top:.125rem}
+.apct{font-family:var(--f-display);font-size:1.5rem;line-height:1;white-space:nowrap}
+.bigpot{width:3.75rem;height:6.75rem;flex:0 0 auto}
 .card.finished{border-color:var(--gold);box-shadow:0 0 0 3px color-mix(in srgb,var(--gold) 26%,transparent)}
 .finmark{display:flex;align-items:center;gap:.5rem;margin-top:.75rem;font-size:.8125rem;
   opacity:0;transform:translateY(4px);transition:opacity .3s ease-out,transform .3s var(--ease)}
@@ -3146,7 +3183,7 @@ function syncPill(){
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v006';
+const APP_VERSION = 'v007';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -3535,6 +3572,11 @@ function counts(){
 const state = {
   tab:'home', openMini:null, openPaint:null, openRecipe:null,
   sub:null, view:'grid', q:'', fSys:'', fStage:'',
+  /* Armies. openArmy is a "system|faction" key rather than an id, because an
+     army is the pair. aStage is kept apart from fStage so that filtering
+     inside an army does not silently leave the whole collection filtered
+     when you come back out of it. */
+  openArmy:null, aStage:'',
   pq:'', pStock:'', planner:{ paintId:null, kind:'complementary' },
   cmp:{ mode:'paint', paintId:null, ucId:null }, pending:null,
   /* Deliberately not persisted: the collection value starts hidden on every
@@ -3575,12 +3617,18 @@ function dropSvg(cls, fill){
 }
 
 /* The pot. The level is a rectangle clipped to the drop and pushed down out of
-   sight; at p=0 it sits on the bottom lip, at p=1 it covers the whole shape. */
-function potSvg(p){
+   sight; at p=0 it sits on the bottom lip, at p=1 it covers the whole shape.
+
+   The clip needs an id, and the armies screen puts a dozen pots on one page,
+   so the id is counted rather than fixed — duplicate ids would be invalid and
+   would come back to bite the first time two pots needed different shapes. */
+let potSeq = 0;
+function potSvg(p, cls){
   const y = (DROP_BOT - 80 - DROP_H * p).toFixed(1);
-  return `<svg class="pot" viewBox="112 76 78 130" aria-hidden="true">
-    <defs><clipPath id="potclip"><path d="${DROP}"/></clipPath></defs>
-    <g clip-path="url(#potclip)">
+  const id = 'potclip' + (++potSeq);
+  return `<svg class="${cls || 'pot'}" viewBox="112 76 78 130" aria-hidden="true">
+    <defs><clipPath id="${id}"><path d="${DROP}"/></clipPath></defs>
+    <g clip-path="url(#${id})">
       <rect class="potfill" x="112" y="80" width="78" height="122" fill="var(--success)"
         style="transform:translateY(${y}px)"/>
     </g>
@@ -3732,15 +3780,146 @@ function tile(m){
 }
 
 /* ===========================================================================
+   Armies
+
+   An army is a game system and a faction together. Both have been on every
+   model since v002, so none of this stores anything new — it is a view of
+   what is already there.
+
+   The groups are built from the models rather than from the list of factions,
+   which guarantees every model appears in exactly one group. Building them
+   from the faction list instead would silently hide anything with no army
+   set, and "my models vanished" is a worse bug than an untidy heading.
+   =========================================================================== */
+const NO_ARMY = '— no army set —';
+const NO_SYS  = '— no game system —';
+const armyKey = m => (m.sys || '') + '|' + (m.fac || '');
+
+function armyGroups(){
+  const g = new Map();
+  data.minis.forEach(m => {
+    const k = armyKey(m);
+    if (!g.has(k)) g.set(k, { key:k, sys:m.sys || '', fac:m.fac || '', minis:[] });
+    g.get(k).minis.push(m);
+  });
+  return [...g.values()];
+}
+
+function armyStats(minis){
+  const models   = minis.reduce((n,m) => n + (Number(m.total)||1), 0);
+  const done     = minis.reduce((n,m) => n + (Number(m.done)||0), 0);
+  const started  = minis.filter(m => stageIx(m) > 0 && !isDone(m)).length;
+  const backlog  = minis.filter(m => stageIx(m) === 0).length;
+  const priced   = minis.filter(m => m.price != null && m.price !== '');
+  const spent    = priced.reduce((n,m) => n + (Number(m.price)||0), 0);
+  return { entries:minis.length, models, done, started, backlog,
+           spent, priced:priced.length, missing:minis.length - priced.length,
+           pct: models ? Math.round((done / models) * 100) : 0 };
+}
+
+function screenArmies(){
+  const groups = armyGroups();
+  /* Order: most models first within each system, systems alphabetically,
+     with anything lacking a system last rather than first. */
+  const bySys = new Map();
+  groups.forEach(g => {
+    const label = g.sys ? (sysName(g.sys) || NO_SYS) : NO_SYS;
+    if (!bySys.has(label)) bySys.set(label, []);
+    bySys.get(label).push(g);
+  });
+  const labels = [...bySys.keys()].sort((a,b) =>
+    a === NO_SYS ? 1 : b === NO_SYS ? -1 : a.localeCompare(b));
+
+  let h = '';
+  labels.forEach(label => {
+    h += `<div class="ehead"><div class="eb user-text">${esc(label)}</div></div>`;
+    bySys.get(label)
+      .sort((a,b) => armyStats(b.minis).models - armyStats(a.minis).models)
+      .forEach(g => {
+        const s = armyStats(g.minis);
+        const name = g.fac ? (facName(g.fac) || NO_ARMY) : NO_ARMY;
+        h += `<button class="arow" data-openarmy="${esc(g.key)}">
+          ${potSvg(s.models ? s.done / s.models : 0, 'apot')}
+          <span class="aname"><b class="user-text">${esc(name)}</b>
+            <span><span class="num">${s.done}</span> finished &middot;
+                  <span class="num">${s.started}</span> on the bench &middot;
+                  <span class="num">${s.backlog}</span> still waiting</span></span>
+          <span class="apct">${s.pct}%</span>
+        </button>`;
+      });
+  });
+  return h;
+}
+
+function screenArmy(){
+  const g = armyGroups().find(x => x.key === state.openArmy);
+  if (!g) return `<div class="empty"><p>That army no longer has anything in it.</p>
+    <button class="btn" data-act="backArmies">Back to armies</button></div>`;
+
+  const s = armyStats(g.minis);
+  const sys  = g.sys ? (sysName(g.sys) || NO_SYS) : NO_SYS;
+  const name = g.fac ? (facName(g.fac) || NO_ARMY) : NO_ARMY;
+
+  let h = `<button class="btn ghost sm" data-act="backArmies" style="margin:.875rem 0">&larr; Armies</button>
+    <div class="ehead" style="margin-top:0">
+      <div class="eb user-text">${esc(sys)}</div>
+      <h3 class="user-text">${esc(name)}</h3></div>
+    <div class="row" style="gap:1rem;align-items:center;margin-top:.25rem">
+      ${potSvg(s.models ? s.done / s.models : 0, 'bigpot')}
+      <div><div class="hero" style="margin:0"><b>${s.done}</b></div>
+        <div class="small muted">finished of <span class="num">${s.models}</span></div></div>
+    </div>
+    <hr class="keyline">
+    <div class="ledger">
+      <div class="lcell"><b>${s.backlog}</b><span>Still waiting</span></div>
+      <div class="lcell"><b>${s.started}</b><span>On the bench</span></div>
+      ${s.priced ? `<div class="lcell"><b>${esc(money(s.spent))}</b><span>Spent here</span></div>` : ''}
+    </div>`;
+
+  /* Only the stages this army actually has models in. Hard-coding "unbuilt,
+     built, finished" would break the moment somebody renames their stages,
+     and the stage list is editable. */
+  const stageCount = {};
+  g.minis.forEach(m => { stageCount[m.stage] = (stageCount[m.stage]||0) + 1; });
+  const stages = data.stages.filter(x => stageCount[x]);
+  if (stages.length > 1){
+    h += `<div class="chips"><button class="chip" data-astage=""
+        aria-pressed="${!state.aStage}">All <span class="n">${s.entries}</span></button>`;
+    stages.forEach(x => {
+      h += `<button class="chip" data-astage="${esc(x)}" aria-pressed="${state.aStage===x}">
+        ${esc(x)} <span class="n">${stageCount[x]}</span></button>`;
+    });
+    h += `</div>`;
+  }
+
+  const list = state.aStage ? g.minis.filter(m => m.stage === state.aStage) : g.minis;
+  if (!list.length)
+    return h + `<div class="empty"><p>Nothing in this army is at that stage.</p>
+      <button class="btn ghost" data-astage="">Show all of them</button></div>`;
+  h += `<div class="grid">`;
+  list.forEach(m => { h += tile(m); });
+  h += `</div>`;
+  return h;
+}
+
+/* ===========================================================================
    Collection
    =========================================================================== */
 function screenCollection(){
+  if (state.openArmy) return screenArmy();
   let h = `<div class="row spread" style="margin:.875rem 0 .375rem">
     <h2 class="display" style="font-size:1.5rem;margin:0">Collection</h2>
     <button class="btn sm" data-act="addMini">Add</button></div>`;
   if (!data.minis.length)
     return h + `<div class="empty"><p>No miniatures yet. A box of ten counts as one entry with a count of ten &mdash; you do not need a record per model.</p>
       <button class="btn" data-act="addMini">Add your first</button></div>`;
+
+  /* Three views now, so a single flip-flopping chip will not do. */
+  h += `<div class="chips" role="group" aria-label="How to show your collection">
+    ${['grid','list','armies'].map(v => `<button class="chip" data-view="${v}"
+        aria-pressed="${state.view===v}">${v==='grid'?'Grid':v==='list'?'List':'Armies'}</button>`).join('')}
+  </div>`;
+  if (state.view === 'armies') return h + screenArmies();
 
   h += `<label for="q">Search your collection</label>
     <div class="field"><input id="q" type="search" placeholder="Name, tag, note, game system or army" value="${esc(state.q)}">
@@ -3756,8 +3935,7 @@ function screenCollection(){
      on a collection where nobody has entered a date sorts nothing. */
   const anyDate = data.minis.some(m => m.acquired);
   const anyPrice = data.minis.some(m => m.price != null && m.price !== '');
-  h += `<div class="chips"><button class="chip" data-view="${state.view==='grid'?'list':'grid'}">
-      ${state.view==='grid'?'List view':'Grid view'}</button>`;
+  h += `<div class="chips">`;
   if (anyDate) h += `<button class="chip" data-sort="waiting"
       aria-pressed="${state.sort==='waiting'}">Longest waiting</button>`;
   if (anyPrice) h += `<button class="chip" data-sort="value"
@@ -4210,7 +4388,7 @@ function render(){
      buttons go away rather than sitting there doing nothing. */
   if (authGate !== 'in'){
     app.innerHTML = authGate === 'loading' ? screenLoading()
-                  : (state.tab === 'privacy' ? screenPrivacy(null) : screenSignIn());
+                  : (state.tab === 'privacy' ? screenPrivacy('home', 'Sign in') : screenSignIn());
     if (nav) nav.hidden = true;
     if (bar) bar.classList.add('gated');
     $('#screenTitle').textContent = 'MiniManager';
@@ -4677,8 +4855,14 @@ function screenLoading(){
 /* The privacy notice. This is not boilerplate: sign-in is required, so Joe
    is holding other people's data, and they are owed a plain account of it
    before they hand it over rather than afterwards. */
-function screenPrivacy(back){
-  return `${back ? backBtn(back, 'Back') : ''}
+function screenPrivacy(back, label){
+  /* Always a way out. Reached from the sign-in screen this used to render
+     with no back button AND no tab bar, because the tab bar is hidden until
+     you are signed in — so reading the privacy notice before handing over
+     your data left you with nothing but a page reload. Asking someone to
+     read this and then trapping them in it is the worst possible place for
+     a dead end. */
+  return `${backBtn(back || 'home', label || 'Back')}
   <h2 class="display" style="font-size:1.5rem">What MiniManager keeps</h2>
   <div class="card">
     <h3>What is stored</h3>
@@ -4969,17 +5153,30 @@ function setLastUsed(o){
 
 function dlgAddSystem(){
   const have = arr(data.systems).map(s => s.name);
-  const choices = SYSTEMS.map(s => s.name).filter(n => have.indexOf(n) === -1);
+  /* Every system is listed, including the ones already on your list, marked
+     and unselectable.
+
+     This used to filter them out, which meant Warhammer 40,000 simply was not
+     there once you had added it — and a game you cannot find reads as a game
+     the app does not support, not as one you already have. A system is also
+     created automatically the first time you add a model to it, so this could
+     happen without you ever having opened this dialog. */
+  const left = SYSTEMS.filter(s => have.indexOf(s.name) === -1).length;
   openDialog('Add a game system',
     `<label for="sName">Which one?</label>
      <select id="sName">
        <option value="">Pick one&hellip;</option>
-       ${choices.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('')}
+       ${SYSTEMS.map(s => {
+         const got = have.indexOf(s.name) !== -1;
+         return `<option value="${esc(s.name)}"${got ? ' disabled' : ''}>${esc(s.name)}${
+           got ? ' — already on your list' : ''}</option>`;
+       }).join('')}
        <option value="__own">Type my own&hellip;</option>
      </select>
      <input id="sOwn" type="text" placeholder="Your own game" style="margin-top:.5rem" hidden>
-     <p class="small muted" style="margin:.625rem 0 0">Picking one of these brings its army
-     list with it. You can still type your own army whatever you choose.</p>`,
+     <p class="small muted" style="margin:.625rem 0 0">${left
+       ? 'Picking one of these brings its army list with it. You can still type your own army whatever you choose.'
+       : 'You already have every game system on the built-in list. Choose <b>Type my own</b> for anything else &mdash; the app has never cared which game it is.'}</p>`,
     () => {
       const sel = $('#sName').value;
       const v = sel === '__own' ? $('#sOwn').value.trim() : sel;
@@ -5304,6 +5501,8 @@ document.addEventListener('click', e => {
       return;
     }
     /* --- the new screens --- */
+    if (a === 'backArmies'){ state.openArmy = null; state.aStage = '';
+      render(); window.scrollTo(0,0); return; }
     if (a === 'pick'){ $('#dlg').close(); state.tab = 'pick'; state.openMini = null;
       state.pick.result = null; render(); window.scrollTo(0,0); return; }
     if (a === 'shop'){ $('#dlg').close(); state.tab = 'shop'; state.openMini = null;
@@ -5347,7 +5546,14 @@ document.addEventListener('click', e => {
     if (a === 'clearPaintFilters'){ state.pq=''; state.pStock=''; render(); return; }
   }
 
-  const v = t.closest('[data-view]');  if (v){ state.view = v.dataset.view; render(); return; }
+  const v = t.closest('[data-view]');
+  if (v){ state.view = v.dataset.view; state.openArmy = null; state.aStage = ''; render(); return; }
+  const oa = t.closest('[data-openarmy]');
+  if (oa){ state.openArmy = oa.dataset.openarmy; state.aStage = ''; render(); window.scrollTo(0,0); return; }
+  /* An empty data-astage is the "All" chip, so test for the attribute rather
+     than for a truthy value — otherwise "All" would never clear the filter. */
+  const as = t.closest('[data-astage]');
+  if (as){ state.aStage = as.dataset.astage; render(); return; }
   const fs = t.closest('[data-fsys]'); if (fs){ state.fSys = state.fSys===fs.dataset.fsys?'':fs.dataset.fsys; render(); return; }
   const ft = t.closest('[data-fstage]'); if (ft){ state.fStage = state.fStage===ft.dataset.fstage?'':ft.dataset.fstage; render(); return; }
   const fk = t.closest('[data-fstock]'); if (fk){ state.pStock = state.pStock===fk.dataset.fstock?'':fk.dataset.fstock; render(); return; }
