@@ -925,6 +925,11 @@ span.havedrop.gone{display:inline-grid;place-items:center;color:var(--text-2)}
 .havest.have{color:color-mix(in srgb,var(--success) 62%,var(--text))}
 .havest.out,.havest.wish,.havest.gone{color:color-mix(in srgb,var(--warning) 72%,var(--text))}
 .havecard .linkbtn{margin-top:.5rem;min-height:var(--tap)}
+
+/* v025: your own undercoats */
+.checkrow{display:flex;align-items:center;gap:.625rem;min-height:var(--tap);font-weight:500;margin-top:.75rem}
+.checkrow input{width:1.25rem;height:1.25rem;accent-color:var(--text);flex:0 0 auto}
+#ucHex:disabled{opacity:.4}
 </style>
 </head>
 <body>
@@ -3635,7 +3640,7 @@ function syncPill(){
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v024';
+const APP_VERSION = 'v025';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -5709,7 +5714,7 @@ function screenPaintDetail(){
       <figure><div class="estchip" style="background:${esc(p.hex||'#CFC7BA')}"></div>
         <figcaption>Maker&rsquo;s estimate</figcaption></figure>
       ${sws.length
-        ? `<figure>${photoImg(sws[0].photoId,'realswatch')}<figcaption>Your swatch &mdash; over ${esc(ucName(sws[0].undercoatId).toLowerCase())}</figcaption></figure>`
+        ? `<figure>${photoImg(sws[0].photoId,'realswatch')}<figcaption>Your swatch &mdash; over ${esc(ucName(sws[0].undercoatId) || 'an undercoat')}</figcaption></figure>`
         : `<figure><div class="estchip" style="background:var(--warm-grey)"></div>
              <figcaption>No swatch photographed yet</figcaption></figure>`}
     </div>
@@ -5720,8 +5725,8 @@ function screenPaintDetail(){
     sws.forEach(s => {
       h += `<div class="row swrow">
         ${photoImg(s.photoId,'realswatch')}
-        <span class="grow"><b>Over ${esc(ucName(s.undercoatId).toLowerCase())}</b>
-          <span class="small muted" style="display:block">${s.coats?esc(s.coats)+' coat'+(s.coats>1?'s':''):'Coats not noted'}${s.lighting?' · '+esc(s.lighting):''}</span>
+        <span class="grow"><b>Over ${esc(ucName(s.undercoatId) || 'an undercoat')}</b>
+          <span class="small muted" style="display:block">${esc(swatchLine(s))}</span>
           ${s.notes?`<span class="small muted user-text" style="display:block">${esc(s.notes)}</span>`:''}</span>
         <button class="iconbtn" data-delswatch="${esc(s.id)}" aria-label="Delete swatch">&times;</button></div>`;
     });
@@ -5762,7 +5767,7 @@ function screenCompare(){
     h += `<div class="grid" style="margin-top:.875rem">`;
     list.forEach(s => {
       h += `<figure style="margin:0">${photoImg(s.photoId,'realswatch')}
-        <figcaption class="small muted" style="text-align:center;margin-top:.375rem">Over ${esc(ucName(s.undercoatId).toLowerCase())}</figcaption></figure>`;
+        <figcaption class="small muted" style="text-align:center;margin-top:.375rem">Over ${esc(ucName(s.undercoatId) || 'an undercoat')}${s.applied ? '<br>' + esc(APPLIED_WORD[s.applied] || '') : ''}</figcaption></figure>`;
     });
     h += `</div>`;
     if (list.length < 2) h += `<p class="small muted">Photograph this paint over another undercoat to compare them side by side.</p>`;
@@ -6619,7 +6624,7 @@ function dlgDeleteAccount(){
 /* ===========================================================================
    Dialogs
    =========================================================================== */
-function openDialog(title, body, onOk, okLabel, cancelLabel){
+function openDialog(title, body, onOk, okLabel, cancelLabel, onCancel){
   /* The close lives in a pinned header, not only at the foot. A long dialog
      — the "More" menu runs to the full MIT licence — otherwise hides its
      only way out below everything else. */
@@ -6637,7 +6642,7 @@ function openDialog(title, body, onOk, okLabel, cancelLabel){
   dlg.onclick = e => {
     const b = e.target.closest('[data-dlg]');
     if (!b) return;
-    if (b.dataset.dlg === 'cancel'){ closeSheet(dlg); return; }
+    if (b.dataset.dlg === 'cancel'){ if (onCancel) onCancel(); else closeSheet(dlg); return; }
     /* A dialog with nothing to confirm — the menu — has no onOk at all. */
     if (!onOk || onOk() !== false) closeSheet(dlg);
   };
@@ -6814,17 +6819,52 @@ function armyOptions(sysName, current){
 }
 
 /* Sixty-odd undercoats is too many for a flat list, so they group by brand. */
-function undercoatOptions(sel){
+function undercoatOptions(sel, withAdd){
   const by = {};
-  arr(data.undercoats).forEach(u => { (by[u.brand || 'Yours'] = by[u.brand || 'Yours'] || []).push(u); });
-  const order = ['Any','Citadel','The Army Painter','The Colour Forge','Vallejo','Scale75'];
+  /* Your own undercoats (v025) group under Yours whatever brand you gave them. */
+  arr(data.undercoats).forEach(u => { if (!u) return; const g = u.own ? 'Yours' : (u.brand || 'Yours'); (by[g] = by[g] || []).push(u); });
+  const order = ['Yours','Any','Citadel','The Army Painter','The Colour Forge','Vallejo','Scale75'];
   const names = Object.keys(by).sort((a, b) => {
     const ia = order.indexOf(a), ib = order.indexOf(b);
     return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib) || a.localeCompare(b);
   });
   return names.map(n => `<optgroup label="${esc(n)}">` + by[n].map(u =>
-    `<option value="${esc(u.id)}"${u.id === sel ? ' selected' : ''}>${esc(u.name)}</option>`
-  ).join('') + '</optgroup>').join('');
+    `<option value="${esc(u.id)}"${u.id === sel ? ' selected' : ''}>${esc(u.name)}${u.own && u.brand ? ' &mdash; ' + esc(u.brand) : ''}</option>`
+  ).join('') + '</optgroup>').join('') + (withAdd ? `<option value="__addUc">+ Add your own undercoat</option>` : '');
+}
+
+/* --- your own undercoats (v025) -------------------------------------------
+   Added from the swatch dialog. The dialog is swapped for this one and then
+   put back with everything you had already chosen, so the photo you just
+   took and its details are never lost on the way. */
+const APPLIED = ['Spray','Brush','Airbrush'];
+const APPLIED_WORD = { Spray:'Sprayed', Brush:'Brushed', Airbrush:'Airbrushed' };
+function swatchLine(s){
+  return [APPLIED_WORD[s.applied] || '', s.coats ? s.coats + ' coat' + (s.coats > 1 ? 's' : '') : 'Coats not noted', s.lighting || '']
+    .filter(Boolean).join(' · ');
+}
+function dlgAddUndercoat(back){
+  openDialog('Add your own undercoat',
+    `<label for="ucName">Name</label><input id="ucName" autocomplete="off" placeholder="Grey car primer">
+     <label for="ucBrand">Brand <span class="muted">(optional)</span></label><input id="ucBrand" autocomplete="off" placeholder="e.g. the shop or maker">
+     <label class="checkrow"><input type="checkbox" id="ucHasHex"> Note roughly what colour it is</label>
+     <input id="ucHex" type="color" value="#9A9A9A" style="height:3rem" disabled aria-label="Roughly what colour">
+     <p class="small muted" style="margin:.25rem 0 0">Only used for the small dot beside its name. It never stands in for a photo.</p>
+     ${chips('ucFinish', ['Matt','Satin','Gloss'], { label:'Finish', ownPlaceholder:'Your own finish' })}`,
+    () => {
+      const name = $('#ucName').value.trim();
+      if (!name){ toast(NAME_REQUIRED); return false; }
+      const dup = arr(data.undercoats).find(u => u && u.own && u.name.toLowerCase() === name.toLowerCase());
+      if (dup){ toast('You already have an undercoat called ' + dup.name + '.'); return false; }
+      const u = { id:'u-own-' + uid(), name, brand:$('#ucBrand').value.trim(), own:true,
+        hex: $('#ucHasHex').checked ? $('#ucHex').value.toUpperCase() : null,
+        finish:$('#ucFinish').value.trim(), created:Date.now(), updated:Date.now() };
+      data.undercoats.push(u); save();
+      toast(name + ' added to your undercoats.');
+      if (back){ back(u.id); return false; }
+    }, 'Add undercoat', 'Cancel', back ? () => back(null) : null);
+  $('#ucHasHex').addEventListener('change', e => { $('#ucHex').disabled = !e.target.checked; });
+  $('#ucName').focus();
 }
 
 /* Look the record up by name, or make it. Keeps the forms free of ids. */
@@ -7044,27 +7084,44 @@ function startSwatch(paintId){
   state.pending = { paintId: paintId || null };
   $('#camIn').click();
 }
-function dlgLabelSwatch(photoId){
-  const pid = state.pending && state.pending.paintId;
+function dlgLabelSwatch(photoId, keep){
+  const k = keep || {};
+  const pid = k.paintId || (state.pending && state.pending.paintId);
+  let lastHow = ''; try { lastHow = localStorage.getItem('mm.lastApplied') || ''; } catch (e) {}
+  const how = k.how != null ? k.how : (APPLIED.indexOf(lastHow) !== -1 ? lastHow : '');
   openDialog('What is this a swatch of?',
     `<div class="swatchpair"><figure style="flex:0 0 9rem">
        <img class="realswatch" data-photo="${esc(photoId)}" alt="The swatch you just photographed">
        <figcaption>Just photographed</figcaption></figure></div>
      <label for="swPaint">Paint</label><select id="swPaint">
        ${data.paints.map(p => `<option value="${esc(p.id)}"${pid===p.id?' selected':''}>${esc(p.name)} &mdash; ${esc(p.brand||'')}</option>`).join('')}</select>
-     ${field('swUc','Undercoat', `<select id="swUc">${undercoatOptions()}</select>`, 'undercoat')}
-     <label for="swCoats">Coats</label><input id="swCoats" type="number" min="1" value="2" inputmode="numeric">
-     ${chips('swLight', CHIPS.light, { label:'Lighting', help:'swatch',
+     ${field('swUc','Undercoat', `<select id="swUc">${undercoatOptions(k.uc, true)}</select>`, 'undercoat')}
+     ${chips('swHow', APPLIED, { label:'Undercoat put on with', value:how, noOwn:true })}
+     <label for="swCoats">Coats</label><input id="swCoats" type="number" min="1" value="${esc(k.coats != null ? k.coats : 2)}" inputmode="numeric">
+     ${chips('swLight', CHIPS.light, { label:'Lighting', help:'swatch', value:k.light || '',
         ownPlaceholder:'Describe the light' })}
-     <label for="swNotes">Notes</label><textarea id="swNotes" class="user-text"></textarea>`,
+     <label for="swNotes">Notes</label><textarea id="swNotes" class="user-text">${esc(k.notes || '')}</textarea>`,
     () => {
       const paintId = $('#swPaint').value;
       if (!paintId){ toast('Add a paint first, then photograph a swatch of it.'); return false; }
-      data.swatches.push({ id:uid(), paintId, undercoatId:$('#swUc').value, photoId,
+      const ucId = $('#swUc').value;
+      if (!ucId || ucId === '__addUc'){ toast('Choose an undercoat first.'); return false; }
+      const applied = $('#swHow').value.trim();
+      const sw = { id:uid(), paintId, undercoatId:ucId, photoId,
         coats:Number($('#swCoats').value)||null, lighting:$('#swLight').value.trim(),
-        notes:$('#swNotes').value.trim(), created:Date.now() });
+        notes:$('#swNotes').value.trim(), created:Date.now() };
+      if (applied) { sw.applied = applied; try { localStorage.setItem('mm.lastApplied', applied); } catch (e) {} }
+      data.swatches.push(sw);
       save(); render(); toast('Swatch saved.');
     }, 'Save swatch');
+  const ucSel = $('#swUc');
+  let prevUc = ucSel.value === '__addUc' ? '' : ucSel.value;
+  ucSel.addEventListener('change', () => {
+    if (ucSel.value !== '__addUc'){ prevUc = ucSel.value; return; }
+    const held = { paintId:$('#swPaint').value, how:$('#swHow').value, coats:$('#swCoats').value,
+      light:$('#swLight').value, notes:$('#swNotes').value };
+    dlgAddUndercoat(newId => dlgLabelSwatch(photoId, Object.assign(held, { uc: newId || prevUc })));
+  });
   hydratePhotos();
 }
 
