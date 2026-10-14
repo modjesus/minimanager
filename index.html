@@ -837,6 +837,27 @@ details summary{cursor:pointer;min-height:var(--tap);display:flex;align-items:ce
 @media (max-width:22rem){ .stack{display:none} }
 /* --- v017 --- */
 .terrline{margin:.625rem 0 0}
+/* --- v018: models at each stage -------------------------------------------
+   One colour per stage, from bare plastic through primer grey and basecoat
+   gold to finished green. Used only as bands in a bar, always beside words
+   that say the same thing. */
+:root{--st0:#D9CFBF;--st1:#BDB096;--st2:#8A8A86;--st3:#C6A962;--st4:#A2833F;--st5:#8FAE9C;--st6:#6E8F7E;--st7:#47745E}
+.sbar{display:flex;height:.75rem;border-radius:.375rem;overflow:hidden;background:var(--border);margin:.875rem 0 .5rem}
+.sbar span{display:block;min-width:3px}
+.herobar{margin:.25rem 0 .875rem}
+.stair{list-style:none;margin:0 0 .875rem;padding:0}
+.stair li{display:flex;flex-wrap:wrap;align-items:center;gap:.25rem .625rem;min-height:var(--tap);padding:.375rem 0;border-bottom:1px solid var(--border);font-size:.9375rem}
+.stair li i{width:.75rem;height:.75rem;border-radius:3px;flex:0 0 auto}
+.stair li b{font-family:var(--f-display);font-weight:400;font-size:1.375rem;line-height:1;min-width:2.25rem}
+.stair li span{flex:1 1 6rem;min-width:0}
+.stair li em{font-style:normal;font-size:.8125rem;color:var(--text-2);white-space:nowrap}
+.stair li em.all{color:var(--text);font-weight:600}
+.moveon{width:100%;margin-top:.25rem}
+.stepper{display:flex;align-items:center;flex-wrap:wrap;gap:.75rem 1rem;margin:.25rem 0 .5rem}
+.stepbtn{width:var(--tap);height:var(--tap);border-radius:50%;border:1px solid var(--border);background:var(--surface);
+  color:var(--text);font:inherit;font-size:1.25rem;line-height:1;cursor:pointer}
+.stepbtn:disabled{opacity:.4;cursor:default}
+.stepn{font-family:var(--f-display);font-size:2rem;min-width:2.5rem;text-align:center}
 </style>
 </head>
 <body>
@@ -3547,7 +3568,7 @@ function syncPill(){
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v017';
+const APP_VERSION = 'v018';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -3939,6 +3960,77 @@ const paintOf = id => data.paints.find(p => p.id === id);
 const stageIx = m => { const i = data.stages.indexOf(m.stage); return i < 0 ? 0 : i; };
 const isDone  = m => m.stage === data.stages[data.stages.length - 1];
 
+/* ---------------------------------------------------------------------------
+   How many models are at each stage.
+
+   A squad is rarely all at one stage: twenty built, fifteen primed, ten
+   basecoated, five finished. Since v018 each unit keeps a count per stage in
+   m.at, by stage name. m.stage and m.done are still written alongside it —
+   m.stage is the stage the slowest models are at, m.done the number finished
+   — so every total that reads them keeps working, and so does an older copy
+   of the app on another phone that has not updated yet.
+
+   m.atSig remembers what stage and done were when the counts were written.
+   If an older copy changes the stage or the finished number, the signature
+   no longer matches, and the counts are rebuilt from what it wrote rather
+   than trusting counts it never saw. */
+const atSig = m => `${m.stage}|${Number(m.done)||0}|${Number(m.total)||1}`;
+function stageCounts(m){
+  const names = data.stages, last = names.length - 1, n = Number(m.total) || 1;
+  const cnt = names.map(() => 0);
+  if (m.at && typeof m.at === 'object' && m.atSig === atSig(m)){
+    names.forEach((s, i) => { cnt[i] = Math.max(0, Number(m.at[s]) || 0); });
+    if (cnt.reduce((a, b) => a + b, 0) === n) return cnt;
+    cnt.fill(0);
+  }
+  /* Before v018, or changed by an older copy: one stage plus a finished
+     number. "Basecoat, 5 of 20 finished" is 15 at Basecoat and 5 finished. */
+  const i = stageIx(m), d = Math.min(Math.max(Number(m.done) || 0, 0), n);
+  if (i === last) cnt[last] = n;
+  else { cnt[i] = n - d; cnt[last] += d; }
+  return cnt;
+}
+function setCounts(m, cnt){
+  const names = data.stages, last = names.length - 1;
+  m.at = {};
+  cnt.forEach((c, i) => { if (c > 0) m.at[names[i]] = c; });
+  m.done = cnt[last];
+  const lo = cnt.findIndex(c => c > 0);
+  m.stage = names[lo < 0 ? 0 : lo];
+  m.atSig = atSig(m);
+}
+/* Started: some model is past the first stage, and not all are finished. */
+const isStarted = m => { const c = stageCounts(m); return !isDone(m) && c[0] < (Number(m.total)||1); };
+const allUnbuilt = m => stageCounts(m)[0] === (Number(m.total)||1);
+/* How far through its stages the unit is, 0 to 1, counting every model. */
+function unitProgress(m){
+  const c = stageCounts(m), last = c.length - 1, n = Number(m.total) || 1;
+  if (!last) return 1;
+  return c.reduce((a, k, i) => a + k * i, 0) / (n * last);
+}
+/* One line for a unit's stage: its stage, or the span its models cover. */
+function stageLabel(m){
+  const c = stageCounts(m), names = data.stages;
+  const lo = c.findIndex(k => k > 0), hi = c.length - 1 - [...c].reverse().findIndex(k => k > 0);
+  return lo === hi ? names[lo] : names[lo] + ' to ' + names[hi];
+}
+/* Running totals, the way a painter says it: 20 built, 15 primed. */
+const STAGE_DONE_WORD = { Built:'built', Primed:'primed', Basecoat:'basecoated', Shading:'shaded',
+  Highlights:'highlighted', Basing:'based', Finished:'finished' };
+const stageDoneWord = s => STAGE_DONE_WORD[s] || ('at ' + s + ' or beyond');
+function runningTotals(m){
+  const c = stageCounts(m);
+  const out = [];
+  for (let i = c.length - 1, run = 0; i >= 1; i--){ run += c[i]; out.unshift({ i, name:data.stages[i], reached:run }); }
+  return out;
+}
+/* A unit's own stage bar: one band per stage, as wide as its models. */
+function stageBar(cnt, cls){
+  const total = cnt.reduce((a, b) => a + b, 0) || 1;
+  return `<div class="${cls || 'sbar'}" aria-hidden="true">${cnt.map((k, i) => k ?
+    `<span style="flex:${k};background:var(--st${Math.min(i, 7)})"></span>` : '').join('')}</div>`;
+}
+
 /* Terrain is a project, not a miniature, so it is kept out of every
    "models" figure and counted on its own line instead. */
 const isTerrain = m => String(m.unit || '').trim().toLowerCase() === 'terrain';
@@ -3949,13 +4041,15 @@ const isTerrain = m => String(m.unit || '').trim().toLowerCase() === 'terrain';
 function modelTally(list){
   const minis = list.filter(m => !isTerrain(m));
   const sum = (ms, f) => ms.reduce((n,m) => n + f(m), 0);
-  const tot = m => Number(m.total)||1, dn = m => Math.min(Number(m.done)||0, tot(m));
-  const benchMs = minis.filter(m => stageIx(m) > 0 && !isDone(m));
-  const waitMs  = minis.filter(m => stageIx(m) === 0 && !isDone(m));
-  return { total: sum(minis, tot), done: sum(minis, dn),
-           /* On the bench: the models in started units that are not yet finished. */
-           started: sum(benchMs, m => tot(m) - dn(m)), startedUnits: benchMs.length,
-           backlog: sum(waitMs, tot), backlogUnits: waitMs.length,
+  const tot = m => Number(m.total)||1;
+  const last = data.stages.length - 1;
+  /* Model by model: unbuilt ones are still to build, finished ones are
+     finished, and everything in between is on the bench. */
+  const total = sum(minis, tot), done = sum(minis, m => stageCounts(m)[last]);
+  const backlog = sum(minis, m => last ? stageCounts(m)[0] : 0);
+  return { total, done, started: total - done - backlog,
+           startedUnits: minis.filter(isStarted).length,
+           backlog, backlogUnits: minis.filter(allUnbuilt).length,
            terrain: list.length - minis.length };
 }
 function counts(){
@@ -4083,7 +4177,7 @@ function screenHome(){
   /* What is on the bench, by army. Started and not finished, most recently
      touched first; each army gets its own heading so Death Guard never
      shares a row with Tyranids. Three armies, four models each, at most. */
-  const started = data.minis.filter(m => stageIx(m) > 0 && !isDone(m))
+  const started = data.minis.filter(isStarted)
     .sort((a,b) => (b.updated||0)-(a.updated||0));
   const benchGroups = new Map();
   started.forEach(m => { const k = armyKey(m); if (!benchGroups.has(k)) benchGroups.set(k, []); benchGroups.get(k).push(m); });
@@ -4105,16 +4199,18 @@ function screenHome(){
     const hero = started.find(m => arr(m.photos).length) || started[0];
     const cur = stageIx(hero), last = data.stages.length - 1;
     const n = Number(hero.total)||1, d = Number(hero.done)||0;
+    const prog = unitProgress(hero);
     const g0 = { sys:hero.sys||'', fac:hero.fac||'' };
     const pid = arr(hero.photos)[0];
     h += `<div class="ehead" style="margin-top:0"><h2>Continue painting</h2></div>
       <button class="benchhero${pid?'':' nophoto'}" data-open="${esc(hero.id)}" aria-label="Open ${esc(hero.name)}">
         ${pid ? photoImg(pid,'ph') : `<span class="ph empty" aria-hidden="true">${dropSvg('phdrop','')}<span>no photo yet</span></span>`}
-        <i class="lvl" style="width:${last ? Math.round(cur/last*100) : 100}%"></i></button>
+        <i class="lvl" style="width:${Math.round(prog*100)}%"></i></button>
       <h3 class="herotitle display user-text">${esc(hero.name)}</h3>
-      <p class="small muted user-text herosub">${esc(armyLabel(g0))} &middot; ${esc(hero.stage)}${n>1?` &middot; <span class="num">${d} of ${n}</span> done`:''}</p>
-      ${stageRow(cur)}
-      ${cur < last ? `<button class="btn homeadv" data-act="homeAdv" data-id="${esc(hero.id)}">Move to ${esc(data.stages[cur+1])}</button>` : ''}`;
+      <p class="small muted user-text herosub">${esc(armyLabel(g0))} &middot; ${esc(stageLabel(hero))}${n>1?` &middot; <span class="num">${d} of ${n}</span> finished`:''}</p>
+      ${n > 1 ? stageBar(stageCounts(hero), 'sbar herobar') : stageRow(cur)}
+      ${n > 1 ? `<button class="btn homeadv" data-act="moveOn" data-id="${esc(hero.id)}">Move models on</button>`
+        : cur < last ? `<button class="btn homeadv" data-act="homeAdv" data-id="${esc(hero.id)}">Move to ${esc(data.stages[cur+1])}</button>` : ''}`;
 
     const rest = new Map();
     started.filter(m => m !== hero).forEach(m => { const k = armyKey(m); if (!rest.has(k)) rest.set(k, []); rest.get(k).push(m); });
@@ -4126,7 +4222,7 @@ function screenHome(){
            small photos at the right. A one-model army no longer leaves a
            lone tile with half the screen empty beside it. */
         h += `<div class="benchrow"><button class="crumb" data-openarmy="${esc(k)}">${esc(armyLabel(g))} <span>&middot; ${esc(gameLabel(g.sys))}</span> <span aria-hidden="true">&rsaquo;</span>
-            <em class="bnames user-text">${ms.map(m => esc(m.name) + ' &middot; ' + esc(m.stage)).slice(0,3).join('<br>')}${ms.length > 3 ? `<br>and ${ms.length - 3} more` : ''}</em></button>
+            <em class="bnames user-text">${ms.map(m => esc(m.name) + ' &middot; ' + esc(stageLabel(m))).slice(0,3).join('<br>')}${ms.length > 3 ? `<br>and ${ms.length - 3} more` : ''}</em></button>
           <div class="grid strip">${ms.slice(0,3).map(tile).join('')}</div></div>`;
       });
       if (rest.size > 4)
@@ -4227,11 +4323,11 @@ function tile(m){
   /* A thin bar along the bottom of the photo fills as the model moves
      through its stages, and turns green when it is finished. */
   const last = data.stages.length - 1;
-  const lv = isFinished(m) ? 100 : last ? Math.round(stageIx(m) / last * 100) : 0;
+  const lv = isFinished(m) ? 100 : Math.round(unitProgress(m) * 100);
   return `<button class="tile${pid?'':' nophoto'}" data-open="${esc(m.id)}">${img}${mark}
     ${lv ? `<i class="lvl${isFinished(m)?' done':''}" style="width:${lv}%"></i>` : ''}
     <span class="meta"><b class="user-text">${esc(m.name)}</b>
-    <span class="small muted">${esc(m.stage)}${n>1?` &middot; <span class="num">${d} of ${n}</span>`:''}</span>
+    <span class="small muted">${esc(stageLabel(m))}${n>1?` &middot; <span class="num">${d} of ${n}</span>`:''}</span>
     ${sortNote(m)}
     </span></button>`;
 }
@@ -4720,11 +4816,11 @@ function groupedResults(list){
 }
 function modelRow(m){
   const n = Number(m.total)||1, d = Number(m.done)||0;
-  const note = sortNote(m) || (stageIx(m) === 0 && m.acquired
+  const note = sortNote(m) || (allUnbuilt(m) && m.acquired
     ? `<span class="small muted">${esc(waitedFor(m.acquired))}</span>` : '');
   return `<button class="mrow" data-open="${esc(m.id)}">
     <span class="grow user-text">${esc(m.name)}</span>
-    <span class="small muted mst">${esc(m.stage)}${n>1&&!isDone(m)&&d?` &middot; <span class="num">${d} of ${n}</span>`:''}${note?'<br>'+note:''}</span></button>`;
+    <span class="small muted mst">${esc(stageLabel(m))}${n>1&&!isDone(m)&&d?` &middot; <span class="num">${d} of ${n}</span>`:''}${note?'<br>'+note:''}</span></button>`;
 }
 
 function screenGame(){
@@ -4769,9 +4865,9 @@ function screenArmy(){
 
   /* Three shelves, in the order you would want them: what you are working on,
      what is still in the box, and what is done. */
-  const bench = g.minis.filter(m => stageIx(m) > 0 && !isDone(m))
-    .sort((p,q) => stageIx(q) - stageIx(p) || (q.updated||0) - (p.updated||0));
-  const waiting = g.minis.filter(m => stageIx(m) === 0 && !isDone(m))
+  const bench = g.minis.filter(isStarted)
+    .sort((p,q) => unitProgress(q) - unitProgress(p) || (q.updated||0) - (p.updated||0));
+  const waiting = g.minis.filter(m => allUnbuilt(m) && !isDone(m))
     .sort((p,q) => (p.acquired||'9999').localeCompare(q.acquired||'9999'));
   const done = g.minis.filter(isDone).sort((p,q) => (q.updated||0) - (p.updated||0));
   const shelf = (title, ms, asTiles) => {
@@ -4843,7 +4939,8 @@ function filterSheetBody(){
      This is for looking across everything, and the results come back
      grouped by game and army. */
   const stageCount = {};
-  data.minis.forEach(m => { stageCount[m.stage] = (stageCount[m.stage]||0) + (Number(m.total)||1); });
+  data.minis.forEach(m => stageCounts(m).forEach((k, i) => {
+    if (k) stageCount[data.stages[i]] = (stageCount[data.stages[i]]||0) + k; }));
   let h = '';
   h += `<p class="fsec">Stage <span class="opt">models at each</span></p><div class="chips">`;
   data.stages.filter(s => stageCount[s]).forEach(s => {
@@ -4870,7 +4967,7 @@ function sheetCountLabel(){
     return `Show ${n} paint${n===1?'':'s'}`;
   }
   const n = filtered().length;
-  return `Show ${n} model entr${n===1?'y':'ies'}`;
+  return `Show ${n} unit${n===1?'':'s'}`;
 }
 function openFilterSheet(kind){
   state.sheet = kind;
@@ -4945,9 +5042,11 @@ function filtered(){
   return data.minis.filter(m => {
     if (state.fSys && m.sys !== state.fSys) return false;
     if (state.fFac && m.fac !== state.fFac) return false;
-    if (state.fStage && m.stage !== state.fStage) return false;
+    /* A unit matches a stage when any of its models are at it. */
+    if (state.fStage && !stageCounts(m)[data.stages.indexOf(state.fStage)]) return false;
     if (!q) return true;
-    const hay = [m.name, m.tags, m.notes, sysName(m.sys), facName(m.fac), m.stage, m.unit]
+    const hay = [m.name, m.tags, m.notes, sysName(m.sys), facName(m.fac), m.unit,
+                 ...data.stages.filter((s, i) => stageCounts(m)[i])]
       .filter(Boolean).join(' ').toLowerCase();
     return hay.includes(q);
   }).sort(sorter());
@@ -4999,6 +5098,32 @@ function screenMini(){
 
   const stageHelp = helpBlock('stages');
   const prog = last ? cur / last : 1;
+  if (n > 1){
+    /* A unit: one bar for where all its models are, then running totals,
+       the way a painter would say it. Moving some or all of them on is one
+       button. */
+    const cnt = stageCounts(m), rt = runningTotals(m);
+    h += `<div class="card unitprog${fin?' finished':''}">
+      <div class="flab" style="margin-top:0"><h3 style="margin:0">Progress</h3>${stageHelp.btn}</div>
+      ${stageHelp.panel}
+      ${stageBar(cnt)}
+      <ul class="stair">`;
+    rt.forEach(r => {
+      /* Only the stages where some models stop, and Finished: models that
+         went on to Finished passed Shading and Basing too, and five rows of
+         "5" would bury the line that matters. */
+      if (!cnt[r.i] && r.i !== last) return;
+      const togo = n - r.reached;
+      h += `<li><i style="background:var(--st${Math.min(r.i,7)})" aria-hidden="true"></i><b class="num">${r.reached}</b>
+        <span>${esc(stageDoneWord(r.name))}</span>
+        <em class="${togo ? '' : 'all'}">${togo ? `<span class="num">${togo}</span> to go` : (n > 1 ? 'all ' + n : 'done')}</em></li>`;
+    });
+    if (cnt[0]) h += `<li class="still"><i style="background:var(--st0)" aria-hidden="true"></i><b class="num">${cnt[0]}</b><span>still to build</span><em></em></li>`;
+    h += `</ul>
+      ${fin ? `<div class="finmark on"><i>&#10003;</i> Finished &mdash; all ${n} of them</div>` : ''}
+      <button class="btn${fin ? ' ghost' : ''} moveon" data-act="moveOn" data-id="${esc(m.id)}">${fin ? 'Move some back' : 'Move models on'}</button>
+    </div>`;
+  } else {
   h += `<div class="card${fin?' finished':''}">
     <div class="flab" style="margin-top:0"><h3 style="margin:0">Progress</h3>${stageHelp.btn}</div>
     ${stageHelp.panel}
@@ -5020,13 +5145,9 @@ function screenMini(){
     </button>`;
   });
   h += `</div></div>`;
-  h += `<div class="finmark${fin?' on':''}"><i>&#10003;</i> Finished${n>1?` &mdash; all ${n} of them`:''}</div>`;
-  if (n > 1){
-    h += `<label for="doneN">How many of the ${n} are finished?</label>
-      <div class="row"><input id="doneN" type="number" min="0" max="${n}" value="${d}" style="max-width:7.5rem">
-      <span class="muted small"><span class="num">${d} of ${n}</span> finished</span></div>`;
-  }
+  h += `<div class="finmark${fin?' on':''}"><i>&#10003;</i> Finished</div>`;
   h += `</div>`;
+  }
 
   h += `<div class="card"><div class="row spread"><h3 style="margin:0">Photos</h3>
     <button class="btn sm ghost" data-act="addPhotos">Add photo</button></div><div class="photos">`;
@@ -5601,8 +5722,9 @@ function pickPool(){
   const p = state.pick, lastStage = data.stages[data.stages.length - 1];
   return arr(data.minis).filter(m => {
     if (m.stage === lastStage) return false;            /* already done */
-    if (p.kind === 'build' && m.stage !== data.stages[0]) return false;
-    if (p.kind === 'paint' && m.stage === data.stages[0]) return false;
+    const c = stageCounts(m);
+    if (p.kind === 'build' && !c[0]) return false;      /* nothing left to build */
+    if (p.kind === 'paint' && !c.slice(1, -1).some(k => k)) return false;
     if (p.opts.quick && (Number(m.total) || 1) > 5) return false;
     if (p.opts.sys && m.sys !== p.opts.sys) return false;
     return true;
@@ -5661,7 +5783,7 @@ function pickFaceHtml(m){
   const n = Number(m.total) || 1;
   const bits = [n + (n === 1 ? ' model' : ' models')];
   if (m.acquired) bits.push('waiting ' + waitedFor(m.acquired));
-  bits.push(m.stage);
+  bits.push(stageLabel(m));
   return `<div><p class="pickname user-text">${esc(m.name)}</p>
     ${sub ? `<p class="picksub user-text">${esc(sub)}</p>` : ''}
     <p class="pickmeta">${esc(bits.join(' · '))}</p></div>`;
@@ -5726,14 +5848,13 @@ function reducedMotion(){
    celebration could drift apart. */
 function setStage(m, stage){
   const wasFinished = isFinished(m);
-  m.stage = stage;
-  /* Finished means every model in the unit is finished, so the count says
-     so too. Leaving Finished means at least one model is not finished any
-     more (a rebase, say), so the count drops by one at most. Before v017 it
-     went to zero, which threw away how many were really done. */
+  /* Every model in the unit moves to the stage. Moving some of them is the
+     move panel's job (moveModels). */
   const n = Number(m.total) || 1;
-  if (isDone(m)) m.done = n;
-  else if (wasFinished && (Number(m.done)||0) >= n) m.done = n - 1;
+  const cnt = data.stages.map(() => 0);
+  const i = data.stages.indexOf(stage);
+  cnt[i < 0 ? 0 : i] = n;
+  setCounts(m, cnt);
   m.updated = Date.now(); save();
   advanceStrip(m, !wasFinished && isFinished(m));
 }
@@ -6012,6 +6133,60 @@ function openDialog(title, body, onOk, okLabel, cancelLabel){
   };
 }
 const NAME_REQUIRED = 'Give it a name first.';
+
+/* ---------------------------------------------------------------------------
+   Move models on. Pick where they are now, where they are going, and how
+   many. It suggests the next stage and all the models at the first stage
+   that has any, which is the usual case: "I primed the last five".
+   --------------------------------------------------------------------------- */
+function moveModels(m){
+  const names = data.stages, last = names.length - 1;
+  const cnt = stageCounts(m);
+  const firstFrom = cnt.findIndex((k, i) => k > 0 && i < last);
+  const mv = { from: firstFrom < 0 ? last : firstFrom, to: 0, k: 0 };
+  mv.to = mv.from < last ? mv.from + 1 : last - 1;
+  mv.k = cnt[mv.from];
+  const body = () => `
+    <p class="fsec" id="mvFromL">From</p>
+    <div class="chips" role="group" aria-labelledby="mvFromL">${names.map((s, i) => cnt[i] ?
+      `<button class="chip" data-mvfrom="${i}" aria-pressed="${i === mv.from}">${esc(s)} <span class="n">${cnt[i]}</span></button>` : '').join('')}</div>
+    <p class="fsec" id="mvToL">To</p>
+    <div class="chips" role="group" aria-labelledby="mvToL">${names.map((s, i) => i === mv.from ? '' :
+      `<button class="chip" data-mvto="${i}" aria-pressed="${i === mv.to}">${esc(s)}</button>`).join('')}</div>
+    <p class="fsec" id="mvNL">How many</p>
+    <div class="stepper" role="group" aria-labelledby="mvNL">
+      <button class="stepbtn" data-mvstep="-1" aria-label="One fewer"${mv.k <= 1 ? ' disabled' : ''}>&minus;</button>
+      <output class="stepn num" id="mvN" aria-live="polite">${mv.k}</output>
+      <button class="stepbtn" data-mvstep="1" aria-label="One more"${mv.k >= cnt[mv.from] ? ' disabled' : ''}>+</button>
+      ${cnt[mv.from] > 1 ? `<button class="linkbtn" data-mvall>All ${cnt[mv.from]}</button>` : ''}
+    </div>`;
+  const label = () => `Move ${mv.k} to ${names[mv.to]}`;
+  openDialog('Move ' + m.name + (mv.from === last ? ' back' : ' on'), `<div id="mvBody">${body()}</div>`, () => {
+    const c = stageCounts(m), wasDone = isDone(m);
+    const k = Math.min(mv.k, c[mv.from]);
+    if (!k) return;
+    c[mv.from] -= k; c[mv.to] += k;
+    setCounts(m, c); m.updated = Date.now(); save(); render();
+    toast(isDone(m) && !wasDone ? `All ${m.total} finished.` : `Moved ${k} to ${names[mv.to]}.`);
+  }, label());
+  const dlg = $('#dlg');
+  dlg.classList.add('sheet');
+  dlg.addEventListener('close', () => { dlg.classList.remove('sheet','leaving','dragging'); dlg.style.transform = ''; }, { once:true });
+  const refresh = () => {
+    $('#mvBody').innerHTML = body();
+    const ok = dlg.querySelector('[data-dlg="ok"]'); if (ok) ok.textContent = label();
+  };
+  $('#mvBody').addEventListener('click', e => {
+    const f = e.target.closest('[data-mvfrom]'), t = e.target.closest('[data-mvto]');
+    const st = e.target.closest('[data-mvstep]'), all = e.target.closest('[data-mvall]');
+    if (f){ mv.from = +f.dataset.mvfrom; mv.k = cnt[mv.from];
+            if (mv.to === mv.from) mv.to = mv.from < last ? mv.from + 1 : last - 1;
+            else if (mv.from < last && mv.to < mv.from) mv.to = mv.from + 1; refresh(); }
+    else if (t){ mv.to = +t.dataset.mvto; refresh(); }
+    else if (st){ mv.k = Math.max(1, Math.min(cnt[mv.from], mv.k + Number(st.dataset.mvstep))); refresh(); }
+    else if (all){ mv.k = cnt[mv.from]; refresh(); }
+  });
+}
 
 /* ---------------------------------------------------------------------------
    Small reusable form pieces.
@@ -6566,6 +6741,7 @@ document.addEventListener('click', e => {
     if (a === 'addSupply')  return dlgAddSupply();
     if (a === 'addWish')    return dlgAddWish();
     if (a === 'restock')    return restock();
+    if (a === 'moveOn'){ const m = data.minis.find(x => x.id === act.dataset.id); if (m) moveModels(m); return; }
     if (a === 'homeAdv'){ const m = data.minis.find(x => x.id === act.dataset.id);
       if (m){ const i = stageIx(m); if (i < data.stages.length - 1) setStage(m, data.stages[i + 1]); }
       return; }
@@ -6818,8 +6994,16 @@ function saveMiniEdits(){
   const m = data.minis.find(x => x.id === state.openMini); if (!m) return;
   const name = $('#eName').value.trim();
   if (!name){ toast(NAME_REQUIRED); return; }
-  m.name = name; m.total = Math.max(1, Number($('#eTotal').value)||1);
-  if (m.done > m.total) m.done = m.total;
+  m.name = name;
+  /* More models: the new ones arrive unbuilt. Fewer: they come off the
+     earliest stages first, so finished work is the last to go. */
+  const newTotal = Math.max(1, Number($('#eTotal').value)||1);
+  if (newTotal !== (Number(m.total)||1)){
+    const cnt = stageCounts(m), diff = newTotal - (Number(m.total)||1);
+    if (diff > 0) cnt[0] += diff;
+    else { let take = -diff; for (let i = 0; i < cnt.length && take; i++){ const k = Math.min(cnt[i], take); cnt[i] -= k; take -= k; } }
+    m.total = newTotal; setCounts(m, cnt);
+  }
   let moved = '';
   if ($('#eSys')){
     const sv = $('#eSys').value, fv = $('#eFac').value;
@@ -7045,9 +7229,10 @@ function exportData(){
 }
 function exportCsv(){
   const q = s => '"' + String(s==null?'':s).replace(/"/g,'""') + '"';
-  const rows = [['Name','Game system','Army','Stage','Total','Finished','Tags','Notes'].map(q).join(',')];
-  data.minis.forEach(m => rows.push([m.name, sysName(m.sys), facName(m.fac), m.stage,
-    m.total, m.done, m.tags, m.notes].map(q).join(',')));
+  const rows = [['Name','Game system','Army','Stage','Total','Finished','At each stage','Tags','Notes'].map(q).join(',')];
+  data.minis.forEach(m => rows.push([m.name, sysName(m.sys), facName(m.fac), stageLabel(m),
+    m.total, m.done, stageCounts(m).map((k, i) => k ? data.stages[i] + ' ' + k : '').filter(Boolean).join('; '),
+    m.tags, m.notes].map(q).join(',')));
   download('minimanager-collection-' + new Date().toISOString().slice(0,10) + '.csv',
     rows.join('\n'), 'text/csv');
   toast('Spreadsheet saved.');
