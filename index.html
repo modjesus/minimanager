@@ -357,6 +357,25 @@ button{color:inherit}
   dialog.sheet[open]{transform:none}
   @starting-style{dialog.sheet[open]{transform:translateY(1.5rem)}}
 }
+/* --- v013: game, then army, then models --------------------------------- */
+.backlink{display:inline-flex;align-items:center;gap:.375rem;min-height:var(--tap);margin:.375rem 0 .25rem;
+  padding:0 .25rem 0 0;background:none;border:0;color:var(--text);font:inherit;font-size:.9375rem;font-weight:600;cursor:pointer}
+.backlink span{color:var(--gold-ink);font-size:1.5rem;line-height:1;margin-top:-.125rem}
+.gamecard{display:flex;align-items:center;gap:.875rem;width:100%;margin:0 0 .625rem;padding:.75rem .875rem;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-card);
+  font:inherit;color:var(--text);text-align:left;cursor:pointer;transition:transform .12s ease-out}
+.gamecard:active{transform:scale(.995)}
+.chev{color:var(--gold-ink);font-size:1.5rem;line-height:1;flex:0 0 auto}
+.crumb{display:flex;align-items:center;gap:.375rem;flex-wrap:wrap;width:100%;min-height:var(--tap);margin:.625rem 0 .125rem;padding:0;
+  background:none;border:0;font:inherit;font-size:.75rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--gold-ink);text-align:left;cursor:pointer}
+.crumb span{font-weight:500;color:var(--text-2)}
+.mrow{display:flex;align-items:center;gap:.75rem;width:100%;min-height:var(--tap);padding:.625rem 0;
+  background:none;border:0;border-bottom:1px solid var(--border);font:inherit;color:var(--text);text-align:left;cursor:pointer}
+.mrow .grow{font-weight:600;min-width:0}
+.mrow .mst{text-align:right;flex:0 0 auto;max-width:50%}
+.shelf{display:flex;align-items:baseline;justify-content:space-between;margin:1.375rem 0 .625rem}
+.shelf h3{margin:0}
 header.bar.gated #actslot,header.bar.gated #moreBtn{display:none}
 /* nav.tabs sets display:flex, which beats the browser's own [hidden] rule.
    Without this the tab bar stays on screen behind the sign-in gate, offering
@@ -3315,7 +3334,7 @@ function syncPill(){
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v012';
+const APP_VERSION = 'v013';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -3706,7 +3725,7 @@ function counts(){
 /* --- state ---------------------------------------------------------------- */
 const state = {
   tab:'home', openMini:null, openPaint:null, openRecipe:null,
-  sub:null, view:'grid', q:'', fSys:'', fFac:'', fStage:'', sheet:'',
+  sub:null, openGame:null, q:'', fSys:'', fFac:'', fStage:'', sheet:'',
   /* Armies. openArmy is a "system|faction" key rather than an id, because an
      army is the pair. aStage is kept apart from fStage so that filtering
      inside an army does not silently leave the whole collection filtered
@@ -3814,8 +3833,13 @@ const urlCache = new Map();
    =========================================================================== */
 function screenHome(){
   const c = counts();
-  const recent = data.minis.filter(m => !isDone(m))
-    .sort((a,b) => (b.updated||0)-(a.updated||0)).slice(0,6);
+  /* What is on the bench, by army. Started and not finished, most recently
+     touched first; each army gets its own heading so Death Guard never
+     shares a row with Tyranids. Three armies, four models each, at most. */
+  const started = data.minis.filter(m => stageIx(m) > 0 && !isDone(m))
+    .sort((a,b) => (b.updated||0)-(a.updated||0));
+  const benchGroups = new Map();
+  started.forEach(m => { const k = armyKey(m); if (!benchGroups.has(k)) benchGroups.set(k, []); benchGroups.get(k).push(m); });
   let h = `<p class="muted small" style="margin:.875rem 0 .375rem">${greeting()}</p>`;
   if (c.entries === 0){
     return h + `<h2 class="display" style="font-size:1.625rem;margin-bottom:.875rem">Your collection</h2>
@@ -3835,11 +3859,18 @@ function screenHome(){
       <div class="lcell"><b>${c.backlog}</b><span>Still waiting</span></div>
       <div class="lcell"><b>${c.paints}</b><span>Paints owned</span></div>
     </div>`;
-  if (recent.length){
-    h += `<div class="ehead"><div class="eb">${recent.length} on the bench</div>
-      <h3>Continue painting</h3></div><div class="grid">`;
-    recent.forEach(m => { h += tile(m); });
-    h += `</div>`;
+  if (benchGroups.size){
+    h += `<div class="ehead"><div class="eb">${started.length} on the bench</div>
+      <h3>Continue painting</h3></div>`;
+    [...benchGroups.entries()].slice(0,3).forEach(([k, ms]) => {
+      const g = { sys:ms[0].sys||'', fac:ms[0].fac||'' };
+      h += `<button class="crumb" data-openarmy="${esc(k)}">${esc(armyLabel(g))} <span>&middot; ${esc(gameLabel(g.sys))}</span> <span aria-hidden="true">&rsaquo;</span></button>
+        <div class="grid">`;
+      ms.slice(0,4).forEach(m => { h += tile(m); });
+      h += `</div>`;
+    });
+    if (benchGroups.size > 3)
+      h += `<p class="small muted">And ${benchGroups.size - 3} more ${benchGroups.size - 3 === 1 ? 'army' : 'armies'} with something on the bench, in Collection.</p>`;
   }
   h += valuePanel();
 
@@ -4030,7 +4061,8 @@ function commitSetup(){
     if (s.sysName || s.facName) setLastUsed({ sys:s.sysName, fac:s.facName });
   }
 
-  s.added = { minis, models, paints, army:s.facName };
+  s.added = { minis, models, paints, army:s.facName,
+    key: s.units.length && s.sysName ? systemIdByName(s.sysName) + '|' + (s.facName ? factionIdByName(s.facName, systemIdByName(s.sysName)) : '') : '' };
   if (s.only !== 'paints') data.settings.setupDone = true;
   save();
 }
@@ -4250,9 +4282,27 @@ function setupDone(){
    from the faction list instead would silently hide anything with no army
    set, and "my models vanished" is a worse bug than an untidy heading.
    =========================================================================== */
-const NO_ARMY = '— no army set —';
-const NO_SYS  = '— no game system —';
+const NO_SYS_ID = '_none';
 const armyKey = m => (m.sys || '') + '|' + (m.fac || '');
+
+/* What a game calls one of your forces. These are the plain words players
+   use, not anything taken from a rulebook. Joe's own call: Necromunda is
+   gangs and Kill Team is squads, and both can have several. */
+const GROUP_WORDS = {
+  'Necromunda':'gang', 'Kill Team':'squad', 'Warcry':'warband', 'Frostgrave':'warband',
+  'Blood Bowl':'team', 'Dungeons & Dragons':'party', 'Pathfinder':'party',
+  'Turnip28':'regiment', 'Mordheim':'warband', 'Gaslands':'team'
+};
+function groupWord(sysId, plural){
+  const w = GROUP_WORDS[sysName(sysId)] || 'army';
+  if (!plural) return w;
+  return w === 'army' ? 'armies' : w === 'party' ? 'parties' : w + 's';
+}
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+const noArmyLabel = sysId => 'No ' + groupWord(sysId) + ' set';
+const NO_SYS = 'No game set';
+const gameLabel = id => id && id !== NO_SYS_ID ? (sysName(id) || NO_SYS) : NO_SYS;
+const armyLabel = g => g.fac ? (facName(g.fac) || noArmyLabel(g.sys)) : noArmyLabel(g.sys);
 
 function armyGroups(){
   const g = new Map();
@@ -4262,6 +4312,23 @@ function armyGroups(){
     g.get(k).minis.push(m);
   });
   return [...g.values()];
+}
+/* Games, biggest first, each holding its armies, biggest first. Anything
+   with no game or no army set still appears, at the end, so nothing you own
+   can drop out of sight. */
+function gameGroups(){
+  const by = new Map();
+  armyGroups().forEach(g => {
+    const id = g.sys || NO_SYS_ID;
+    if (!by.has(id)) by.set(id, { id, armies:[], minis:[] });
+    const x = by.get(id); x.armies.push(g); x.minis.push(...g.minis);
+  });
+  const models = ms => ms.reduce((n,m) => n + (Number(m.total)||1), 0);
+  const out = [...by.values()];
+  out.forEach(x => x.armies.sort((p,q) =>
+    (!p.fac) - (!q.fac) || models(q.minis) - models(p.minis) || armyLabel(p).localeCompare(armyLabel(q))));
+  return out.sort((p,q) => (p.id === NO_SYS_ID) - (q.id === NO_SYS_ID) ||
+    models(q.minis) - models(p.minis) || gameLabel(p.id).localeCompare(gameLabel(q.id)));
 }
 
 function armyStats(minis){
@@ -4276,150 +4343,150 @@ function armyStats(minis){
            pct: models ? Math.round((done / models) * 100) : 0 };
 }
 
-function screenArmies(){
-  const groups = armyGroups();
-  /* Order: most models first within each system, and the biggest system
-     first too, so the thing you mostly play is at the top. Ties go A to Z.
-     Anything lacking a system goes last rather than first. */
-  const bySys = new Map();
-  groups.forEach(g => {
-    const label = g.sys ? (sysName(g.sys) || NO_SYS) : NO_SYS;
-    if (!bySys.has(label)) bySys.set(label, []);
-    bySys.get(label).push(g);
-  });
-  const sysModels = label => bySys.get(label)
-    .reduce((n, g) => n + armyStats(g.minis).models, 0);
-  const labels = [...bySys.keys()].sort((a,b) =>
-    a === NO_SYS ? 1 : b === NO_SYS ? -1
-      : (sysModels(b) - sysModels(a)) || a.localeCompare(b));
+/* The way back, at the top of every step: Collection, then the game. */
+const backLink = (act, label) =>
+  `<button class="backlink" data-act="${act}"><span aria-hidden="true">&lsaquo;</span> ${esc(label)}</button>`;
 
+/* ===========================================================================
+   Collection: game, then army, then models.
+
+   Armies are never mixed. Death Guard and Tyranids are different things on
+   different shelves, so every list of models in this app sits under its
+   game and army. Search and filters look across everything, but their
+   results are grouped the same way.
+   =========================================================================== */
+function screenCollection(){
+  if (state.openArmy) return screenArmy();
+  if (state.openGame) return screenGame();
   let h = '';
-  labels.forEach(label => {
-    h += `<div class="ehead"><div class="eb user-text">${esc(label)}</div></div>`;
-    bySys.get(label)
-      .sort((a,b) => armyStats(b.minis).models - armyStats(a.minis).models)
-      .forEach(g => {
-        const s = armyStats(g.minis);
-        const name = g.fac ? (facName(g.fac) || NO_ARMY) : NO_ARMY;
-        h += `<button class="arow" data-openarmy="${esc(g.key)}">
-          ${potSvg(s.models ? s.done / s.models : 0, 'apot')}
-          <span class="aname"><b class="user-text">${esc(name)}</b>
-            <span><span class="num">${s.done}</span> finished &middot;
-                  <span class="num">${s.started}</span> on the bench &middot;
-                  <span class="num">${s.backlog}</span> still waiting</span></span>
-          <span class="apct">${s.pct}%</span>
-        </button>`;
-      });
+  if (!data.minis.length)
+    return h + `<div class="empty" style="margin-top:.875rem"><p>No miniatures yet. A box of ten counts as one entry with a count of ten &mdash; you do not need a record per model.</p>
+      <button class="btn" data-act="addMini">Add your first</button></div>`;
+
+  const nOn = (state.fStage?1:0) + (state.sort?1:0);
+  h += `<div class="findrow" style="margin-top:.875rem"><div class="field">
+      <label for="q" class="sr-only">Search every model</label>
+      <input id="q" type="search" placeholder="Search every model" value="${esc(state.q)}">
+      ${state.q?`<button class="clearq" data-act="clearq" aria-label="Clear search">&times;</button>`:''}</div>
+    <button class="fopen" data-act="openFilter" aria-haspopup="dialog">Filter${nOn?` <span class="fc">${nOn}</span>`:''}</button></div>`;
+  if (nOn){
+    h += `<div class="chips">`;
+    if (state.fStage) h += `<button class="chip on-x" data-act="unfilter" data-k="stage" aria-label="Remove filter ${esc(state.fStage)}">${esc(state.fStage)} &times;</button>`;
+    if (state.sort) h += `<button class="chip on-x" data-act="unfilter" data-k="sort" aria-label="Stop sorting">${state.sort==='waiting'?'Longest waiting':'Most expensive'} &times;</button>`;
+    h += `</div>`;
+  }
+
+  /* Searching or filtering: matching models, under game and army headings. */
+  if (state.q.trim() || nOn) return h + groupedResults(filtered());
+
+  gameGroups().forEach(x => {
+    const s = armyStats(x.minis);
+    const nA = x.armies.length;
+    const word = groupWord(x.id === NO_SYS_ID ? '' : x.id, nA !== 1);
+    h += `<button class="gamecard" data-opengame="${esc(x.id)}">
+      ${potSvg(s.models ? s.done / s.models : 0, 'apot')}
+      <span class="aname"><b class="user-text">${esc(gameLabel(x.id))}</b>
+        <span><span class="num">${nA}</span> ${word} &middot; <span class="num">${s.models}</span> model${s.models===1?'':'s'}</span></span>
+      <span class="apct">${s.pct}%</span><span class="chev" aria-hidden="true">&rsaquo;</span></button>`;
+  });
+  return h;
+}
+
+/* Search and filter results. The list is already in the order asked for;
+   grouping keeps that order inside each army and puts the armies in the
+   order their first match appears. */
+function groupedResults(list){
+  if (!list.length)
+    return `<div class="empty"><p>No models match${state.q?` &ldquo;${esc(state.q)}&rdquo;`:' those filters'}.</p>
+      <button class="btn ghost" data-act="clearFilters">Clear search and filters</button></div>`;
+  const groups = new Map();
+  list.forEach(m => { const k = armyKey(m); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(m); });
+  /* Unsorted, the armies come in the same order as the Collection itself:
+     biggest game first, biggest army first. Sorted, the army holding the
+     first result leads, so "longest waiting" still reads top to bottom. */
+  let keys = [...groups.keys()];
+  if (!state.sort){
+    const order = [];
+    gameGroups().forEach(x => x.armies.forEach(g => order.push(g.key)));
+    keys.sort((p,q) => order.indexOf(p) - order.indexOf(q));
+  }
+  let h = `<p class="small muted"><span class="num">${list.length}</span> of <span class="num">${data.minis.length}</span></p>`;
+  keys.forEach(k => { const ms = groups.get(k);
+    const g = { sys:ms[0].sys||'', fac:ms[0].fac||'' };
+    h += `<button class="crumb" data-openarmy="${esc(k)}">${esc(gameLabel(g.sys))} &rsaquo; ${esc(armyLabel(g))}</button>`;
+    ms.forEach(m => { h += modelRow(m); });
+  });
+  return h;
+}
+function modelRow(m){
+  const n = Number(m.total)||1, d = Number(m.done)||0;
+  const note = sortNote(m) || (stageIx(m) === 0 && m.acquired
+    ? `<span class="small muted">${esc(waitedFor(m.acquired))}</span>` : '');
+  return `<button class="mrow" data-open="${esc(m.id)}">
+    <span class="grow user-text">${esc(m.name)}</span>
+    <span class="small muted mst">${esc(m.stage)}${n>1&&!isDone(m)&&d?` &middot; <span class="num">${d} of ${n}</span>`:''}${note?'<br>'+note:''}</span></button>`;
+}
+
+function screenGame(){
+  const x = gameGroups().find(g => g.id === state.openGame);
+  let h = backLink('backGames', 'Collection');
+  if (!x) return h + `<div class="empty"><p>Nothing is filed under that game any more.</p></div>`;
+  const sysId = x.id === NO_SYS_ID ? '' : x.id;
+  x.armies.forEach(g => {
+    const s = armyStats(g.minis);
+    h += `<button class="arow" data-openarmy="${esc(g.key)}">
+      ${potSvg(s.models ? s.done / s.models : 0, 'apot')}
+      <span class="aname"><b class="user-text">${esc(armyLabel(g))}</b>
+        <span><span class="num">${s.done} of ${s.models}</span> finished${s.started?` &middot; <span class="num">${s.started}</span> on the bench`:''}</span></span>
+      <span class="apct">${s.pct}%</span><span class="chev" aria-hidden="true">&rsaquo;</span></button>`;
   });
   return h;
 }
 
 function screenArmy(){
   const g = armyGroups().find(x => x.key === state.openArmy);
-  if (!g) return `<div class="empty"><p>That army no longer has anything in it.</p>
-    <button class="btn" data-act="backArmies">Back to armies</button></div>`;
+  const sysId = (state.openArmy || '').split('|')[0];
+  let h = backLink('backGame', gameLabel(sysId || NO_SYS_ID));
+  if (!g) return h + `<div class="empty"><p>That ${groupWord(sysId)} no longer has anything in it.</p></div>`;
 
   const s = armyStats(g.minis);
-  const sys  = g.sys ? (sysName(g.sys) || NO_SYS) : NO_SYS;
-  const name = g.fac ? (facName(g.fac) || NO_ARMY) : NO_ARMY;
-
-  let h = `<button class="btn ghost sm" data-act="backArmies" style="margin:.875rem 0">&larr; Armies</button>
-    <div class="ehead" style="margin-top:0">
-      <div class="eb user-text">${esc(sys)}</div>
-      <h3 class="user-text">${esc(name)}</h3></div>
-    <div class="row" style="gap:1rem;align-items:center;margin-top:.25rem">
+  h += `<div class="row" style="gap:1rem;align-items:center;margin-top:.25rem">
       ${potSvg(s.models ? s.done / s.models : 0, 'bigpot')}
-      <div><div class="hero" style="margin:0"><b>${s.done}</b></div>
-        <div class="small muted">finished of <span class="num">${s.models}</span></div></div>
+      <div><div class="hero" style="margin:0"><b>${s.pct}%</b></div>
+        <div class="small muted"><span class="num">${s.done} of ${s.models}</span> models finished${
+          s.priced ? ` &middot; ${esc(money(s.spent))} spent` : ''}</div></div>
     </div>
-    <hr class="keyline">
-    <div class="ledger">
-      <div class="lcell"><b>${s.backlog}</b><span>Still waiting</span></div>
-      <div class="lcell"><b>${s.started}</b><span>On the bench</span></div>
-      ${s.priced ? `<div class="lcell"><b>${esc(money(s.spent))}</b><span>Spent here</span></div>` : ''}
-    </div>`;
+    <hr class="keyline">`;
 
-  /* Only the stages this army actually has models in. Hard-coding "unbuilt,
-     built, finished" would break the moment somebody renames their stages,
-     and the stage list is editable. */
-  const stageCount = {};
-  g.minis.forEach(m => { stageCount[m.stage] = (stageCount[m.stage]||0) + 1; });
-  const stages = data.stages.filter(x => stageCount[x]);
-  if (stages.length > 1){
-    h += `<div class="chips"><button class="chip" data-astage=""
-        aria-pressed="${!state.aStage}">All <span class="n">${s.entries}</span></button>`;
-    stages.forEach(x => {
-      h += `<button class="chip" data-astage="${esc(x)}" aria-pressed="${state.aStage===x}">
-        ${esc(x)} <span class="n">${stageCount[x]}</span></button>`;
-    });
-    h += `</div>`;
-  }
-
-  const list = state.aStage ? g.minis.filter(m => m.stage === state.aStage) : g.minis;
-  if (!list.length)
-    return h + `<div class="empty"><p>Nothing in this army is at that stage.</p>
-      <button class="btn ghost" data-astage="">Show all of them</button></div>`;
-  h += `<div class="grid">`;
-  list.forEach(m => { h += tile(m); });
-  h += `</div>`;
+  /* Three shelves, in the order you would want them: what you are working on,
+     what is still in the box, and what is done. */
+  const bench = g.minis.filter(m => stageIx(m) > 0 && !isDone(m))
+    .sort((p,q) => stageIx(q) - stageIx(p) || (q.updated||0) - (p.updated||0));
+  const waiting = g.minis.filter(m => stageIx(m) === 0 && !isDone(m))
+    .sort((p,q) => (p.acquired||'9999').localeCompare(q.acquired||'9999'));
+  const done = g.minis.filter(isDone).sort((p,q) => (q.updated||0) - (p.updated||0));
+  const shelf = (title, ms, asTiles) => {
+    if (!ms.length) return '';
+    let o = `<div class="ehead shelf"><h3>${title}</h3><span class="small muted num">${ms.length}</span></div>`;
+    if (asTiles){ o += `<div class="grid">`; ms.forEach(m => { o += tile(m); }); o += `</div>`; }
+    else ms.forEach(m => { o += modelRow(m); });
+    return o;
+  };
+  h += shelf('On the bench', bench, true);
+  h += shelf(`Still to build`, waiting, false);
+  h += shelf('Finished', done, true);
   return h;
 }
 
-/* ===========================================================================
-   Collection
-   =========================================================================== */
-function screenCollection(){
-  if (state.openArmy) return screenArmy();
-  /* The page title and Add live in the top bar, so the screen opens on the
-     models rather than on a heading that repeats it. */
-  let h = '';
-  if (!data.minis.length)
-    return h + `<div class="empty"><p>No miniatures yet. A box of ten counts as one entry with a count of ten &mdash; you do not need a record per model.</p>
-      <button class="btn" data-act="addMini">Add your first</button></div>`;
-
-  /* Three views now, so a single flip-flopping chip will not do. */
-  h += `<div class="vswitch" role="group" aria-label="How to show your collection">
-    ${['grid','list','armies'].map(v => `<button data-view="${v}"
-        aria-pressed="${state.view===v}">${v==='grid'?'Grid':v==='list'?'List':'Armies'}</button>`).join('')}
-  </div>`;
-  if (state.view === 'armies') return h + screenArmies();
-
-  /* Search, and one Filter button. Game system, stage and sort sit behind it
-     in a panel; only the ones you have switched on show here, each with an
-     x to undo it. Twenty-odd chips on show at once read as clutter. */
-  const nOn = (state.fSys?1:0) + (state.fFac?1:0) + (state.fStage?1:0) + (state.sort?1:0);
-  h += `<div class="findrow"><div class="field">
-      <label for="q" class="sr-only">Search your collection</label>
-      <input id="q" type="search" placeholder="Search your collection" value="${esc(state.q)}">
-      ${state.q?`<button class="clearq" data-act="clearq" aria-label="Clear search">&times;</button>`:''}</div>
-    <button class="fopen" data-act="openFilter" aria-haspopup="dialog">Filter${nOn?` <span class="fc">${nOn}</span>`:''}</button></div>`;
-  if (nOn){
-    h += `<div class="chips">`;
-    if (state.fSys) h += `<button class="chip on-x" data-act="unfilter" data-k="sys" aria-label="Remove filter ${esc(sysName(state.fSys))}">${esc(sysName(state.fSys))} &times;</button>`;
-    if (state.fFac) h += `<button class="chip on-x" data-act="unfilter" data-k="fac" aria-label="Remove filter ${esc(facName(state.fFac))}">${esc(facName(state.fFac))} &times;</button>`;
-    if (state.fStage) h += `<button class="chip on-x" data-act="unfilter" data-k="stage" aria-label="Remove filter ${esc(state.fStage)}">${esc(state.fStage)} &times;</button>`;
-    if (state.sort) h += `<button class="chip on-x" data-act="unfilter" data-k="sort" aria-label="Stop sorting">${state.sort==='waiting'?'Longest waiting':'Most expensive'} &times;</button>`;
-    h += `</div>`;
+/* A one-line title for the top bar while inside a game or an army. */
+function collTitle(){
+  if (state.openMini) return 'Collection';
+  if (state.openArmy){
+    const [sys, fac] = state.openArmy.split('|');
+    return armyLabel({ sys, fac });
   }
-
-  const list = filtered();
-  if (!list.length)
-    return h + `<div class="empty"><p>No models match${state.q?` &ldquo;${esc(state.q)}&rdquo;`:' those filters'}.</p>
-      <button class="btn ghost" data-act="clearFilters">Clear search and filters</button></div>`;
-
-  h += `<p class="small muted"><span class="num">${list.length}</span> of <span class="num">${data.minis.length}</span> shown</p>`;
-  if (state.view === 'grid'){
-    h += `<div class="grid">`; list.forEach(m => { h += tile(m); }); h += `</div>`;
-  } else {
-    list.forEach(m => {
-      const n = Number(m.total)||1, d = Number(m.done)||0;
-      h += `<button class="card row" data-open="${esc(m.id)}" style="width:100%;text-align:left;cursor:pointer">
-        <span class="grow"><b class="user-text">${esc(m.name)}</b>
-        <span class="small muted user-text" style="display:block">${esc([sysName(m.sys),facName(m.fac)].filter(Boolean).join(' · '))}</span></span>
-        <span class="small muted" style="text-align:right">${esc(m.stage)}${n>1?`<br><span class="num">${d} of ${n}</span>`:''}</span></button>`;
-    });
-  }
-  return h;
+  if (state.openGame) return gameLabel(state.openGame);
+  return 'Collection';
 }
 
 /* --- the filter panel ----------------------------------------------------
@@ -4439,34 +4506,12 @@ function filterSheetBody(){
     if (state.pStock) h += `<button class="fclear" data-act="unfilterAll">Clear filter</button>`;
     return h;
   }
-  const sysCount = {}, stageCount = {};
-  data.minis.forEach(m => {
-    if (m.sys) sysCount[m.sys] = (sysCount[m.sys]||0)+1;
-    stageCount[m.stage] = (stageCount[m.stage]||0)+1;
-  });
+  /* Game and army are not in here: those are the Collection's own steps.
+     This is for looking across everything, and the results come back
+     grouped by game and army. */
+  const stageCount = {};
+  data.minis.forEach(m => { stageCount[m.stage] = (stageCount[m.stage]||0)+1; });
   let h = '';
-  const sys = data.systems.filter(s => sysCount[s.id]);
-  if (sys.length){
-    h += `<p class="fsec">Game system</p><div class="chips">`;
-    sys.forEach(s => { h += `<button class="chip" data-fsys="${esc(s.id)}" aria-pressed="${state.fSys===s.id}">
-      ${esc(s.name)} <span class="n">${sysCount[s.id]}</span></button>`; });
-    h += `</div>`;
-  }
-  /* Armies appear once a game system is chosen, and only that system's.
-     Most people have several armies for one game; listing every army from
-     every game at once would put the clutter straight back. */
-  if (state.fSys){
-    const facCount = {};
-    data.minis.forEach(m => { if (m.sys === state.fSys && m.fac) facCount[m.fac] = (facCount[m.fac]||0)+1; });
-    const facs = arr(data.factions).filter(f => facCount[f.id])
-      .sort((x,y) => facCount[y.id] - facCount[x.id] || x.name.localeCompare(y.name));
-    if (facs.length){
-      h += `<p class="fsec">Army</p><div class="chips">`;
-      facs.forEach(f => { h += `<button class="chip" data-ffac="${esc(f.id)}" aria-pressed="${state.fFac===f.id}">
-        ${esc(f.name)} <span class="n">${facCount[f.id]}</span></button>`; });
-      h += `</div>`;
-    }
-  }
   h += `<p class="fsec">Stage</p><div class="chips">`;
   data.stages.filter(s => stageCount[s]).forEach(s => {
     h += `<button class="chip" data-fstage="${esc(s)}" aria-pressed="${state.fStage===s}">
@@ -4482,7 +4527,7 @@ function filterSheetBody(){
     if (anyPrice) h += `<button class="chip" data-sort="value" aria-pressed="${state.sort==='value'}">Most expensive</button>`;
     h += `</div>`;
   }
-  if (state.fSys || state.fFac || state.fStage || state.sort)
+  if (state.fStage || state.sort)
     h += `<button class="fclear" data-act="unfilterAll">Clear all filters</button>`;
   return h;
 }
@@ -4492,7 +4537,7 @@ function sheetCountLabel(){
     return `Show ${n} paint${n===1?'':'s'}`;
   }
   const n = filtered().length;
-  return `Show ${n} entr${n===1?'y':'ies'}`;
+  return `Show ${n} model entr${n===1?'y':'ies'}`;
 }
 function openFilterSheet(kind){
   state.sheet = kind;
@@ -4558,7 +4603,7 @@ function screenMini(){
   const n = Number(m.total)||1, d = Number(m.done)||0, cur = stageIx(m), last = data.stages.length-1;
   const fin = cur === last;
 
-  let h = backBtn('coll','Collection');
+  let h = backLink('backMini', armyLabel({ sys:m.sys||'', fac:m.fac||'' }));
   h += `<h2 class="display user-text" style="font-size:1.625rem">${esc(m.name)}</h2>`;
   const sub = [sysName(m.sys), facName(m.fac)].filter(Boolean).join(' · ');
   if (sub) h += `<p class="muted user-text" style="margin-top:-.25rem">${esc(sub)}</p>`;
@@ -4923,8 +4968,8 @@ const TITLES = { home:'MiniManager', coll:'Collection', paints:'Paints', recipes
    its title. Detail screens and the setup flow have their own buttons. */
 function headerAction(){
   if (state.setup.step) return '';
-  if (state.tab === 'coll' && !state.openMini && !state.openArmy && data.minis.length)
-    return `<button class="btn sm" data-act="addMini">Add</button>`;
+  if (state.tab === 'coll' && !state.openMini && data.minis.length)
+    return `<button class="btn sm" data-act="addHere">Add</button>`;
   if (state.tab === 'paints' && !state.sub && !state.openPaint && data.paints.length)
     return `<button class="btn sm" data-act="addPaint">Add</button>`;
   if (state.tab === 'recipes' && !state.openRecipe && data.recipes.length)
@@ -4961,7 +5006,7 @@ function render(){
   else if (state.tab === 'paints')   html = screenPaints();
   else                               html = screenRecipes();
   app.innerHTML = html;
-  $('#screenTitle').textContent = TITLES[state.tab] || 'MiniManager';
+  $('#screenTitle').textContent = state.tab === 'coll' ? collTitle() : (TITLES[state.tab] || 'MiniManager');
   $$('#tabs button').forEach(b => {
     if (b.dataset.tab === state.tab) b.setAttribute('aria-current','page');
     else b.removeAttribute('aria-current');
@@ -6045,7 +6090,10 @@ document.addEventListener('click', e => {
     state.tab = back.dataset.back; render(); window.scrollTo(0,0); return; }
 
   const open = t.closest('[data-open]');
-  if (open){ state.openMini = open.dataset.open; state.tab='coll'; render(); window.scrollTo(0,0); return; }
+  if (open){ const m = data.minis.find(x => x.id === open.dataset.open);
+    state.openMini = open.dataset.open; state.tab='coll';
+    if (m){ state.openGame = m.sys || NO_SYS_ID; state.openArmy = armyKey(m); }
+    render(); window.scrollTo(0,0); return; }
   const op = t.closest('[data-openpaint]');
   if (op){ state.openPaint = op.dataset.openpaint; state.tab='paints'; state.sub=null; render(); window.scrollTo(0,0); return; }
   const orr = t.closest('[data-openrecipe]');
@@ -6070,7 +6118,9 @@ document.addEventListener('click', e => {
     if (a === 'setupStart'){ $('#dlg').close(); startSetup(); return; }
     if (a === 'setupPaintsOnly'){ $('#dlg').close(); startSetup('paints'); return; }
     if (a === 'setupSkip')  return endSetup();
-    if (a === 'setupGo')    return endSetup('coll');
+    /* Finishing setup opens the army you just made, not the top of Collection. */
+    if (a === 'setupGo'){ const k = state.setup.added && state.setup.added.key; endSetup('coll');
+      if (k){ state.openGame = k.split('|')[0] || NO_SYS_ID; state.openArmy = k; render(); } return; }
     if (a === 'setupClearQ'){ state.setup.pq = ''; render(); return; }
     if (a === 'setupAddUnit') return setupAddUnit();
     if (a === 'setupSkipStep'){
@@ -6095,8 +6145,9 @@ document.addEventListener('click', e => {
     }
 
     /* --- the new screens --- */
-    if (a === 'backArmies'){ state.openArmy = null; state.aStage = '';
-      render(); window.scrollTo(0,0); return; }
+    if (a === 'backGames'){ state.openGame = null; state.openArmy = null; render(); window.scrollTo(0,0); return; }
+    if (a === 'backMini'){ state.openMini = null; render(); window.scrollTo(0,0); return; }
+    if (a === 'backGame'){ state.openArmy = null; render(); window.scrollTo(0,0); return; }
     if (a === 'pick'){ $('#dlg').close(); state.tab = 'pick'; state.openMini = null;
       state.pick.result = null; render(); window.scrollTo(0,0); return; }
     if (a === 'shop'){ $('#dlg').close(); state.tab = 'shop'; state.openMini = null;
@@ -6118,6 +6169,13 @@ document.addEventListener('click', e => {
     if (a === 'deleteAccount') return dlgDeleteAccount();
 
     if (a === 'addMini')    return dlgAddMini();
+    /* Add from inside a game or an army files the new model there. */
+    if (a === 'addHere'){
+      const sys = state.openArmy ? state.openArmy.split('|')[0] : (state.openGame && state.openGame !== NO_SYS_ID ? state.openGame : '');
+      const fac = state.openArmy ? state.openArmy.split('|')[1] : '';
+      if (sys) setLastUsed({ sys: sysName(sys), fac: fac ? facName(fac) : '' });
+      return dlgAddMini();
+    }
     if (a === 'addSys')     return dlgAddSystem();
     if (a === 'addPaint')   return dlgAddPaint();
     if (a === 'newRecipe')  return dlgNewRecipe();
@@ -6150,10 +6208,14 @@ document.addEventListener('click', e => {
     if (a === 'clearPaintFilters'){ state.pq=''; state.pStock=''; render(); return; }
   }
 
-  const v = t.closest('[data-view]');
-  if (v){ state.view = v.dataset.view; state.openArmy = null; state.aStage = ''; render(); return; }
+  const og = t.closest('[data-opengame]');
+  if (og){ state.openGame = og.dataset.opengame; state.openArmy = null; render(); window.scrollTo(0,0); return; }
+  /* From anywhere — Home, search results — opening an army lands inside the
+     Collection with its game behind it, so the way back makes sense. */
   const oa = t.closest('[data-openarmy]');
-  if (oa){ state.openArmy = oa.dataset.openarmy; state.aStage = ''; render(); window.scrollTo(0,0); return; }
+  if (oa){ const k = oa.dataset.openarmy; state.tab = 'coll'; state.openMini = null;
+    state.openGame = k.split('|')[0] || NO_SYS_ID; state.openArmy = k; state.q = '';
+    state.fStage = ''; state.sort = ''; render(); window.scrollTo(0,0); return; }
   /* An empty data-astage is the "All" chip, so test for the attribute rather
      than for a truthy value — otherwise "All" would never clear the filter. */
   const as = t.closest('[data-astage]');
