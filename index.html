@@ -3315,7 +3315,7 @@ function syncPill(){
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v011';
+const APP_VERSION = 'v012';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -3706,7 +3706,7 @@ function counts(){
 /* --- state ---------------------------------------------------------------- */
 const state = {
   tab:'home', openMini:null, openPaint:null, openRecipe:null,
-  sub:null, view:'grid', q:'', fSys:'', fStage:'', sheet:'',
+  sub:null, view:'grid', q:'', fSys:'', fFac:'', fStage:'', sheet:'',
   /* Armies. openArmy is a "system|faction" key rather than an id, because an
      army is the pair. aStage is kept apart from fStage so that filtering
      inside an army does not silently leave the whole collection filtered
@@ -4387,7 +4387,7 @@ function screenCollection(){
   /* Search, and one Filter button. Game system, stage and sort sit behind it
      in a panel; only the ones you have switched on show here, each with an
      x to undo it. Twenty-odd chips on show at once read as clutter. */
-  const nOn = (state.fSys?1:0) + (state.fStage?1:0) + (state.sort?1:0);
+  const nOn = (state.fSys?1:0) + (state.fFac?1:0) + (state.fStage?1:0) + (state.sort?1:0);
   h += `<div class="findrow"><div class="field">
       <label for="q" class="sr-only">Search your collection</label>
       <input id="q" type="search" placeholder="Search your collection" value="${esc(state.q)}">
@@ -4396,6 +4396,7 @@ function screenCollection(){
   if (nOn){
     h += `<div class="chips">`;
     if (state.fSys) h += `<button class="chip on-x" data-act="unfilter" data-k="sys" aria-label="Remove filter ${esc(sysName(state.fSys))}">${esc(sysName(state.fSys))} &times;</button>`;
+    if (state.fFac) h += `<button class="chip on-x" data-act="unfilter" data-k="fac" aria-label="Remove filter ${esc(facName(state.fFac))}">${esc(facName(state.fFac))} &times;</button>`;
     if (state.fStage) h += `<button class="chip on-x" data-act="unfilter" data-k="stage" aria-label="Remove filter ${esc(state.fStage)}">${esc(state.fStage)} &times;</button>`;
     if (state.sort) h += `<button class="chip on-x" data-act="unfilter" data-k="sort" aria-label="Stop sorting">${state.sort==='waiting'?'Longest waiting':'Most expensive'} &times;</button>`;
     h += `</div>`;
@@ -4451,6 +4452,21 @@ function filterSheetBody(){
       ${esc(s.name)} <span class="n">${sysCount[s.id]}</span></button>`; });
     h += `</div>`;
   }
+  /* Armies appear once a game system is chosen, and only that system's.
+     Most people have several armies for one game; listing every army from
+     every game at once would put the clutter straight back. */
+  if (state.fSys){
+    const facCount = {};
+    data.minis.forEach(m => { if (m.sys === state.fSys && m.fac) facCount[m.fac] = (facCount[m.fac]||0)+1; });
+    const facs = arr(data.factions).filter(f => facCount[f.id])
+      .sort((x,y) => facCount[y.id] - facCount[x.id] || x.name.localeCompare(y.name));
+    if (facs.length){
+      h += `<p class="fsec">Army</p><div class="chips">`;
+      facs.forEach(f => { h += `<button class="chip" data-ffac="${esc(f.id)}" aria-pressed="${state.fFac===f.id}">
+        ${esc(f.name)} <span class="n">${facCount[f.id]}</span></button>`; });
+      h += `</div>`;
+    }
+  }
   h += `<p class="fsec">Stage</p><div class="chips">`;
   data.stages.filter(s => stageCount[s]).forEach(s => {
     h += `<button class="chip" data-fstage="${esc(s)}" aria-pressed="${state.fStage===s}">
@@ -4466,7 +4482,7 @@ function filterSheetBody(){
     if (anyPrice) h += `<button class="chip" data-sort="value" aria-pressed="${state.sort==='value'}">Most expensive</button>`;
     h += `</div>`;
   }
-  if (state.fSys || state.fStage || state.sort)
+  if (state.fSys || state.fFac || state.fStage || state.sort)
     h += `<button class="fclear" data-act="unfilterAll">Clear all filters</button>`;
   return h;
 }
@@ -4503,6 +4519,7 @@ function filtered(){
   const q = state.q.trim().toLowerCase();
   return data.minis.filter(m => {
     if (state.fSys && m.sys !== state.fSys) return false;
+    if (state.fFac && m.fac !== state.fFac) return false;
     if (state.fStage && m.stage !== state.fStage) return false;
     if (!q) return true;
     const hay = [m.name, m.tags, m.notes, sysName(m.sys), facName(m.fac), m.stage, m.unit]
@@ -6119,15 +6136,15 @@ document.addEventListener('click', e => {
     if (a === 'openCompare'){ if ($('#dlg').open) $('#dlg').close(); state.tab='paints'; state.sub='swatchCompare'; state.openPaint=null; render(); window.scrollTo(0,0); return; }
     if (a === 'clearq')     { state.q=''; render(); return; }
     if (a === 'clearpq')    { state.pq=''; render(); return; }
-    if (a === 'clearFilters'){ state.q=''; state.fSys=''; state.fStage=''; state.sort=''; render(); return; }
+    if (a === 'clearFilters'){ state.q=''; state.fSys=''; state.fFac=''; state.fStage=''; state.sort=''; render(); return; }
     if (a === 'openFilter'){ openFilterSheet('coll'); return; }
     if (a === 'openPaintFilter'){ openFilterSheet('paints'); return; }
     if (a === 'unfilter'){ const k = act.dataset.k;
-      if (k==='sys') state.fSys=''; else if (k==='stage') state.fStage='';
+      if (k==='sys'){ state.fSys=''; state.fFac=''; } else if (k==='fac') state.fFac=''; else if (k==='stage') state.fStage='';
       else if (k==='sort') state.sort=''; else if (k==='stock') state.pStock='';
       render(); return; }
     if (a === 'unfilterAll'){
-      if (state.sheet === 'paints') state.pStock=''; else { state.fSys=''; state.fStage=''; state.sort=''; }
+      if (state.sheet === 'paints') state.pStock=''; else { state.fSys=''; state.fFac=''; state.fStage=''; state.sort=''; }
       render(); return; }
     if (a === 'themeSet'){ data.settings.theme = act.dataset.v || ''; save(); applyTheme(); refreshThemeChips(); return; }
     if (a === 'clearPaintFilters'){ state.pq=''; state.pStock=''; render(); return; }
@@ -6141,7 +6158,9 @@ document.addEventListener('click', e => {
      than for a truthy value — otherwise "All" would never clear the filter. */
   const as = t.closest('[data-astage]');
   if (as){ state.aStage = as.dataset.astage; render(); return; }
-  const fs = t.closest('[data-fsys]'); if (fs){ state.fSys = state.fSys===fs.dataset.fsys?'':fs.dataset.fsys; render(); return; }
+  /* Changing or clearing the game system drops the army, which belongs to it. */
+  const fs = t.closest('[data-fsys]'); if (fs){ state.fSys = state.fSys===fs.dataset.fsys?'':fs.dataset.fsys; state.fFac=''; render(); return; }
+  const ff = t.closest('[data-ffac]'); if (ff){ state.fFac = state.fFac===ff.dataset.ffac?'':ff.dataset.ffac; render(); return; }
   const ft = t.closest('[data-fstage]'); if (ft){ state.fStage = state.fStage===ft.dataset.fstage?'':ft.dataset.fstage; render(); return; }
   const fk = t.closest('[data-fstock]'); if (fk){ state.pStock = state.pStock===fk.dataset.fstock?'':fk.dataset.fstock; render(); return; }
   const hm = t.closest('[data-harm]');  if (hm){ state.planner.kind = hm.dataset.harm; render(); return; }
