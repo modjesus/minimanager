@@ -171,7 +171,7 @@ label{display:block;font-size:.8125rem;font-weight:600;margin:.75rem 0 .25rem;co
    making nothing important — your eye has nowhere to land. One number is the
    hero and the rest sit on a ruled line under a tapered keyline. No boxes. */
 .hero{display:flex;align-items:flex-end;gap:.75rem;margin:.125rem 0 0}
-.hero b{font-family:var(--f-display);font-weight:400;font-size:4rem;line-height:.86;
+.hero b{font-family:var(--f-display);font-weight:400;font-size:min(4rem,22vw);line-height:.86;
   letter-spacing:-.03em}
 .hero span{font-size:.9375rem;color:var(--text-2);padding-bottom:.4375rem}
 /* A gold rule that thins as it travels, like a brush lifting off. This is how
@@ -259,7 +259,7 @@ label{display:block;font-size:.8125rem;font-weight:600;margin:.75rem 0 .25rem;co
    with a 44px invisible tap target, so it overhangs its row by 8px. At the
    smaller margin that overhang clipped the top edge of the control below and
    stole taps meant for it. */
-.flab{display:flex;align-items:center;gap:.5rem;margin:.875rem 0 .625rem}
+.flab{display:flex;align-items:center;gap:.5rem;margin:.875rem 0 .625rem;overflow-x:clip;overflow-clip-margin:0}
 .flab label,.flab .clab{margin:0}
 .clab{display:block;font-size:.875rem;font-weight:600;color:var(--text)}
 .q{width:1.75rem;height:1.75rem;flex:0 0 auto;border-radius:50%;position:relative;
@@ -361,7 +361,7 @@ button{color:inherit}
 .backlink{display:inline-flex;align-items:center;gap:.375rem;min-height:var(--tap);margin:.375rem 0 .25rem;
   padding:0 .25rem 0 0;background:none;border:0;color:var(--text);font:inherit;font-size:.9375rem;font-weight:600;cursor:pointer}
 .backlink span{color:var(--gold-ink);font-size:1.5rem;line-height:1;margin-top:-.125rem}
-.gamecard{display:flex;align-items:center;gap:.875rem;width:100%;margin:0 0 .625rem;padding:.75rem .875rem;
+.gamecard{display:flex;flex-wrap:wrap;align-items:center;gap:.875rem;width:100%;margin:0 0 .625rem;padding:.75rem .875rem;
   background:var(--surface);border:1px solid var(--border);border-radius:var(--r-card);
   font:inherit;color:var(--text);text-align:left;cursor:pointer;transition:transform .12s ease-out}
 .gamecard:active{transform:scale(.995)}
@@ -376,6 +376,36 @@ button{color:inherit}
 .mrow .mst{text-align:right;flex:0 0 auto;max-width:50%}
 .shelf{display:flex;align-items:baseline;justify-content:space-between;margin:1.375rem 0 .625rem}
 .shelf h3{margin:0}
+/* --- v014 ----------------------------------------------------------------
+   Large text: rows may wrap rather than run off the side. */
+.armyhead{display:flex;flex-wrap:wrap;gap:.5rem 1rem;align-items:center;margin-top:.25rem}
+.armyhead > div{min-width:0}
+.estline{font-size:.8125rem;color:var(--text-2);margin:.25rem 0 .5rem}
+/* Going deeper in Collection slides in from the right; Back slides it out
+   the way it came. A cross-fade instead when Reduce Motion is on. */
+#app{view-transition-name:main}
+::view-transition-old(main),::view-transition-new(main){animation-duration:.3s;animation-timing-function:cubic-bezier(.23,1,.32,1)}
+html[data-nav="fwd"]::view-transition-old(main){animation-name:mm-out-left}
+html[data-nav="fwd"]::view-transition-new(main){animation-name:mm-in-right}
+html[data-nav="back"]::view-transition-old(main){animation-name:mm-out-right}
+html[data-nav="back"]::view-transition-new(main){animation-name:mm-in-left}
+@keyframes mm-in-right{from{transform:translateX(28%);opacity:0}}
+@keyframes mm-out-left{to{transform:translateX(-12%);opacity:0}}
+@keyframes mm-in-left{from{transform:translateX(-12%);opacity:0}}
+@keyframes mm-out-right{to{transform:translateX(28%);opacity:0}}
+@media (prefers-reduced-motion:reduce){
+  ::view-transition-old(main),::view-transition-new(main){animation-duration:.15s;animation-name:mm-fade!important}
+}
+@keyframes mm-fade{from{opacity:0}}
+/* The filter panel: a handle to drag it down, and it leaves the way it came. */
+.grab{display:none}
+@media (max-width:40rem){
+  dialog.sheet .grab{display:block;width:2.25rem;height:.3125rem;border-radius:3px;background:var(--border);
+    margin:.5rem auto 0;touch-action:none}
+  dialog.sheet .dlghead{touch-action:none}
+  dialog.sheet.leaving{transform:translateY(100%)!important;opacity:1!important}
+  dialog.sheet.dragging{transition:none!important}
+}
 header.bar.gated #actslot,header.bar.gated #moreBtn{display:none}
 /* nav.tabs sets display:flex, which beats the browser's own [hidden] rule.
    Without this the tab bar stays on screen behind the sign-in gate, offering
@@ -383,7 +413,7 @@ header.bar.gated #actslot,header.bar.gated #moreBtn{display:none}
 nav.tabs[hidden]{display:none}
 /* A button that reads as a link, for the privacy notice inside a sentence.
    Still 44px of tap target, supplied by the padded ::after. */
-.linkbtn{background:none;border:0;padding:0;font:inherit;color:var(--focus);
+.linkbtn{background:none;border:0;padding:.25rem 0;font:inherit;color:var(--gold-ink);
   text-decoration:underline;cursor:pointer;position:relative}
 .linkbtn::after{content:"";position:absolute;left:0;right:0;top:50%;
   height:var(--tap);transform:translateY(-50%)}
@@ -506,7 +536,7 @@ ul.tight li{margin:.25rem 0}
    10px. The action people actually take is "move forward one", so that gets a
    full-width button, and the whole list hides behind "Jump to another stage".
    The vessel is the logo's own drop path. */
-.vessel{display:flex;align-items:center;gap:1.125rem;margin:1rem 0 .25rem}
+.vessel{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem 1.125rem;margin:1rem 0 .25rem}
 .pot{width:4.625rem;height:8.375rem;flex:0 0 auto}
 /* The level is a rectangle clipped to the drop and slid down out of sight.
    It moves by transform rather than by its own y/height because CSS
@@ -547,14 +577,14 @@ ul.tight li{margin:.25rem 0}
    same shape carries progress at three scales: one model, one army, and the
    whole collection. Nothing new is stored — every model has carried a game
    system and an army since v002, so this is a view of what is already there. */
-.arow{display:flex;align-items:center;gap:.875rem;width:100%;min-height:56px;
+.arow{display:flex;flex-wrap:wrap;align-items:center;gap:.875rem;width:100%;min-height:56px;
   padding:.5rem .125rem;background:none;border:0;border-bottom:1px solid var(--border);
   font:inherit;color:var(--text);text-align:left;cursor:pointer;
   transition:transform .12s ease-out}
 .arow:active{transform:scale(.995)}
 .arow:last-of-type{border-bottom:0}
 .apot{width:2.25rem;height:4.0625rem;flex:0 0 auto}
-.aname{flex:1;min-width:0}
+.aname{flex:1 1 9rem;min-width:0}
 .aname b{display:block;font-size:1rem;line-height:1.25}
 /* Direct child only. "> span" rather than "span", because the line inside
    holds .num spans around each figure, and a descendant selector turned
@@ -615,7 +645,7 @@ ul.tight li{margin:.25rem 0}
 
 nav.tabs{
   position:fixed;left:0;right:0;bottom:0;z-index:30;
-  background:color-mix(in srgb,var(--surface) 80%,transparent);
+  background:color-mix(in srgb,var(--surface) 92%,transparent);
   -webkit-backdrop-filter:blur(18px) saturate(1.6);backdrop-filter:blur(18px) saturate(1.6);
   border-top:1px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom,0px);
 }
@@ -763,7 +793,6 @@ details summary{cursor:pointer;min-height:var(--tap);display:flex;align-items:ce
   <button data-tab="coll"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/></svg><span class="tl">Collection</span></button>
   <button data-tab="paints"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c-3 5-5 7.5-5 10a5 5 0 0 0 10 0c0-2.5-2-5-5-10Z"/></svg><span class="tl">Paints</span></button>
   <button data-tab="recipes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg><span class="tl">Recipes</span></button>
-  <button data-tab="hang" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-6 7-11a7 7 0 1 0-14 0c0 5 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg><span class="tl">Hangouts</span></button>
 </nav>
 
 <dialog id="dlg"><div class="dlgbody" id="dlgBody"></div></dialog>
@@ -3334,7 +3363,7 @@ function syncPill(){
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v013';
+const APP_VERSION = 'v014';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -3848,20 +3877,10 @@ function screenHome(){
         <button class="btn" data-act="addMini">Add a miniature</button>
         <button class="btn ghost" data-act="addSys">Add a game system</button></div></div>`;
   }
-  /* One hero number, then a ruled line. What matters on opening this app is
-     how much you have actually finished — not four equally-weighted totals in
-     four identical boxes, which gives the eye nowhere to land. */
-  h += `<div class="ehead" style="margin-top:0"><div class="eb">Your collection</div></div>
-    <div class="hero"><b>${c.done}</b><span>finished<br>of ${c.total}</span></div>
-    <hr class="keyline">
-    <div class="ledger">
-      <div class="lcell"><b>${c.started}</b><span>On the bench</span></div>
-      <div class="lcell"><b>${c.backlog}</b><span>Still waiting</span></div>
-      <div class="lcell"><b>${c.paints}</b><span>Paints owned</span></div>
-    </div>`;
+  /* What you were painting comes first: that is why the app gets opened.
+     The totals follow it, so they read as progress rather than a scoreboard. */
   if (benchGroups.size){
-    h += `<div class="ehead"><div class="eb">${started.length} on the bench</div>
-      <h3>Continue painting</h3></div>`;
+    h += `<div class="ehead" style="margin-top:0"><h2>Continue painting</h2></div>`;
     [...benchGroups.entries()].slice(0,3).forEach(([k, ms]) => {
       const g = { sys:ms[0].sys||'', fac:ms[0].fac||'' };
       h += `<button class="crumb" data-openarmy="${esc(k)}">${esc(armyLabel(g))} <span>&middot; ${esc(gameLabel(g.sys))}</span> <span aria-hidden="true">&rsaquo;</span></button>
@@ -3872,9 +3891,21 @@ function screenHome(){
     if (benchGroups.size > 3)
       h += `<p class="small muted">And ${benchGroups.size - 3} more ${benchGroups.size - 3 === 1 ? 'army' : 'armies'} with something on the bench, in Collection.</p>`;
   }
+
+  /* One hero number, then a ruled line. What matters on opening this app is
+     how much you have actually finished — not four equally-weighted totals in
+     four identical boxes, which gives the eye nowhere to land. */
+  h += `<div class="ehead"${benchGroups.size ? '' : ' style="margin-top:0"'}><div class="eb">Your collection</div></div>
+    <div class="hero"><b>${c.done}</b><span>finished<br>of ${c.total}</span></div>
+    <hr class="keyline">
+    <div class="ledger">
+      <div class="lcell"><b>${c.started}</b><span>On the bench</span></div>
+      <div class="lcell"><b>${c.backlog}</b><span>Still waiting</span></div>
+      <div class="lcell"><b>${c.paints}</b><span>Paints owned</span></div>
+    </div>`;
   h += valuePanel();
 
-  h += `<div class="ehead"><h3>Quick actions</h3></div><div class="row wrapm">
+  h += `<div class="ehead"><h2>Quick actions</h2></div><div class="row wrapm">
     <button class="btn" data-act="addMini">Add a miniature</button>
     <button class="btn ghost" data-act="pick">Pick something for me</button></div>`;
   return h;
@@ -3927,7 +3958,7 @@ function sortNote(m){
 function tile(m){
   const pid = arr(m.photos)[0];
   const img = pid ? photoImg(pid,'ph')
-    : `<div class="ph empty">${dropSvg('phdrop','')}<span>no photo yet</span></div>`;
+    : `<div class="ph empty" aria-hidden="true">${dropSvg('phdrop','')}<span>no photo yet</span></div>`;
   const n = Number(m.total)||1, d = Number(m.done)||0;
   /* The system and faction used to be a third line here. Over a photograph
      that is too many words, and both are on the entry's own screen anyway. */
@@ -4450,7 +4481,7 @@ function screenArmy(){
   if (!g) return h + `<div class="empty"><p>That ${groupWord(sysId)} no longer has anything in it.</p></div>`;
 
   const s = armyStats(g.minis);
-  h += `<div class="row" style="gap:1rem;align-items:center;margin-top:.25rem">
+  h += `<div class="armyhead">
       ${potSvg(s.models ? s.done / s.models : 0, 'bigpot')}
       <div><div class="hero" style="margin:0"><b>${s.pct}%</b></div>
         <div class="small muted"><span class="num">${s.done} of ${s.models}</span> models finished${
@@ -4467,7 +4498,7 @@ function screenArmy(){
   const done = g.minis.filter(isDone).sort((p,q) => (q.updated||0) - (p.updated||0));
   const shelf = (title, ms, asTiles) => {
     if (!ms.length) return '';
-    let o = `<div class="ehead shelf"><h3>${title}</h3><span class="small muted num">${ms.length}</span></div>`;
+    let o = `<div class="ehead shelf"><h2>${title}</h2><span class="small muted num">${ms.length}</span></div>`;
     if (asTiles){ o += `<div class="grid">`; ms.forEach(m => { o += tile(m); }); o += `</div>`; }
     else ms.forEach(m => { o += modelRow(m); });
     return o;
@@ -4476,6 +4507,17 @@ function screenArmy(){
   h += shelf(`Still to build`, waiting, false);
   h += shelf('Finished', done, true);
   return h;
+}
+
+/* Moving between Collection's steps. Deeper slides in from the right, back
+   slides out to the right, so the way out mirrors the way in. Browsers
+   without view transitions just change screen, as before. */
+function navGo(dir, change){
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!document.startViewTransition){ change(); return; }
+  document.documentElement.dataset.nav = reduce ? 'fade' : dir;
+  const vt = document.startViewTransition(change);
+  vt.finished.finally(() => { delete document.documentElement.dataset.nav; });
 }
 
 /* A one-line title for the top bar while inside a game or an army. */
@@ -4548,7 +4590,54 @@ function openFilterSheet(kind){
      is the way out, so the footer's Cancel would just be a second one. */
   const foot = dlg.querySelector('.dlgbody > .row:last-child [data-dlg="cancel"]');
   if (foot) foot.remove();
-  dlg.addEventListener('close', () => { state.sheet = ''; dlg.classList.remove('sheet'); }, { once:true });
+  dlg.addEventListener('close', () => { state.sheet = ''; dlg.classList.remove('sheet','leaving','dragging'); dlg.style.transform = ''; }, { once:true });
+  $('#dlgBody').insertAdjacentHTML('afterbegin', '<div class="grab" aria-hidden="true"></div>');
+  sheetDrag(dlg);
+}
+
+/* Drag the panel down by its handle or header to close it. It follows the
+   finger 1:1, resists being pulled upward, and a quick flick closes it even
+   if it has not travelled far. Letting go short springs it back. */
+function sheetDrag(dlg){
+  if (!(window.matchMedia && matchMedia('(max-width:40rem)').matches)) return;
+  let y0 = null, last = [], id = null;
+  const down = e => {
+    if (!e.target.closest('.grab, .dlghead') || e.target.closest('button')) return;
+    y0 = e.clientY; last = [[e.clientY, e.timeStamp]]; id = e.pointerId;
+    dlg.setPointerCapture(id); dlg.classList.add('dragging');
+  };
+  const move = e => {
+    if (y0 === null || e.pointerId !== id) return;
+    let dy = e.clientY - y0;
+    if (dy < 0) dy = -Math.sqrt(-dy) * 2;          /* resist upward */
+    dlg.style.transform = `translateY(${dy}px)`;
+    last.push([e.clientY, e.timeStamp]); if (last.length > 5) last.shift();
+  };
+  const up = e => {
+    if (y0 === null || e.pointerId !== id) return;
+    const dy = e.clientY - y0;
+    const [a, b] = [last[0], last[last.length-1]];
+    const v = b[1] > a[1] ? (b[0] - a[0]) / (b[1] - a[1]) : 0;   /* px per ms */
+    y0 = null; dlg.classList.remove('dragging');
+    if (dy > 90 || v > 0.6){ closeSheet(dlg); }
+    else { dlg.style.transform = ''; }
+  };
+  dlg.addEventListener('pointerdown', down);
+  dlg.addEventListener('pointermove', move);
+  dlg.addEventListener('pointerup', up);
+  dlg.addEventListener('pointercancel', up);
+  dlg.addEventListener('close', () => {
+    dlg.removeEventListener('pointerdown', down); dlg.removeEventListener('pointermove', move);
+    dlg.removeEventListener('pointerup', up); dlg.removeEventListener('pointercancel', up);
+  }, { once:true });
+}
+/* Leave downward, the way it arrived, then close. */
+function closeSheet(dlg){
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce || !dlg.classList.contains('sheet')){ dlg.close(); return; }
+  dlg.style.transform = '';
+  dlg.classList.add('leaving');
+  setTimeout(() => dlg.close(), 220);
 }
 function refreshFilterSheet(){
   const dlg = $('#dlg'), box = document.getElementById('fsheet');
@@ -4736,6 +4825,10 @@ function screenPaints(){
   if (!list.length) return h + `<div class="empty"><p>No paints match${q?` &ldquo;${esc(state.pq)}&rdquo;`:''}.</p>
     <button class="btn ghost" data-act="clearPaintFilters">Clear search and filters</button></div>`;
 
+  /* Your rule: an estimated colour is never presented as how a paint looks.
+     One line says so for the whole list; a photographed swatch is the
+     exception, and only those rows carry a mark. */
+  h += `<p class="estline">Colours are the maker&rsquo;s estimates until you photograph a swatch.</p>`;
   h += `<p class="small muted"><span class="num">${list.length}</span> of <span class="num">${data.paints.length}</span> shown</p>`;
   list.forEach(p => {
     const sw = data.swatches.filter(s => s.paintId === p.id).length;
@@ -4743,7 +4836,7 @@ function screenPaints(){
       <span class="sw" style="background:${esc(p.hex||'#CFC7BA')}"></span>
       <span class="grow"><span class="nm user-text">${esc(p.name)}</span><br>
         <span class="br">${esc([p.brand,p.range].filter(Boolean).join(' · '))}${p.code?' · '+esc(p.code):''}</span></span>
-      <span class="tagmini">${sw?sw+' swatch'+(sw>1?'es':''):'Estimated'}</span></button>`;
+      ${sw?`<span class="tagmini">${sw} swatch${sw>1?'es':''}</span>`:''}</button>`;
   });
   return h;
 }
@@ -5599,9 +5692,9 @@ function openDialog(title, body, onOk, okLabel, cancelLabel){
   dlg.onclick = e => {
     const b = e.target.closest('[data-dlg]');
     if (!b) return;
-    if (b.dataset.dlg === 'cancel'){ dlg.close(); return; }
+    if (b.dataset.dlg === 'cancel'){ closeSheet(dlg); return; }
     /* A dialog with nothing to confirm — the menu — has no onOk at all. */
-    if (!onOk || onOk() !== false) dlg.close();
+    if (!onOk || onOk() !== false) closeSheet(dlg);
   };
 }
 const NAME_REQUIRED = 'Give it a name first.';
@@ -6091,9 +6184,9 @@ document.addEventListener('click', e => {
 
   const open = t.closest('[data-open]');
   if (open){ const m = data.minis.find(x => x.id === open.dataset.open);
-    state.openMini = open.dataset.open; state.tab='coll';
-    if (m){ state.openGame = m.sys || NO_SYS_ID; state.openArmy = armyKey(m); }
-    render(); window.scrollTo(0,0); return; }
+    navGo('fwd', () => { state.openMini = open.dataset.open; state.tab='coll';
+      if (m){ state.openGame = m.sys || NO_SYS_ID; state.openArmy = armyKey(m); }
+      render(); window.scrollTo(0,0); }); return; }
   const op = t.closest('[data-openpaint]');
   if (op){ state.openPaint = op.dataset.openpaint; state.tab='paints'; state.sub=null; render(); window.scrollTo(0,0); return; }
   const orr = t.closest('[data-openrecipe]');
@@ -6145,9 +6238,9 @@ document.addEventListener('click', e => {
     }
 
     /* --- the new screens --- */
-    if (a === 'backGames'){ state.openGame = null; state.openArmy = null; render(); window.scrollTo(0,0); return; }
-    if (a === 'backMini'){ state.openMini = null; render(); window.scrollTo(0,0); return; }
-    if (a === 'backGame'){ state.openArmy = null; render(); window.scrollTo(0,0); return; }
+    if (a === 'backGames'){ navGo('back', () => { state.openGame = null; state.openArmy = null; render(); window.scrollTo(0,0); }); return; }
+    if (a === 'backMini'){ navGo('back', () => { state.openMini = null; render(); window.scrollTo(0,0); }); return; }
+    if (a === 'backGame'){ navGo('back', () => { state.openArmy = null; render(); window.scrollTo(0,0); }); return; }
     if (a === 'pick'){ $('#dlg').close(); state.tab = 'pick'; state.openMini = null;
       state.pick.result = null; render(); window.scrollTo(0,0); return; }
     if (a === 'shop'){ $('#dlg').close(); state.tab = 'shop'; state.openMini = null;
@@ -6209,13 +6302,13 @@ document.addEventListener('click', e => {
   }
 
   const og = t.closest('[data-opengame]');
-  if (og){ state.openGame = og.dataset.opengame; state.openArmy = null; render(); window.scrollTo(0,0); return; }
+  if (og){ navGo('fwd', () => { state.openGame = og.dataset.opengame; state.openArmy = null; render(); window.scrollTo(0,0); }); return; }
   /* From anywhere — Home, search results — opening an army lands inside the
      Collection with its game behind it, so the way back makes sense. */
   const oa = t.closest('[data-openarmy]');
-  if (oa){ const k = oa.dataset.openarmy; state.tab = 'coll'; state.openMini = null;
+  if (oa){ const k = oa.dataset.openarmy; navGo('fwd', () => { state.tab = 'coll'; state.openMini = null;
     state.openGame = k.split('|')[0] || NO_SYS_ID; state.openArmy = k; state.q = '';
-    state.fStage = ''; state.sort = ''; render(); window.scrollTo(0,0); return; }
+    state.fStage = ''; state.sort = ''; render(); window.scrollTo(0,0); }); return; }
   /* An empty data-astage is the "All" chip, so test for the attribute rather
      than for a truthy value — otherwise "All" would never clear the filter. */
   const as = t.closest('[data-astage]');
