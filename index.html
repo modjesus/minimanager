@@ -884,6 +884,22 @@ details summary{cursor:pointer;min-height:var(--tap);display:flex;align-items:ce
 .selacts .btn:disabled{opacity:.45}
 .amrow{display:grid;grid-template-columns:minmax(0,1fr) 4rem;gap:.375rem;padding:.5rem 0;border-bottom:1px solid var(--border)}
 .amrow .amunit{grid-column:1/-1}
+/* --- v022: stages, duplicate, archive --- */
+.unitmore{display:flex;flex-wrap:wrap;gap:0 1.5rem;margin:.25rem 0 1.5rem}
+.unitmore .linkbtn{min-height:var(--tap)}
+.linkbtn.danger-link{color:color-mix(in srgb,var(--danger) 72%,var(--text))}
+.archnote{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem 1rem;margin:.5rem 0 .75rem;padding:.75rem .875rem;
+  border-radius:var(--r-ctl);background:color-mix(in srgb,var(--gold) 14%,transparent);font-size:.875rem}
+.archnote span{flex:1 1 12rem;min-width:0}
+.stlist{list-style:none;margin:.5rem 0 0;padding:0;counter-reset:st}
+.stlist li{display:flex;flex-wrap:wrap;align-items:center;gap:.25rem .5rem;padding:.5rem 0;border-bottom:1px solid var(--border)}
+.stlist .stname{flex:1 1 9rem;min-width:0}
+.stbtns{display:flex;gap:.25rem}
+.stbtns .iconbtn:disabled{opacity:.3}
+.brmark{display:flex;align-items:center;gap:.375rem;flex:1 0 100%;margin:0;font-weight:400;font-size:.8125rem;color:var(--text-2);min-height:var(--tap)}
+.brmark input{width:1.125rem;height:1.125rem;margin:0}
+.wfnote{margin:.125rem 0 0}
+.wfnote .linkbtn{min-height:var(--tap)}
 </style>
 </head>
 <body>
@@ -3594,7 +3610,7 @@ function syncPill(){
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v021';
+const APP_VERSION = 'v022';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -3699,6 +3715,13 @@ function load(){
     supplies:arr(p.supplies),
     wishlist:arr(p.wishlist),
     settings:{
+      /* Everything else in settings is kept as it was: the battle-ready
+         stage and your sets of stages (v022) live here and sync with it. */
+      ...st,
+      ...(Array.isArray(st.workflows)
+        ? { workflows: st.workflows.filter(w => w && typeof w.id === 'string' && Array.isArray(w.stages) && w.stages.length >= 3) }
+        : {}),
+      battleReady: typeof st.battleReady === 'string' ? st.battleReady : '',
       theme: typeof st.theme === 'string' ? st.theme : '',
       /* Pounds unless told otherwise; changeable in Your account. */
       currency: CURRENCIES.some(c => c[0] === st.currency) ? st.currency : 'GBP'
@@ -3706,9 +3729,8 @@ function load(){
   };
   /* Entries already at Finished from before v015 may count fewer models
      done than they hold; finished means all of them. */
-  const last = data.stages[data.stages.length - 1];
   data.minis.forEach(m => {
-    if (m && m.stage === last && (Number(m.done)||0) < (Number(m.total)||1)){ m.done = Number(m.total)||1; m.updated = Date.now(); }
+    if (m && isDone(m) && (Number(m.done)||0) < (Number(m.total)||1)){ m.done = Number(m.total)||1; m.updated = Date.now(); }
   });
 }
 
@@ -3780,11 +3802,11 @@ function waitingSince(iso){
 
 /* A model counts as unfinished until every one of its models is done. */
 function isFinished(m){
-  return m.stage === data.stages[data.stages.length - 1];
+  return isDone(m);
 }
 function collectionValue(){
   let unpainted = 0, finished = 0, priced = 0;
-  arr(data.minis).forEach(m => {
+  liveMinis().forEach(m => {
     const p = Number(m.price);
     if (!p) return;
     priced++;
@@ -3793,7 +3815,7 @@ function collectionValue(){
   const total = unpainted + finished;
   return { unpainted, finished, priced, total,
            pct: total ? Math.round((finished / total) * 100) : 0,
-           missing: arr(data.minis).length - priced };
+           missing: liveMinis().length - priced };
 }
 
 /* --- photos: IndexedDB ---------------------------------------------------- */
@@ -3983,8 +4005,31 @@ const sysName = id => (data.systems.find(s => s.id === id) || {}).name || '';
 const facName = id => (data.factions.find(f => f.id === id) || {}).name || '';
 const ucName  = id => (data.undercoats.find(u => u.id === id) || {}).name || '';
 const paintOf = id => data.paints.find(p => p.id === id);
-const stageIx = m => { const i = data.stages.indexOf(m.stage); return i < 0 ? 0 : i; };
-const isDone  = m => m.stage === data.stages[data.stages.length - 1];
+/* Archived units (sold, traded, gifted, lost) are kept, with their history
+   and what they cost, but they are out of the shelves and out of every
+   total. They are listed under Archived in Collection. */
+const liveMinis = () => arr(data.minis).filter(m => !m.archived);
+/* ---------------------------------------------------------------------------
+   Workflows: each unit can follow its own set of stages. "Standard" is the
+   list in data.stages that the app has always had; the others live in
+   settings, so they sync with everything else. A unit with no workflow set,
+   or one that has been deleted, follows Standard. */
+const DEFAULT_WORKFLOWS = [
+  { id:'speed',   name:'Speed paint', stages:['Unbuilt','Built','Primed','Speed paint','Details','Basing','Finished'] },
+  { id:'terrain', name:'Terrain',     stages:['Unbuilt','Built','Primed','Basecoat','Drybrush','Weathering','Finished'] }
+];
+function workflows(){ return Array.isArray(data.settings && data.settings.workflows) ? data.settings.workflows : DEFAULT_WORKFLOWS; }
+/* Editing a workflow writes the list into settings first, so the shared
+   defaults above are never changed by accident. */
+function ownWorkflows(){
+  if (!Array.isArray(data.settings.workflows)) data.settings.workflows = JSON.parse(JSON.stringify(DEFAULT_WORKFLOWS));
+  return data.settings.workflows;
+}
+const wfOf = m => (m && m.wf) ? workflows().find(w => w.id === m.wf && arr(w.stages).length >= 3) || null : null;
+const stagesOf = m => { const w = wfOf(m); return w ? w.stages : data.stages; };
+const wfName = m => { const w = wfOf(m); return w ? w.name : 'Standard'; };
+const stageIx = m => { const L = stagesOf(m); const i = L.indexOf(m.stage); return i < 0 ? 0 : i; };
+const isDone  = m => { const L = stagesOf(m); return m.stage === L[L.length - 1]; };
 
 /* ---------------------------------------------------------------------------
    How many models are at each stage.
@@ -4002,7 +4047,7 @@ const isDone  = m => m.stage === data.stages[data.stages.length - 1];
    than trusting counts it never saw. */
 const atSig = m => `${m.stage}|${Number(m.done)||0}|${Number(m.total)||1}`;
 function stageCounts(m){
-  const names = data.stages, last = names.length - 1, n = Number(m.total) || 1;
+  const names = stagesOf(m), last = names.length - 1, n = Number(m.total) || 1;
   const cnt = names.map(() => 0);
   if (m.at && typeof m.at === 'object' && m.atSig === atSig(m)){
     names.forEach((s, i) => { cnt[i] = Math.max(0, Number(m.at[s]) || 0); });
@@ -4017,7 +4062,7 @@ function stageCounts(m){
   return cnt;
 }
 function setCounts(m, cnt){
-  const names = data.stages, last = names.length - 1;
+  const names = stagesOf(m), last = names.length - 1;
   m.at = {};
   cnt.forEach((c, i) => { if (c > 0) m.at[names[i]] = c; });
   m.done = cnt[last];
@@ -4036,25 +4081,30 @@ function unitProgress(m){
 }
 /* One line for a unit's stage: its stage, or the span its models cover. */
 function stageLabel(m){
-  const c = stageCounts(m), names = data.stages;
+  const c = stageCounts(m), names = stagesOf(m);
   const lo = c.findIndex(k => k > 0), hi = c.length - 1 - [...c].reverse().findIndex(k => k > 0);
   return lo === hi ? names[lo] : names[lo] + ' to ' + names[hi];
 }
 /* Running totals, the way a painter says it: 20 built, 15 primed. */
 const STAGE_DONE_WORD = { Built:'built', Primed:'primed', Basecoat:'basecoated', Shading:'shaded',
-  Highlights:'highlighted', Basing:'based', Finished:'finished' };
+  Highlights:'highlighted', Basing:'based', Finished:'finished',
+  'Speed paint':'speed painted', Details:'detailed', Drybrush:'drybrushed', Weathering:'weathered',
+  Weathered:'weathered', Varnish:'varnished', Contrast:'contrast painted', Layering:'layered', Wash:'washed' };
 const stageDoneWord = s => STAGE_DONE_WORD[s] || ('at ' + s + ' or beyond');
 function runningTotals(m){
   const c = stageCounts(m);
   const out = [];
-  for (let i = c.length - 1, run = 0; i >= 1; i--){ run += c[i]; out.unshift({ i, name:data.stages[i], reached:run }); }
+  for (let i = c.length - 1, run = 0; i >= 1; i--){ run += c[i]; out.unshift({ i, name:stagesOf(m)[i], reached:run }); }
   return out;
 }
+/* The colour for a stage: the last is always finished green, the rest run
+   through the palette in order. */
+const stCol = (i, n) => i === n - 1 ? 7 : Math.min(i, 6);
 /* A unit's own stage bar: one band per stage, as wide as its models. */
 function stageBar(cnt, cls){
   const total = cnt.reduce((a, b) => a + b, 0) || 1;
   return `<div class="${cls || 'sbar'}" aria-hidden="true">${cnt.map((k, i) => k ?
-    `<span style="flex:${k};background:var(--st${Math.min(i, 7)})"></span>` : '').join('')}</div>`;
+    `<span style="flex:${k};background:var(--st${stCol(i, cnt.length)})"></span>` : '').join('')}</div>`;
 }
 
 /* Terrain is a project, not a miniature, so it is kept out of every
@@ -4068,18 +4118,18 @@ function modelTally(list){
   const minis = list.filter(m => !isTerrain(m));
   const sum = (ms, f) => ms.reduce((n,m) => n + f(m), 0);
   const tot = m => Number(m.total)||1;
-  const last = data.stages.length - 1;
   /* Model by model: unbuilt ones are still to build, finished ones are
-     finished, and everything in between is on the bench. */
-  const total = sum(minis, tot), done = sum(minis, m => stageCounts(m)[last]);
-  const backlog = sum(minis, m => last ? stageCounts(m)[0] : 0);
+     finished, and everything in between is on the bench. Each unit's own
+     stages decide which is which. */
+  const total = sum(minis, tot), done = sum(minis, m => { const c = stageCounts(m); return c[c.length - 1]; });
+  const backlog = sum(minis, m => stageCounts(m)[0]);
   return { total, done, started: total - done - backlog,
            startedUnits: minis.filter(isStarted).length,
            backlog, backlogUnits: minis.filter(allUnbuilt).length,
            terrain: list.length - minis.length };
 }
 function counts(){
-  const t = modelTally(data.minis);
+  const t = modelTally(liveMinis());
   return { total:t.total, done:t.done, started:t.started, backlog:t.backlog,
            startedUnits:t.startedUnits, backlogUnits:t.backlogUnits, terrain:t.terrain,
            entries:data.minis.length,
@@ -4089,7 +4139,7 @@ function counts(){
 /* --- state ---------------------------------------------------------------- */
 const state = {
   tab:'home', openMini:null, openPaint:null, openRecipe:null,
-  selecting:false, sel:new Set(), selArmy:null,
+  selecting:false, sel:new Set(), selArmy:null, openArchive:false,
   sub:null, openGame:null, q:'', fSys:'', fFac:'', fStage:'', sheet:'',
   /* Armies. openArmy is a "system|faction" key rather than an id, because an
      army is the pair. aStage is kept apart from fStage so that filtering
@@ -4264,7 +4314,7 @@ function screenHome(){
   /* What is on the bench, by army. Started and not finished, most recently
      touched first; each army gets its own heading so Death Guard never
      shares a row with Tyranids. Three armies, four models each, at most. */
-  const started = data.minis.filter(isStarted)
+  const started = liveMinis().filter(isStarted)
     .sort((a,b) => (b.updated||0)-(a.updated||0));
   const benchGroups = new Map();
   started.forEach(m => { const k = armyKey(m); if (!benchGroups.has(k)) benchGroups.set(k, []); benchGroups.get(k).push(m); });
@@ -4284,7 +4334,7 @@ function screenHome(){
     /* The hero is the most recent one with a photo, if any has one: a
        striped placeholder makes a poor centrepiece. */
     const hero = started.find(m => arr(m.photos).length) || started[0];
-    const cur = stageIx(hero), last = data.stages.length - 1;
+    const cur = stageIx(hero), heroStages = stagesOf(hero), last = heroStages.length - 1;
     const n = Number(hero.total)||1, d = Number(hero.done)||0;
     const prog = unitProgress(hero);
     const g0 = { sys:hero.sys||'', fac:hero.fac||'' };
@@ -4295,9 +4345,9 @@ function screenHome(){
         <i class="lvl" style="width:${Math.round(prog*100)}%"></i></button>
       <h3 class="herotitle display user-text">${esc(hero.name)}</h3>
       <p class="small muted user-text herosub">${esc(armyLabel(g0))} &middot; ${esc(stageLabel(hero))}${n>1?` &middot; <span class="num">${d} of ${n}</span> finished`:''}</p>
-      ${n > 1 ? stageBar(stageCounts(hero), 'sbar herobar') : stageRow(cur)}
+      ${n > 1 ? stageBar(stageCounts(hero), 'sbar herobar') : stageRow(cur, heroStages)}
       ${n > 1 ? `<button class="btn homeadv" data-act="moveOn" data-id="${esc(hero.id)}">Move models on</button>`
-        : cur < last ? `<button class="btn homeadv" data-act="homeAdv" data-id="${esc(hero.id)}">Move to ${esc(data.stages[cur+1])}</button>` : ''}`;
+        : cur < last ? `<button class="btn homeadv" data-act="homeAdv" data-id="${esc(hero.id)}">Move to ${esc(heroStages[cur+1])}</button>` : ''}`;
 
     const rest = new Map();
     started.filter(m => m !== hero).forEach(m => { const k = armyKey(m); if (!rest.has(k)) rest.set(k, []); rest.get(k).push(m); });
@@ -4390,8 +4440,8 @@ function sortNote(m){
 
 /* The stage row: one drop per stage, filled up to where the model is, the
    current one larger. Decorative; the stage is always named beside it. */
-function stageRow(cur){
-  return `<div class="stagerow" aria-hidden="true">${data.stages.map((_, i) =>
+function stageRow(cur, L){
+  return `<div class="stagerow" aria-hidden="true">${(L || data.stages).map((_, i) =>
     dropSvg('sdot' + (i === cur ? ' now' : ''), i < cur ? 'var(--success)' : i === cur ? 'var(--gold)' : '')).join('')}</div>`;
 }
 
@@ -4778,7 +4828,7 @@ const armyLabel = g => g.fac ? (facName(g.fac) || noArmyLabel(g.sys)) : noArmyLa
 
 function armyGroups(){
   const g = new Map();
-  data.minis.forEach(m => {
+  liveMinis().forEach(m => {
     const k = armyKey(m);
     if (!g.has(k)) g.set(k, { key:k, sys:m.sys || '', fac:m.fac || '', minis:[] });
     g.get(k).minis.push(m);
@@ -4830,6 +4880,7 @@ const backLink = (act, label) =>
    results are grouped the same way.
    =========================================================================== */
 function screenCollection(){
+  if (state.openArchive) return screenArchive();
   if (state.openArmy) return screenArmy();
   if (state.openGame) return screenGame();
   let h = '';
@@ -4872,6 +4923,24 @@ function screenCollection(){
     const s = armyStats(loose.minis);
     h += `<button class="idxmore" data-opengame="${NO_SYS_ID}"><span class="num">${s.models}</span> model${s.models===1?'':'s'} with no game set <span aria-hidden="true">&rsaquo;</span></button>`;
   }
+  const arch = arr(data.minis).filter(m => m.archived).length;
+  if (arch) h += `<button class="idxmore" data-act="openArchive"><span class="num">${arch}</span> archived unit${arch===1?'':'s'} <span aria-hidden="true">&rsaquo;</span></button>`;
+  return h;
+}
+
+/* Sold, traded, gifted or lost: still here, out of the way. */
+function screenArchive(){
+  let h = backLink('backArchive', 'Collection');
+  const ms = arr(data.minis).filter(m => m.archived)
+    .sort((a, b) => String(b.archived.on || '').localeCompare(String(a.archived.on || '')));
+  h += `<h2 class="display" style="font-size:1.625rem;margin:.25rem 0 .25rem">Archived</h2>
+    <p class="small muted">Out of your shelves and totals. Open one to bring it back.</p>`;
+  if (!ms.length) return h + `<p class="muted">Nothing archived.</p>`;
+  ms.forEach(m => {
+    h += `<button class="mrow" data-open="${esc(m.id)}"><span class="grow user-text">${esc(m.name)}
+      <span class="small muted" style="display:block">${esc(armyLabel({ sys:m.sys||'', fac:m.fac||'' }))} &middot; ${esc(gameLabel(m.sys || NO_SYS_ID))}</span></span>
+      <span class="small muted mst">${esc(m.archived.why || 'Archived')}${m.archived.on ? '<br>' + esc(waitingSince(m.archived.on)) : ''}</span></button>`;
+  });
   return h;
 }
 
@@ -4893,7 +4962,7 @@ function groupedResults(list){
     gameGroups().forEach(x => x.armies.forEach(g => order.push(g.key)));
     keys.sort((p,q) => order.indexOf(p) - order.indexOf(q));
   }
-  let h = `<p class="small muted"><span class="num">${list.length}</span> of <span class="num">${data.minis.length}</span></p>`;
+  let h = `<p class="small muted"><span class="num">${list.length}</span> of <span class="num">${liveMinis().length}</span></p>`;
   keys.forEach(k => { const ms = groups.get(k);
     const g = { sys:ms[0].sys||'', fac:ms[0].fac||'' };
     h += `<button class="crumb" data-openarmy="${esc(k)}">${esc(gameLabel(g.sys))} &rsaquo; ${esc(armyLabel(g))}</button>`;
@@ -4945,6 +5014,7 @@ function screenArmy(){
       ${potSvg(s.models ? s.done / s.models : 0, 'bigpot')}
       <div><div class="hero" style="margin:0"><b>${s.pct}%</b></div>
         <div class="small muted"><span class="num">${s.done} of ${s.models}</span> models finished${
+          battleReady(g.minis) != null ? ` &middot; <span class="num">${battleReady(g.minis)}</span> battle ready` : ''}${
           s.terrain ? ` &middot; <span class="num">${s.terrain}</span> terrain project${s.terrain===1?'':'s'}` : ''}${
           s.priced ? ` &middot; ${esc(money(s.spent))} spent` : ''}</div></div>
     </div>
@@ -5013,12 +5083,17 @@ function endSelecting(msg){ state.selecting = false; state.sel = new Set(); save
 
 function dlgBulkStage(){
   const ms = selectedUnits(); if (!ms.length) return;
+  /* Units on different workflows have different stages, so there is no one
+     list to pick from. Ask for them a workflow at a time. */
+  if (new Set(ms.map(m => wfName(m))).size > 1){
+    toast('These units use different painting stages. Select units from one workflow at a time.'); return; }
+  const L = stagesOf(ms[0]);
   let pick = '';
   openDialog(`Move ${ms.length} unit${ms.length===1?'':'s'}`,
     `<p class="small muted" style="margin-top:0">Every model in ${ms.length === 1 ? 'it' : 'them'} moves to the stage you pick.</p>
-     <div class="chips" id="bsChips">${data.stages.map(s => `<button class="chip" data-bstage="${esc(s)}" aria-pressed="false">${esc(s)}</button>`).join('')}</div>`,
+     <div class="chips" id="bsChips">${L.map(s => `<button class="chip" data-bstage="${esc(s)}" aria-pressed="false">${esc(s)}</button>`).join('')}</div>`,
     () => { if (!pick){ toast('Pick a stage first.'); return false; }
-      ms.forEach(m => { setCounts(m, data.stages.map((_, i) => i === data.stages.indexOf(pick) ? (Number(m.total)||1) : 0)); m.updated = Date.now(); });
+      ms.forEach(m => { setCounts(m, L.map((_, i) => i === L.indexOf(pick) ? (Number(m.total)||1) : 0)); m.updated = Date.now(); });
       endSelecting(`Moved ${ms.length} to ${pick}.`); }, 'Move');
   $('#bsChips').addEventListener('click', e => { const c = e.target.closest('[data-bstage]'); if (!c) return;
     pick = c.dataset.bstage;
@@ -5109,9 +5184,9 @@ function dlgAddMany(){
         .filter(r => r.name);
       if (!rows.length){ toast(NAME_REQUIRED); return false; }
       const now = Date.now();
-      rows.forEach((r, i) => data.minis.push({ id: uid(), name: r.name, sys: g.sys, fac: g.fac, unit: r.unit, base: '',
+      rows.forEach((r, i) => data.minis.push(withDefaultWorkflow({ id: uid(), name: r.name, sys: g.sys, fac: g.fac, unit: r.unit, base: '',
         total: r.total, price: null, acquired: '', done: 0, stage: data.stages[0], tags: '', notes: '', photos: [],
-        created: now + i, updated: now + i }));
+        created: now + i, updated: now + i })));
       save(); render(); toast(`Added ${rows.length}.`);
     }, 'Add');
   const box = $('#amRows'), ok = () => $('#dlg [data-dlg="ok"]');
@@ -5171,11 +5246,13 @@ function filterSheetBody(){
      This is for looking across everything, and the results come back
      grouped by game and army. */
   const stageCount = {};
-  data.minis.forEach(m => stageCounts(m).forEach((k, i) => {
-    if (k) stageCount[data.stages[i]] = (stageCount[data.stages[i]]||0) + k; }));
+  liveMinis().forEach(m => stageCounts(m).forEach((k, i) => {
+    if (k){ const nm = stagesOf(m)[i]; stageCount[nm] = (stageCount[nm]||0) + k; } }));
   let h = '';
   h += `<p class="fsec">Stage <span class="opt">models at each</span></p><div class="chips">`;
-  data.stages.filter(s => stageCount[s]).forEach(s => {
+  const allNames = data.stages.slice();
+  workflows().forEach(w => arr(w.stages).forEach(x => { if (allNames.indexOf(x) === -1) allNames.push(x); }));
+  allNames.filter(s => stageCount[s]).forEach(s => {
     h += `<button class="chip" data-fstage="${esc(s)}" aria-pressed="${state.fStage===s}">
       ${esc(s)} <span class="n">${stageCount[s]}</span></button>`;
   });
@@ -5271,14 +5348,14 @@ function refreshFilterSheet(){
    only name, tags and notes, so typing a system returned nothing at all. */
 function filtered(){
   const q = state.q.trim().toLowerCase();
-  return data.minis.filter(m => {
+  return liveMinis().filter(m => {
     if (state.fSys && m.sys !== state.fSys) return false;
     if (state.fFac && m.fac !== state.fFac) return false;
     /* A unit matches a stage when any of its models are at it. */
-    if (state.fStage && !stageCounts(m)[data.stages.indexOf(state.fStage)]) return false;
+    if (state.fStage && !stageCounts(m)[stagesOf(m).indexOf(state.fStage)]) return false;
     if (!q) return true;
     const hay = [m.name, m.tags, m.notes, sysName(m.sys), facName(m.fac), m.unit,
-                 ...data.stages.filter((s, i) => stageCounts(m)[i])]
+                 ...stagesOf(m).filter((s, i) => stageCounts(m)[i])]
       .filter(Boolean).join(' ').toLowerCase();
     return hay.includes(q);
   }).sort(sorter());
@@ -5311,10 +5388,12 @@ function screenMini(){
   const m = data.minis.find(x => x.id === state.openMini);
   if (!m) return `<div class="empty"><p>That miniature no longer exists.</p>
     <button class="btn" data-back="coll">Back to collection</button></div>`;
-  const n = Number(m.total)||1, d = Number(m.done)||0, cur = stageIx(m), last = data.stages.length-1;
+  const n = Number(m.total)||1, d = Number(m.done)||0, cur = stageIx(m), L = stagesOf(m), last = L.length-1;
   const fin = cur === last;
 
-  let h = backLink('backMini', armyLabel({ sys:m.sys||'', fac:m.fac||'' }));
+  let h = backLink('backMini', state.openArchive ? 'Archived' : armyLabel({ sys:m.sys||'', fac:m.fac||'' }));
+  if (m.archived) h += `<div class="archnote"><span><b>Archived</b> &middot; ${esc(m.archived.why || '')}${m.archived.on ? ' ' + esc(waitingSince(m.archived.on)) : ''}. Not in your shelves or totals.</span>
+    <button class="btn sm" data-act="restoreMini">Bring it back</button></div>`;
   h += `<h2 class="display user-text" style="font-size:1.625rem">${esc(m.name)}</h2>`;
   const sub = [sysName(m.sys), facName(m.fac)].filter(Boolean).join(' · ');
   if (sub) h += `<p class="muted user-text" style="margin-top:-.25rem">${esc(sub)}</p>`;
@@ -5346,7 +5425,7 @@ function screenMini(){
          "5" would bury the line that matters. */
       if (!cnt[r.i] && r.i !== last) return;
       const togo = n - r.reached;
-      h += `<li><i style="background:var(--st${Math.min(r.i,7)})" aria-hidden="true"></i><b class="num">${r.reached}</b>
+      h += `<li><i style="background:var(--st${stCol(r.i, L.length)})" aria-hidden="true"></i><b class="num">${r.reached}</b>
         <span>${esc(stageDoneWord(r.name))}</span>
         <em class="${togo ? '' : 'all'}">${togo ? `<span class="num">${togo}</span> to go` : (n > 1 ? 'all ' + n : 'done')}</em></li>`;
     });
@@ -5365,10 +5444,10 @@ function screenMini(){
         <div class="vsub">Stage <span class="num">${cur+1}</span> of <span class="num">${last+1}</span>${fin?'':' &middot; ' + potWord(prog)}</div>
       </div>
     </div>`;
-  if (!fin) h += `<button class="btn advance" data-adv>Move to ${esc(data.stages[cur+1])} &rarr;</button>`;
+  if (!fin) h += `<button class="btn advance" data-adv>Move to ${esc(L[cur+1])} &rarr;</button>`;
   h += `<button class="btn ghost jumpbtn" data-jump aria-expanded="false" aria-controls="ladder">Jump to another stage</button>
     <div class="ladder" id="ladder"><div>`;
-  data.stages.forEach((s,i) => {
+  L.forEach((s,i) => {
     const st = i < cur ? 'done' : i === cur ? 'now' : 'todo';
     h += `<button class="lrow" data-stage="${esc(s)}" data-s="${st}">
       ${dropSvg('ldrop', i < cur ? 'var(--success)' : i === cur ? 'var(--gold)' : '')}
@@ -5417,6 +5496,9 @@ function screenMini(){
     <label for="eFac">${esc(cap(groupWord(m.sys || '')))}</label>
     <select id="eFac">${armyOptions(curSys, curFac)}</select>
     <input id="eFacOwn" type="text" placeholder="Your own" style="margin-top:.5rem" hidden>
+    <label for="eWf">Painting stages</label>
+    <select id="eWf"><option value="std">Standard</option>${workflows().map(w => `<option value="${esc(w.id)}"${wfOf(m) && wfOf(m).id === w.id ? ' selected' : ''}>${esc(w.name)}</option>`).join('')}</select>
+    <p class="small muted wfnote"><button class="linkbtn" data-act="editStages">Change the stages in each set</button></p>
     <label for="eTotal">How many models in this unit</label><input id="eTotal" type="number" min="1" value="${n}">
     ${chips('eUnit', UNIT_TYPES, { label:'Unit type', value:m.unit || '',
       help:'unitType', ownPlaceholder:'Whatever your game calls it' })}
@@ -5432,8 +5514,12 @@ function screenMini(){
     ${chips('eTags', CHIPS.tag, { label:'Tags', value:m.tags || '', multi:true,
       ownPlaceholder:'Your own tags, separated by commas' })}
     <label for="eNotes">Notes</label><textarea id="eNotes" class="user-text">${esc(m.notes||'')}</textarea>
-    <div class="row" style="margin-top:.875rem"><button class="btn" data-act="saveMini">Save changes</button>
-    <button class="btn danger" data-act="delMini">Delete</button></div></div>`;
+    <div class="row" style="margin-top:.875rem"><button class="btn" data-act="saveMini">Save changes</button></div></div>
+    <div class="unitmore">
+      <button class="linkbtn" data-act="dupMini">Duplicate</button>
+      ${m.archived ? '' : '<button class="linkbtn" data-act="archMini">Archive</button>'}
+      <button class="linkbtn danger-link" data-act="delMini">Delete for good</button>
+    </div>`;
   return h;
 }
 
@@ -5720,7 +5806,7 @@ const TITLES = { home:'MiniManager', coll:'Collection', paints:'Paints', recipes
    its title. Detail screens and the setup flow have their own buttons. */
 function headerAction(){
   if (state.setup.step) return '';
-  if (state.tab === 'coll' && !state.openMini && data.minis.length)
+  if (state.tab === 'coll' && !state.openMini && !state.openArchive && data.minis.length)
     return `<button class="btn sm" data-act="addHere">Add</button>`;
   if (state.tab === 'paints' && !state.sub && !state.openPaint && data.paints.length)
     return `<button class="btn sm" data-act="addPaint">Add</button>`;
@@ -5954,9 +6040,9 @@ function restock(){
    offers the same entry twice running.
    =========================================================================== */
 function pickPool(){
-  const p = state.pick, lastStage = data.stages[data.stages.length - 1];
-  return arr(data.minis).filter(m => {
-    if (m.stage === lastStage) return false;            /* already done */
+  const p = state.pick;
+  return liveMinis().filter(m => {
+    if (isDone(m)) return false;                        /* already done */
     const c = stageCounts(m);
     if (p.kind === 'build' && !c[0]) return false;      /* nothing left to build */
     if (p.kind === 'paint' && !c.slice(1, -1).some(k => k)) return false;
@@ -6086,8 +6172,9 @@ function setStage(m, stage){
   /* Every model in the unit moves to the stage. Moving some of them is the
      move panel's job (moveModels). */
   const n = Number(m.total) || 1;
-  const cnt = data.stages.map(() => 0);
-  const i = data.stages.indexOf(stage);
+  const L = stagesOf(m);
+  const cnt = L.map(() => 0);
+  const i = L.indexOf(stage);
   cnt[i < 0 ? 0 : i] = n;
   setCounts(m, cnt);
   m.updated = Date.now(); save();
@@ -6098,8 +6185,9 @@ function advanceStrip(m, justFinished){
   const vessel = document.querySelector('.vessel');
   if (!vessel){ render(); return; }
 
-  const idx = data.stages.indexOf(m.stage);
-  const last = data.stages.length - 1;
+  const L = stagesOf(m);
+  const idx = L.indexOf(m.stage);
+  const last = L.length - 1;
   const p = last ? idx / last : 1;
   const done = isFinished(m);
 
@@ -6121,7 +6209,7 @@ function advanceStrip(m, justFinished){
   const adv = document.querySelector('.advance');
   if (adv){
     if (idx >= last) adv.remove();
-    else adv.innerHTML = `Move to ${esc(data.stages[idx+1])} &rarr;`;
+    else adv.innerHTML = `Move to ${esc(L[idx+1])} &rarr;`;
   }
 
   /* The ladder is usually shut, but if it is open you are looking straight at
@@ -6375,7 +6463,7 @@ const NAME_REQUIRED = 'Give it a name first.';
    that has any, which is the usual case: "I primed the last five".
    --------------------------------------------------------------------------- */
 function moveModels(m){
-  const names = data.stages, last = names.length - 1;
+  const names = stagesOf(m), last = names.length - 1;
   const cnt = stageCounts(m);
   const firstFrom = cnt.findIndex((k, i) => k > 0 && i < last);
   const mv = { from: firstFrom < 0 ? last : firstFrom, to: 0, k: 0 };
@@ -6678,7 +6766,7 @@ function dlgAddMini(){
       const sys = systemIdByName(sysName);
       const fac = factionIdByName(facName, sys);
 
-      data.minis.push({ id:uid(), name, sys, fac,
+      data.minis.push(withDefaultWorkflow({ id:uid(), name, sys, fac,
         base:$('#mBase').value || '',
         unit:$('#mUnit') ? $('#mUnit').value.trim() : '',
         total:Math.max(1, Number($('#mTotal').value) || 1),
@@ -6688,7 +6776,7 @@ function dlgAddMini(){
         price: $('#mPrice').value === '' ? null : Math.max(0, Number($('#mPrice').value) || 0),
         acquired: $('#mAcq').value || '',
         done:0, stage:data.stages[0], tags:'', notes:'', photos:[],
-        created:Date.now(), updated:Date.now() });
+        created:Date.now(), updated:Date.now() }));
       setLastUsed({ sys:sysName, fac:facName });
       save(); state.tab='coll'; state.openMini=null; render(); toast('Added.');
     }, 'Add');
@@ -6899,7 +6987,7 @@ document.addEventListener('click', e => {
   const t = e.target;
   const tab = t.closest('#tabs button');
   if (tab && !tab.disabled){
-    state.tab = tab.dataset.tab; state.openMini = state.openPaint = state.openRecipe = null;
+    state.tab = tab.dataset.tab; state.openMini = state.openPaint = state.openRecipe = null; state.openArchive = false;
     state.sub = null; render(); window.scrollTo(0,0); return;
   }
   const back = t.closest('[data-back]');
@@ -6984,7 +7072,7 @@ document.addEventListener('click', e => {
     if (a === 'restock')    return restock();
     if (a === 'moveOn'){ const m = data.minis.find(x => x.id === act.dataset.id); if (m) moveModels(m); return; }
     if (a === 'homeAdv'){ const m = data.minis.find(x => x.id === act.dataset.id);
-      if (m){ const i = stageIx(m); if (i < data.stages.length - 1) setStage(m, data.stages[i + 1]); }
+      if (m){ const i = stageIx(m), L = stagesOf(m); if (i < L.length - 1) setStage(m, L[i + 1]); }
       return; }
     if (a === 'showValue'){ state.showValue = true; render(); return; }
     if (a === 'hideValue'){ state.showValue = false; render(); return; }
@@ -6996,6 +7084,14 @@ document.addEventListener('click', e => {
 
     if (a === 'addMini')    return dlgAddMini();
     /* Add from inside a game or an army files the new model there. */
+    if (a === 'openArchive'){ navGo('fwd', () => { state.openArchive = true; state.openGame = null; state.openArmy = null; render(); window.scrollTo(0,0); }); return; }
+    if (a === 'backArchive'){ navGo('back', () => { state.openArchive = false; state.openGame = null; state.openArmy = null; render(); window.scrollTo(0,0); }); return; }
+    if (a === 'dupMini')   return duplicateMini();
+    if (a === 'archMini')  return dlgArchive();
+    if (a === 'restoreMini'){ const m = data.minis.find(x => x.id === state.openMini); if (!m) return;
+      delete m.archived; m.updated = Date.now(); save(); state.openArchive = false; render(); toast('Back on your shelves.'); return; }
+    if (a === 'editStages'){ const m = state.openMini && data.minis.find(x => x.id === state.openMini);
+      if ($('#dlg').open) $('#dlg').close(); return dlgStages(m && wfOf(m) ? wfOf(m).id : 'std'); }
     if (a === 'addMany'){ if ($('#dlg').open) $('#dlg').close(); return dlgAddMany(); }
     if (a === 'selectOn'){ state.selecting = true; state.sel = new Set(); state.selArmy = state.openArmy; render(); return; }
     if (a === 'selectOff'){ state.selecting = false; state.sel = new Set(); render(); return; }
@@ -7130,8 +7226,9 @@ document.addEventListener('click', e => {
   if (adv){
     const m = data.minis.find(x => x.id === state.openMini); if (!m) return;
     const i = stageIx(m);
-    if (i >= data.stages.length - 1) return;
-    setStage(m, data.stages[i + 1]);
+    const L = stagesOf(m);
+    if (i >= L.length - 1) return;
+    setStage(m, L[i + 1]);
     return;
   }
 
@@ -7171,7 +7268,7 @@ document.addEventListener('input', e => {
     m.updated = Date.now();
     /* Every model counted finished means the unit is finished: it moves to
        Finished rather than sitting on the bench saying 20 of 20. */
-    if (m.done >= n && !isDone(m)){ setStage(m, data.stages[data.stages.length - 1]); return; }
+    if (m.done >= n && !isDone(m)){ const L = stagesOf(m); setStage(m, L[L.length - 1]); return; }
     save();
   }
   if (id === 'suPq'){
@@ -7253,6 +7350,8 @@ function saveMiniEdits(){
     m.total = newTotal; setCounts(m, cnt);
   }
   let moved = '';
+  if ($('#eWf')){ const want = $('#eWf').value, have = wfOf(m) ? wfOf(m).id : 'std';
+    if (want !== have) changeWorkflow(m, want); }
   if ($('#eSys')){
     const sv = $('#eSys').value, fv = $('#eFac').value;
     const sName = sv === '__own' ? $('#eSysOwn').value.trim() : sv;
@@ -7272,6 +7371,176 @@ function saveMiniEdits(){
   if ($('#eAcq')) m.acquired = $('#eAcq').value || '';
   m.updated = Date.now(); save(); render(); toast(moved ? 'Moved to ' + moved + '.' : 'Saved.');
 }
+/* A second box of the same thing: same details, unbuilt, no photos. */
+function duplicateMini(){
+  const m = data.minis.find(x => x.id === state.openMini); if (!m) return;
+  const c = JSON.parse(JSON.stringify(m));
+  c.id = uid(); c.photos = []; c.done = 0; c.stage = stagesOf(m)[0];
+  delete c.at; delete c.atSig; delete c.archived;
+  c.acquired = ''; c.created = c.updated = Date.now();
+  data.minis.push(c); save();
+  state.openMini = c.id; state.openArchive = false; render(); window.scrollTo(0,0);
+  toast('Duplicated. This copy is unbuilt.');
+}
+function dlgArchive(){
+  const m = data.minis.find(x => x.id === state.openMini); if (!m) return;
+  let why = '';
+  const opts = ['Sold','Traded','Gifted','Lost','Other'];
+  openDialog('Archive ' + m.name,
+    `<p class="small muted" style="margin-top:0">It leaves your shelves and totals but keeps its photos, notes and what it cost.
+      Bring it back any time from Archived in Collection.</p>
+     <div class="chips" id="arChips">${opts.map(o => `<button class="chip" data-arwhy="${o}" aria-pressed="false">${o}</button>`).join('')}</div>`,
+    () => { if (!why){ toast('Pick one first.'); return false; }
+      m.archived = { why, on: new Date().toISOString().slice(0,10) }; m.updated = Date.now(); save();
+      state.openMini = null; render(); window.scrollTo(0,0); toast(m.name + ' archived.'); }, 'Archive');
+  $('#arChips').addEventListener('click', e => { const c = e.target.closest('[data-arwhy]'); if (!c) return; why = c.dataset.arwhy;
+    $$('#arChips [data-arwhy]').forEach(b => b.setAttribute('aria-pressed', String(b === c))); });
+}
+
+/* ---------------------------------------------------------------------------
+   Your painting stages.
+
+   Rename, add, remove and reorder. The first stage is always "not started"
+   and the last is always "finished", whatever you call them, because every
+   total in the app depends on those two meaning that. Each unit keeps its
+   counts by stage name, so every change here carries the counts with it:
+   a renamed stage keeps its models, a removed stage hands them to the one
+   before, and reordering never moves a model.
+   --------------------------------------------------------------------------- */
+/* Which list the stages editor is changing: Standard, or one workflow. */
+let stEdit = 'std';
+const editList = () => stEdit === 'std' ? data.stages : (ownWorkflows().find(w => w.id === stEdit) || {}).stages || data.stages;
+const onEditList = m => stEdit === 'std' ? !wfOf(m) : (wfOf(m) && wfOf(m).id === stEdit);
+function restage(change){
+  const L0 = editList().slice();
+  const units = data.minis.filter(onEditList);
+  const before = units.map(m => { const c = stageCounts(m); const by = {};
+    L0.forEach((s, i) => { by[s] = c[i]; }); return by; });
+  const res = change();                       /* returns { rename:{old:new}, merge:{gone:into} } */
+  const L = editList();
+  const now = Date.now();
+  units.forEach((m, k) => {
+    const by = Object.assign({}, before[k]);
+    Object.entries(res.rename || {}).forEach(([o, n]) => { by[n] = (by[n] || 0) + (by[o] || 0); delete by[o]; });
+    Object.entries(res.merge || {}).forEach(([g, into]) => { by[into] = (by[into] || 0) + (by[g] || 0); delete by[g]; });
+    const cnt = L.map(s => by[s] || 0);
+    const old = JSON.stringify([m.stage, m.done, m.at || null]);
+    setCounts(m, cnt);
+    if (JSON.stringify([m.stage, m.done, m.at || null]) !== old) m.updated = now;
+  });
+  const holder = stEdit === 'std' ? data.settings : ownWorkflows().find(w => w.id === stEdit);
+  ['rename', 'merge'].forEach(k => { if (res[k] && holder && holder.battleReady && res[k][holder.battleReady]) holder.battleReady = res[k][holder.battleReady]; });
+  if (state.fStage && data.stages.indexOf(state.fStage) === -1 && !workflows().some(w => w.stages.indexOf(state.fStage) !== -1)) state.fStage = '';
+  save();
+}
+function stagesBody(){
+  const L = editList(), last = L.length - 1;
+  const holder = stEdit === 'std' ? data.settings : ownWorkflows().find(w => w.id === stEdit) || {};
+  const br = holder.battleReady || '';
+  const wfs = workflows();
+  const inUse = data.minis.filter(onEditList).length;
+  return `<div class="chips" role="group" aria-label="Which stages">
+      <button class="chip" data-stwf="std" aria-pressed="${stEdit === 'std'}">Standard</button>
+      ${wfs.map(w => `<button class="chip" data-stwf="${esc(w.id)}" aria-pressed="${stEdit === w.id}">${esc(w.name)}</button>`).join('')}
+      <button class="chip" data-stwfnew>+ New</button></div>
+    <p class="small muted">${stEdit === 'std' ? 'Every unit uses these unless you give it another set on its own page.' : 'For the units you give this set to on their own page.'}
+      <span class="num">${inUse}</span> unit${inUse === 1 ? '' : 's'} use${inUse === 1 ? 's' : ''} it.
+      The first and last stages always mean not started and finished. A removed stage hands its models to the one before.</p>
+    ${stEdit !== 'std' ? `<div class="row" style="margin-bottom:.5rem"><input id="wfName" value="${esc((ownWorkflows().find(w => w.id === stEdit) || {}).name || '')}" aria-label="Name of this set">
+      ${inUse ? '' : '<button class="btn sm ghost" data-wfdel>Delete this set</button>'}</div>` : ''}
+    <ol class="stlist">${L.map((s, i) => `<li>
+      <input class="stname" data-i="${i}" value="${esc(s)}" aria-label="Stage ${i + 1} name">
+      <span class="stbtns">
+        <button class="iconbtn" data-stup="${i}" aria-label="Move ${esc(s)} earlier"${i <= 1 || i === last ? ' disabled' : ''}>&uarr;</button>
+        <button class="iconbtn" data-stdown="${i}" aria-label="Move ${esc(s)} later"${i === 0 || i >= last - 1 ? ' disabled' : ''}>&darr;</button>
+        <button class="iconbtn" data-strm="${i}" aria-label="Remove ${esc(s)}"${i === 0 || i === last || L.length <= 3 ? ' disabled' : ''}>&times;</button>
+      </span>
+      ${i > 0 ? `<label class="brmark"><input type="radio" name="brStage" value="${esc(s)}"${br === s ? ' checked' : ''}> Battle ready from here</label>` : ''}
+    </li>`).join('')}</ol>
+    <div class="row" style="margin-top:.75rem"><input id="stNew" placeholder="A new stage, e.g. Varnish" aria-label="New stage name">
+      <button class="btn sm ghost" data-stadd>Add</button></div>
+    ${br ? `<button class="linkbtn" data-brclear style="margin-top:.5rem">No battle-ready stage</button>` : ''}`;
+}
+function dlgStages(which){
+  stEdit = which || 'std';
+  openDialog('Painting stages', `<div id="stBody">${stagesBody()}</div>`, null, null, 'Done');
+  const box = $('#stBody');
+  const redraw = () => { box.innerHTML = stagesBody(); render(); };
+  const holder = () => stEdit === 'std' ? data.settings : ownWorkflows().find(w => w.id === stEdit);
+  box.addEventListener('change', e => {
+    const t = e.target, L = editList();
+    if (t.classList.contains('stname')){
+      const i = +t.dataset.i, old = L[i], nu = t.value.trim();
+      if (!nu || nu === old){ t.value = old; return; }
+      if (L.indexOf(nu) !== -1){ toast('There is already a stage called ' + nu + '.'); t.value = old; return; }
+      restage(() => { editList()[i] = nu; return { rename: { [old]: nu } }; });
+      toast('Renamed. Every model at ' + old + ' is now at ' + nu + '.'); redraw();
+    }
+    if (t.id === 'wfName'){ const w = ownWorkflows().find(x => x.id === stEdit); const nm = t.value.trim();
+      if (w && nm){ w.name = nm; save(); redraw(); } }
+    if (t.name === 'brStage'){ const h = holder(); if (h){ h.battleReady = t.value; save(); render(); } }
+  });
+  box.addEventListener('click', e => {
+    const wf = e.target.closest('[data-stwf]'), wfNew = e.target.closest('[data-stwfnew]'), wfDel = e.target.closest('[data-wfdel]');
+    if (wf){ if (wf.dataset.stwf !== 'std') ownWorkflows(); stEdit = wf.dataset.stwf; redraw(); return; }
+    if (wfNew){ const id = 'wf' + Date.now().toString(36);
+      ownWorkflows().push({ id, name:'My stages', stages: data.stages.slice() }); stEdit = id; save(); redraw();
+      const n = $('#wfName'); if (n){ n.focus(); n.select(); } return; }
+    if (wfDel){ const ws = ownWorkflows(), k = ws.findIndex(w => w.id === stEdit);
+      if (k >= 0 && !data.minis.some(onEditList)){ ws.splice(k, 1); stEdit = 'std'; save(); redraw(); } return; }
+    const L = editList();
+    const up = e.target.closest('[data-stup]'), dn = e.target.closest('[data-stdown]');
+    const rm = e.target.closest('[data-strm]'), add = e.target.closest('[data-stadd]'), clr = e.target.closest('[data-brclear]');
+    if (up || dn){ const i = +(up ? up.dataset.stup : dn.dataset.stdown), j = up ? i - 1 : i + 1;
+      restage(() => { const l = editList(), t = l[i]; l[i] = l[j]; l[j] = t; return {}; }); redraw(); }
+    if (rm){ const i = +rm.dataset.strm, gone = L[i], into = L[i - 1];
+      restage(() => { editList().splice(i, 1); return { merge: { [gone]: into } }; });
+      toast(gone + ' removed. Its models are now at ' + into + '.'); redraw(); }
+    if (add){ const nu = $('#stNew').value.trim(); if (!nu) return;
+      if (L.indexOf(nu) !== -1){ toast('There is already a stage called ' + nu + '.'); return; }
+      restage(() => { const l = editList(); l.splice(l.length - 1, 0, nu); return {}; }); redraw(); }
+    if (clr){ const h = holder(); if (h){ h.battleReady = ''; save(); redraw(); } }
+  });
+}
+
+/* Give a unit a different set of stages. Models keep their stage where the
+   new set has one of the same name; otherwise they go to the stage at the
+   same point along the way, so not started stays not started and finished
+   stays finished. */
+/* A new terrain project starts on the Terrain stages, if that set exists. */
+function withDefaultWorkflow(m){
+  if (isTerrain(m) && workflows().some(w => w.id === 'terrain')){ m.wf = 'terrain'; m.stage = stagesOf(m)[0]; }
+  return m;
+}
+function changeWorkflow(m, id){
+  const fromL = stagesOf(m), c = stageCounts(m);
+  const w = id === 'std' ? null : workflows().find(x => x.id === id);
+  if (w) ownWorkflows();
+  const toL = w ? w.stages : data.stages;
+  const cnt = toL.map(() => 0), lastF = fromL.length - 1, lastT = toL.length - 1;
+  c.forEach((k, i) => { if (!k) return;
+    let j = toL.indexOf(fromL[i]);
+    if (j < 0) j = i === 0 ? 0 : i === lastF ? lastT : Math.max(1, Math.min(lastT - 1, Math.round(i / lastF * lastT)));
+    cnt[j] += k; });
+  if (w) m.wf = w.id; else delete m.wf;
+  setCounts(m, cnt);
+  m.updated = Date.now();
+}
+
+/* How many models are battle ready: at the stage you chose, or beyond. */
+function battleReady(minis){
+  const br = data.settings.battleReady;
+  const any = (br && data.stages.indexOf(br) >= 0) || workflows().some(w => w.battleReady);
+  if (!any) return null;
+  /* Each unit counts from its own set's battle-ready stage; a set without
+     one counts only finished models. */
+  return minis.filter(m => !isTerrain(m)).reduce((n, m) => {
+    const L = stagesOf(m), c = stageCounts(m), w = wfOf(m);
+    let i = L.indexOf(w ? w.battleReady : br);
+    if (i < 0) i = L.length - 1;
+    return n + c.slice(i).reduce((a, b) => a + b, 0); }, 0);
+}
+
 function deleteMini(){
   const m = data.minis.find(x => x.id === state.openMini); if (!m) return;
   openDialog('Delete this unit?',
@@ -7420,6 +7689,10 @@ $('#moreBtn').addEventListener('click', () => {
        <button class="btn ghost sm" data-act="openPlanner">Plan a colour scheme</button>
        <button class="btn ghost sm" data-act="openCompare">Compare swatches</button>
        <button class="btn ghost sm" data-act="setupPaintsOnly">Add several paints</button></div>
+     <hr><h3 style="font-size:.9375rem">Painting stages</h3>
+     <p class="small muted">Rename, add, remove or reorder your stages, and choose which counts as battle ready.</p>
+     <div class="row wrapm" style="margin-top:.625rem">
+       <button class="btn ghost sm" data-act="editStages">Your painting stages</button></div>
      <hr><h3 style="font-size:.9375rem">Getting started</h3>
      <p class="small muted">Fill an empty collection quickly, a game system and an army at a time.</p>
      <div class="row wrapm" style="margin-top:.625rem">
@@ -7479,7 +7752,7 @@ function exportCsv(){
   const q = s => '"' + String(s==null?'':s).replace(/"/g,'""') + '"';
   const rows = [['Name','Game system','Army','Stage','Total','Finished','At each stage','Tags','Notes'].map(q).join(',')];
   data.minis.forEach(m => rows.push([m.name, sysName(m.sys), facName(m.fac), stageLabel(m),
-    m.total, m.done, stageCounts(m).map((k, i) => k ? data.stages[i] + ' ' + k : '').filter(Boolean).join('; '),
+    m.total, m.done, stageCounts(m).map((k, i) => k ? stagesOf(m)[i] + ' ' + k : '').filter(Boolean).join('; '),
     m.tags, m.notes].map(q).join(',')));
   download('minimanager-collection-' + new Date().toISOString().slice(0,10) + '.csv',
     rows.join('\n'), 'text/csv');
