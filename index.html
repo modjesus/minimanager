@@ -171,7 +171,7 @@ label{display:block;font-size:.8125rem;font-weight:600;margin:.75rem 0 .25rem;co
    making nothing important — your eye has nowhere to land. One number is the
    hero and the rest sit on a ruled line under a tapered keyline. No boxes. */
 .hero{display:flex;align-items:flex-end;gap:.75rem;margin:.125rem 0 0}
-.hero b{font-family:var(--f-display);font-weight:400;font-size:min(4rem,22vw);line-height:.86;
+.hero b{font-family:var(--f-display);font-weight:400;font-size:min(3rem,16vw);line-height:.86;
   letter-spacing:-.03em}
 .hero span{font-size:.9375rem;color:var(--text-2);padding-bottom:.4375rem}
 /* A gold rule that thins as it travels, like a brush lifting off. This is how
@@ -185,7 +185,7 @@ label{display:block;font-size:.8125rem;font-weight:600;margin:.75rem 0 .25rem;co
 .lcell{flex:1 1 6rem;min-width:0;padding-right:.625rem}
 .lcell + .lcell{border-left:1px solid var(--border);padding-left:.75rem}
 .lcell span{overflow-wrap:anywhere}
-.lcell b{display:block;font-family:var(--f-display);font-weight:400;font-size:1.75rem;line-height:1.05}
+.lcell b{display:block;font-family:var(--f-display);font-weight:400;font-size:1.375rem;line-height:1.05}
 .lcell span{font-size:.75rem;color:var(--text-2)}
 
 /* Editorial header: small-caps eyebrow over a serif heading, straight off
@@ -361,9 +361,13 @@ button{color:inherit}
 .backlink{display:inline-flex;align-items:center;gap:.375rem;min-height:var(--tap);margin:.375rem 0 .25rem;
   padding:0 .25rem 0 0;background:none;border:0;color:var(--text);font:inherit;font-size:.9375rem;font-weight:600;cursor:pointer}
 .backlink span{color:var(--gold-ink);font-size:1.5rem;line-height:1;margin-top:-.125rem}
-.gamecard{display:flex;flex-wrap:wrap;align-items:center;gap:.875rem;width:100%;margin:0 0 .625rem;padding:.75rem .875rem;
-  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-card);
+/* v016: a game is a line in a contents page, not a box. Its name is set
+   large, and a thin painted line under it fills as it gets finished. */
+.gamecard{display:flex;flex-wrap:wrap;align-items:baseline;gap:.25rem .875rem;width:100%;margin:0;padding:1rem 0 1.125rem;
+  background:none;border:0;border-top:1px solid var(--border);border-radius:0;
   font:inherit;color:var(--text);text-align:left;cursor:pointer;transition:transform .12s ease-out}
+.gamecard .aname b{font-family:var(--f-display);font-weight:400;font-size:1.625rem;line-height:1.1;letter-spacing:-.015em}
+.gamecard .pline{flex:1 0 100%;margin-top:.5rem}
 .gamecard:active{transform:scale(.995)}
 .chev{color:var(--gold-ink);font-size:1.5rem;line-height:1;flex:0 0 auto}
 .crumb{display:flex;align-items:center;gap:.375rem;flex-wrap:wrap;width:100%;min-height:var(--tap);margin:.625rem 0 .125rem;padding:0;
@@ -768,6 +772,69 @@ details summary{cursor:pointer;min-height:var(--tap);display:flex;align-items:ce
      arrives quickly instead of gliding. */
   .potfill{transition-duration:.12s!important}
 }
+/* --- v016: the painting table -------------------------------------------
+   Pages take the shape of what they hold. Photos run edge to edge, progress
+   is drawn as a line or a row of drops, and boxes are kept for things you can
+   actually pick up. */
+.greet{margin:.875rem 0 .375rem}
+/* Home: the model you touched last, big. */
+.benchhero{position:relative;display:block;width:100%;aspect-ratio:4/3;max-height:22rem;padding:0;border:0;
+  border-radius:var(--r-card);overflow:hidden;background:var(--warm-grey);cursor:pointer;font:inherit;color:var(--text-2)}
+.benchhero .ph{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.benchhero.nophoto{background:repeating-linear-gradient(135deg,var(--surface) 0 9px,color-mix(in srgb,var(--warm-grey) 35%,var(--surface)) 9px 18px);
+  border:1px solid var(--border)}
+.benchhero .ph.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.375rem;font-size:.8125rem}
+.benchhero:active{transform:scale(.99)}
+.herotitle{font-size:1.875rem;line-height:1.1;margin:.875rem 0 0;overflow-wrap:anywhere}
+.herosub{margin:.1875rem 0 .625rem}
+.homeadv{width:100%;margin-top:.25rem}
+/* Progress along the bottom edge of a photo. Gold while in progress,
+   green once finished. */
+.lvl{position:absolute;left:0;bottom:0;height:4px;background:var(--gold);pointer-events:none}
+.lvl.done{background:var(--success)}
+/* One drop per stage. */
+.stagerow{display:flex;align-items:flex-end;flex-wrap:wrap;gap:.3125rem;margin:.25rem 0 .875rem}
+.sdot{width:.8125rem;height:1.4375rem;flex:0 0 auto}
+.sdot.now{width:1.25rem;height:2.1875rem}
+/* Home: one line per army, small photos at the right. */
+.benchrow{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem .75rem;padding:.5rem 0;border-top:1px solid var(--border)}
+.benchrow > button{flex:1 1 9rem;min-width:0;margin:0;align-self:stretch}
+.bnames{display:block;width:100%;font-style:normal;font-size:.8125rem;font-weight:500;letter-spacing:0;
+  text-transform:none;color:var(--text);line-height:1.45;margin-top:.125rem}
+.grid.strip{display:flex;flex-wrap:wrap;gap:.375rem;flex:0 1 auto;min-width:0}
+.strip .tile{width:4.25rem;height:4.25rem;aspect-ratio:auto;border-radius:10px}
+.strip .tile .meta{clip-path:inset(50%);width:1px;height:1px;overflow:hidden;padding:0}
+.strip .tile.nophoto{background:repeating-linear-gradient(135deg,var(--surface) 0 7px,color-mix(in srgb,var(--warm-grey) 35%,var(--surface)) 7px 14px)}
+.strip .tile .ph.empty span{display:none}
+.contact .tile .meta{padding:1.5rem .5rem .4375rem}
+.contact .tile .meta b{font-size:.8125rem}
+.contact .tile .meta .small{font-size:.75rem}
+.strip .phdrop,.contact .phdrop{display:none}
+.contact .tile.nophoto .ph.empty{padding-top:.75rem}
+@media (max-width:22rem){ .grid.contact{grid-template-columns:repeat(2,minmax(0,1fr))} }
+/* A thin painted line for how much is finished. */
+.pline{display:block;height:3px;border-radius:2px;background:var(--border);overflow:hidden;margin:.625rem 0 .875rem}
+.pline i{display:block;height:100%;background:var(--success)}
+.homelinks{display:flex;flex-wrap:wrap;gap:.5rem 1.5rem;margin:1.5rem 0 .5rem}
+.linkbtn.spark{display:inline-flex;align-items:center;gap:.375rem}
+/* "No game set" is not a game: a quiet link at the end of the list. */
+.idxmore{display:flex;align-items:center;gap:.375rem;width:100%;min-height:var(--tap);padding:.75rem 0;margin:0;
+  background:none;border:0;border-top:1px solid var(--border);font:inherit;font-size:.875rem;color:var(--text-2);
+  text-align:left;cursor:pointer;text-decoration:underline;text-decoration-color:var(--gold);text-underline-offset:3px}
+/* Army: a contact sheet, edge to edge. */
+.grid.contact{grid-template-columns:repeat(3,minmax(0,1fr));gap:2px;margin-inline:-1.25rem}
+.contact .tile{border-radius:0}
+.contact .tile.nophoto{border:0;background:repeating-linear-gradient(135deg,var(--surface) 0 9px,color-mix(in srgb,var(--warm-grey) 35%,var(--surface)) 9px 18px)}
+@media(min-width:42rem){.grid.contact{grid-template-columns:repeat(4,minmax(0,1fr));margin-inline:0}}
+/* Still in the box: a small stack beside the list. */
+.pile{display:flex;gap:1rem;align-items:flex-start}
+.pilelist{flex:1;min-width:0}
+.stack{position:relative;flex:0 0 auto;width:3.5rem;height:3.25rem;margin-top:.5rem}
+.stack i{position:absolute;width:3rem;height:2.125rem;border-radius:4px;border:1px solid var(--border);background:var(--surface)}
+.stack i:nth-child(1){left:.5rem;top:0;background:color-mix(in srgb,var(--warm-grey) 60%,var(--surface))}
+.stack i:nth-child(2){left:.25rem;top:.375rem;background:color-mix(in srgb,var(--warm-grey) 30%,var(--surface))}
+.stack i:nth-child(3){left:0;top:.75rem}
+@media (max-width:22rem){ .stack{display:none} }
 </style>
 </head>
 <body>
@@ -3478,7 +3545,7 @@ function syncPill(){
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v015';
+const APP_VERSION = 'v016';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -3956,7 +4023,10 @@ function potWord(p){
   if (p < .6)  return 'half way';
   return 'nearly there';
 }
-const backBtn = (to,label) => `<button class="btn ghost sm" data-back="${to}" style="margin:.875rem 0">&larr; ${esc(label)}</button>`;
+/* One way back on every screen: a plain link at the top left, named after
+   where it goes. It used to be a boxed button on some screens and a link on
+   others, which made two things look different that did the same job. */
+const backBtn = (to,label) => `<button class="backlink" data-back="${to}"><span aria-hidden="true">&lsaquo;</span> ${esc(label)}</button>`;
 
 function photoImg(id, cls){
   return `<img class="${cls||''}" data-photo="${esc(id)}" alt="">`;
@@ -3997,7 +4067,7 @@ function screenHome(){
     .sort((a,b) => (b.updated||0)-(a.updated||0));
   const benchGroups = new Map();
   started.forEach(m => { const k = armyKey(m); if (!benchGroups.has(k)) benchGroups.set(k, []); benchGroups.get(k).push(m); });
-  let h = `<p class="muted small" style="margin:.875rem 0 .375rem">${greeting()}</p>`;
+  let h = `<p class="muted small greet">${greeting()}</p>`;
   if (c.entries === 0){
     return h + `<h2 class="display" style="font-size:1.625rem;margin-bottom:.875rem">Your collection</h2>
       <div class="empty"><p>Nothing in here yet. Add your first miniature and the numbers start filling in.</p>
@@ -4005,27 +4075,53 @@ function screenHome(){
         <button class="btn" data-act="addMini">Add a miniature</button>
         <button class="btn ghost" data-act="addSys">Add a game system</button></div></div>`;
   }
-  /* What you were painting comes first: that is why the app gets opened.
-     The totals follow it, so they read as progress rather than a scoreboard. */
+  /* The bench comes first: that is why the app gets opened. The model you
+     touched last is the hero, big, with its next step as the one button on
+     the page. Whatever else is on the bench follows as small photos, one row
+     per army, so Death Guard never sits beside Tyranids. */
   if (benchGroups.size){
-    h += `<div class="ehead" style="margin-top:0"><h2>Continue painting</h2></div>`;
-    [...benchGroups.entries()].slice(0,3).forEach(([k, ms]) => {
-      const g = { sys:ms[0].sys||'', fac:ms[0].fac||'' };
-      h += `<button class="crumb" data-openarmy="${esc(k)}">${esc(armyLabel(g))} <span>&middot; ${esc(gameLabel(g.sys))}</span> <span aria-hidden="true">&rsaquo;</span></button>
-        <div class="grid">`;
-      ms.slice(0,4).forEach(m => { h += tile(m); });
-      h += `</div>`;
-    });
-    if (benchGroups.size > 3)
-      h += `<p class="small muted">And ${benchGroups.size - 3} more ${benchGroups.size - 3 === 1 ? 'army' : 'armies'} with something on the bench, in Collection.</p>`;
+    /* The hero is the most recent one with a photo, if any has one: a
+       striped placeholder makes a poor centrepiece. */
+    const hero = started.find(m => arr(m.photos).length) || started[0];
+    const cur = stageIx(hero), last = data.stages.length - 1;
+    const n = Number(hero.total)||1, d = Number(hero.done)||0;
+    const g0 = { sys:hero.sys||'', fac:hero.fac||'' };
+    const pid = arr(hero.photos)[0];
+    h += `<div class="ehead" style="margin-top:0"><h2>Continue painting</h2></div>
+      <button class="benchhero${pid?'':' nophoto'}" data-open="${esc(hero.id)}" aria-label="Open ${esc(hero.name)}">
+        ${pid ? photoImg(pid,'ph') : `<span class="ph empty" aria-hidden="true">${dropSvg('phdrop','')}<span>no photo yet</span></span>`}
+        <i class="lvl" style="width:${last ? Math.round(cur/last*100) : 100}%"></i></button>
+      <h3 class="herotitle display user-text">${esc(hero.name)}</h3>
+      <p class="small muted user-text herosub">${esc(armyLabel(g0))} &middot; ${esc(hero.stage)}${n>1?` &middot; <span class="num">${d} of ${n}</span> done`:''}</p>
+      ${stageRow(cur)}
+      ${cur < last ? `<button class="btn homeadv" data-act="homeAdv" data-id="${esc(hero.id)}">Move to ${esc(data.stages[cur+1])}</button>` : ''}`;
+
+    const rest = new Map();
+    started.filter(m => m !== hero).forEach(m => { const k = armyKey(m); if (!rest.has(k)) rest.set(k, []); rest.get(k).push(m); });
+    if (rest.size){
+      h += `<div class="ehead"><h2>Also on the bench <span class="small muted num">${started.length - 1}</span></h2></div>`;
+      [...rest.entries()].slice(0,4).forEach(([k, ms]) => {
+        const g = { sys:ms[0].sys||'', fac:ms[0].fac||'' };
+        /* One compact line per army: its name and what is on it at the left,
+           small photos at the right. A one-model army no longer leaves a
+           lone tile with half the screen empty beside it. */
+        h += `<div class="benchrow"><button class="crumb" data-openarmy="${esc(k)}">${esc(armyLabel(g))} <span>&middot; ${esc(gameLabel(g.sys))}</span> <span aria-hidden="true">&rsaquo;</span>
+            <em class="bnames user-text">${ms.map(m => esc(m.name) + ' &middot; ' + esc(m.stage)).slice(0,3).join('<br>')}${ms.length > 3 ? `<br>and ${ms.length - 3} more` : ''}</em></button>
+          <div class="grid strip">${ms.slice(0,3).map(tile).join('')}</div></div>`;
+      });
+      if (rest.size > 4)
+        h += `<p class="small muted">And ${rest.size - 4} more ${rest.size - 4 === 1 ? 'army' : 'armies'} with something on the bench, in Collection.</p>`;
+    }
+  } else {
+    h += `<div class="ehead" style="margin-top:0"><h2>Nothing on the bench</h2></div>
+      <p class="muted">Start something and it will wait for you here.</p>`;
   }
 
-  /* One hero number, then a ruled line. What matters on opening this app is
-     how much you have actually finished — not four equally-weighted totals in
-     four identical boxes, which gives the eye nowhere to land. */
-  h += `<div class="ehead"${benchGroups.size ? '' : ' style="margin-top:0"'}><div class="eb">Your collection</div></div>
+  /* The totals, as one line of progress rather than a scoreboard of boxes. */
+  const pct = c.total ? Math.round(c.done / c.total * 100) : 0;
+  h += `<div class="ehead"><div class="eb">Your collection</div></div>
     <div class="hero"><b>${c.done}</b><span>finished<br>of ${c.total}</span></div>
-    <hr class="keyline">
+    <div class="pline" aria-hidden="true"><i style="width:${pct}%"></i></div>
     <div class="ledger">
       <div class="lcell"><b>${c.started}</b><span>On the bench</span></div>
       <div class="lcell"><b>${c.backlog}</b><span>Still waiting</span></div>
@@ -4033,9 +4129,9 @@ function screenHome(){
     </div>`;
   h += valuePanel();
 
-  h += `<div class="ehead"><h2>Quick actions</h2></div><div class="row wrapm">
-    <button class="btn" data-act="addMini">Add a miniature</button>
-    <button class="btn ghost" data-act="pick">Pick something for me</button></div>`;
+  h += `<div class="homelinks">
+    <button class="linkbtn spark" data-act="pick"><svg width="14" height="14" viewBox="120 12 60 62" aria-hidden="true"><path d="${SPARKLE}" fill="var(--gold)"/></svg> Can&rsquo;t decide? Pick one for me</button>
+    <button class="linkbtn" data-act="addMini">Add a miniature</button></div>`;
   return h;
 }
 
@@ -4083,6 +4179,13 @@ function sortNote(m){
   return '';
 }
 
+/* The stage row: one drop per stage, filled up to where the model is, the
+   current one larger. Decorative; the stage is always named beside it. */
+function stageRow(cur){
+  return `<div class="stagerow" aria-hidden="true">${data.stages.map((_, i) =>
+    dropSvg('sdot' + (i === cur ? ' now' : ''), i < cur ? 'var(--success)' : i === cur ? 'var(--gold)' : '')).join('')}</div>`;
+}
+
 function tile(m){
   const pid = arr(m.photos)[0];
   const img = pid ? photoImg(pid,'ph')
@@ -4090,12 +4193,17 @@ function tile(m){
   const n = Number(m.total)||1, d = Number(m.done)||0;
   /* The system and faction used to be a third line here. Over a photograph
      that is too many words, and both are on the entry's own screen anyway. */
+  /* The sparkle marks finished. In progress used to carry a gold drop in the
+     corner too; the bar along the bottom now says that, so the drop went. */
   const mark = isFinished(m)
     ? `<svg class="mk" width="19" height="19" viewBox="120 12 60 62" aria-hidden="true"><path d="${SPARKLE}" fill="var(--gold)"/></svg>`
-    : stageIx(m) > 0
-    ? `<svg class="mk" width="15" height="27" viewBox="112 76 78 130" aria-hidden="true"><path d="${DROP}" fill="var(--gold)"/></svg>`
     : '';
+  /* A thin bar along the bottom of the photo fills as the model moves
+     through its stages, and turns green when it is finished. */
+  const last = data.stages.length - 1;
+  const lv = isFinished(m) ? 100 : last ? Math.round(stageIx(m) / last * 100) : 0;
   return `<button class="tile${pid?'':' nophoto'}" data-open="${esc(m.id)}">${img}${mark}
+    ${lv ? `<i class="lvl${isFinished(m)?' done':''}" style="width:${lv}%"></i>` : ''}
     <span class="meta"><b class="user-text">${esc(m.name)}</b>
     <span class="small muted">${esc(m.stage)}${n>1?` &middot; <span class="num">${d} of ${n}</span>`:''}</span>
     ${sortNote(m)}
@@ -4538,16 +4646,25 @@ function screenCollection(){
   /* Searching or filtering: matching models, under game and army headings. */
   if (state.q.trim() || nOn) return h + groupedResults(filtered());
 
+  /* Set like a contents page: the game in large type, a thin painted line
+     for how much is finished. Models with no game are not a game, so they
+     drop to a quiet link at the end instead of looking like a fourth one. */
+  let loose = null;
   gameGroups().forEach(x => {
+    if (x.id === NO_SYS_ID){ loose = x; return; }
     const s = armyStats(x.minis);
     const nA = x.armies.length;
-    const word = groupWord(x.id === NO_SYS_ID ? '' : x.id, nA !== 1);
+    const word = groupWord(x.id, nA !== 1);
     h += `<button class="gamecard" data-opengame="${esc(x.id)}">
-      ${potSvg(s.models ? s.done / s.models : 0, 'apot')}
       <span class="aname"><b class="user-text">${esc(gameLabel(x.id))}</b>
         <span><span class="num">${nA}</span> ${word} &middot; <span class="num">${s.models}</span> model${s.models===1?'':'s'}</span></span>
-      <span class="apct">${s.pct}%</span><span class="chev" aria-hidden="true">&rsaquo;</span></button>`;
+      <span class="apct">${s.pct}%</span>
+      <span class="pline" aria-hidden="true"><i style="width:${s.pct}%"></i></span></button>`;
   });
+  if (loose){
+    const s = armyStats(loose.minis);
+    h += `<button class="idxmore" data-opengame="${NO_SYS_ID}"><span class="num">${s.models}</span> model${s.models===1?'':'s'} with no game set <span aria-hidden="true">&rsaquo;</span></button>`;
+  }
   return h;
 }
 
@@ -4591,14 +4708,22 @@ function screenGame(){
   let h = backLink('backGames', 'Collection');
   if (!x) return h + `<div class="empty"><p>Nothing is filed under that game any more.</p></div>`;
   const sysId = x.id === NO_SYS_ID ? '' : x.id;
+  let loose = null;
   x.armies.forEach(g => {
+    /* Models with no army set follow the armies as a quiet link, unless
+       they are all there is. */
+    if (!g.fac && x.armies.length > 1){ loose = g; return; }
     const s = armyStats(g.minis);
     h += `<button class="arow" data-openarmy="${esc(g.key)}">
       ${potSvg(s.models ? s.done / s.models : 0, 'apot')}
       <span class="aname"><b class="user-text">${esc(armyLabel(g))}</b>
         <span><span class="num">${s.done} of ${s.models}</span> finished${s.started?` &middot; <span class="num">${s.started}</span> on the bench`:''}</span></span>
-      <span class="apct">${s.pct}%</span><span class="chev" aria-hidden="true">&rsaquo;</span></button>`;
+      <span class="apct">${s.pct}%</span></button>`;
   });
+  if (loose){
+    const s = armyStats(loose.minis);
+    h += `<button class="idxmore" data-openarmy="${esc(loose.key)}"><span class="num">${s.models}</span> model${s.models===1?'':'s'} with no ${groupWord(sysId)} set <span aria-hidden="true">&rsaquo;</span></button>`;
+  }
   return h;
 }
 
@@ -4627,8 +4752,14 @@ function screenArmy(){
   const shelf = (title, ms, asTiles) => {
     if (!ms.length) return '';
     let o = `<div class="ehead shelf"><h2>${title}</h2><span class="small muted num">${ms.length}</span></div>`;
-    if (asTiles){ o += `<div class="grid">`; ms.forEach(m => { o += tile(m); }); o += `</div>`; }
-    else ms.forEach(m => { o += modelRow(m); });
+    if (asTiles){ o += `<div class="grid contact">`; ms.forEach(m => { o += tile(m); }); o += `</div>`; }
+    else {
+      /* Still in the box: drawn as a small stack, which says "pile" faster
+         than a heading does, then the list with how long each has waited. */
+      o += `<div class="pile"><span class="stack" aria-hidden="true"><i></i><i></i><i></i></span><div class="pilelist">`;
+      ms.forEach(m => { o += modelRow(m); });
+      o += `</div></div>`;
+    }
     return o;
   };
   h += shelf('On the bench', bench, true);
@@ -6391,6 +6522,9 @@ document.addEventListener('click', e => {
     if (a === 'addSupply')  return dlgAddSupply();
     if (a === 'addWish')    return dlgAddWish();
     if (a === 'restock')    return restock();
+    if (a === 'homeAdv'){ const m = data.minis.find(x => x.id === act.dataset.id);
+      if (m){ const i = stageIx(m); if (i < data.stages.length - 1) setStage(m, data.stages[i + 1]); }
+      return; }
     if (a === 'showValue'){ state.showValue = true; render(); return; }
     if (a === 'hideValue'){ state.showValue = false; render(); return; }
 
