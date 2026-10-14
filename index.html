@@ -2978,6 +2978,8 @@ let syncState = { on:false, user:null, status:'off', pending:0, error:null,
      asks "is this collection empty?" has to wait for this instead. */
   firstPullDone:false };
 let pulledOnce = new Set();
+let remoteSeen = {};        /* ids the account has sent, per collection, this session */
+let remoteFp = {};          /* what the account holds for each of them */
 let pushTimer = null;
 let photoQueue = new Set();
 
@@ -3059,7 +3061,38 @@ async function doSignOut(){
 /* A stable string for one entity, used only to decide "did this change". */
 function fingerprint(o){
   const keys = Object.keys(o).filter(k => k !== 'updated').sort();
-  return JSON.stringify(keys.map(k => [k, o[k]]));
+  return hash53(JSON.stringify(keys.map(k => [k, o[k]])));
+}
+/* A short, stable digest of a record, so the record of "what the account
+   already has" can be kept on the device without doubling its storage. */
+function hash53(str){
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (let i = 0; i < str.length; i++){
+    const ch = str.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761); h2 = Math.imul(h2 ^ ch, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+}
+
+/* --- what the account already has ------------------------------------------
+   Kept per account on this device, and only ever moved forward by a
+   successful send or by something arriving from the account. Starting from
+   it means a launch sends only what was edited here since the last sync.
+
+   Before v015 a launch started from nothing, so every record on the device
+   looked new and was sent stamped "now" — before anything had downloaded.
+   A phone left out of date for a week would overwrite newer edits made on
+   another device. That is what this replaces. */
+const baselineKey = uid => 'mm.synced.' + uid;
+function loadBaseline(uid){
+  try { const v = JSON.parse(localStorage.getItem(baselineKey(uid)) || 'null'); return v && typeof v === 'object' ? v : null; }
+  catch (e) { return null; }
+}
+function saveBaseline(){
+  if (!syncState.user || !lastPushed) return;
+  try { localStorage.setItem(baselineKey(syncState.user.uid), JSON.stringify(lastPushed)); } catch (e) {}
 }
 
 function snapshotOf(d){
@@ -3068,8 +3101,8 @@ function snapshotOf(d){
     s[c] = {};
     arr(d[c]).forEach(x => { if (x && x.id) s[c][x.id] = fingerprint(x); });
   });
-  s._stages = JSON.stringify(arr(d.stages));
-  s._settings = JSON.stringify(d.settings || {});
+  s._stages = hash53(JSON.stringify(arr(d.stages)));
+  s._settings = hash53(JSON.stringify(d.settings || {}));
   return s;
 }
 
@@ -3085,6 +3118,9 @@ function schedulePush(){
 
 async function pushUp(){
   if (!syncState.on || !syncState.user) return;
+  /* Nothing is sent until this device knows what the account already has:
+     either from the record kept here, or from the first full download. */
+  if (!syncState.baselineReady) return;
   const { F, db } = fb;
   const uid = syncState.user.uid;
   const now = snapshotOf(data);
@@ -3109,9 +3145,24 @@ async function pushUp(){
        rather than removing it, so other devices learn about the deletion. */
     Object.keys(before).forEach(id => {
       if (!(id in after)) writes.push(['set', `users/${uid}/${c}/${id}`,
-        { id, deleted:true, updated: Date.now() }]);
+        { id, deleted:true, updated: Date.now() }, 'delete']);
     });
   });
+
+  /* A safety net. Deleting more than 25 things in one go, or emptying a
+     whole list, only happens on
+     purpose through Restore a backup, which says so first. Anything else
+     that looks like a mass delete (a device whose local copy was lost or
+     damaged) is not sent; the account keeps them and they come back to
+     this device on the next launch. */
+  const deletes = writes.filter(w => w[3] === 'delete').length;
+  /* Also a whole list emptied at once (5 or more records gone, none left). */
+  const emptied = SYNC_COLLECTIONS.some(c => Object.keys(prev[c] || {}).length >= 5 && !Object.keys(now[c]).length);
+  if ((deletes > 25 || emptied) && !syncState.allowMassDelete){
+    console.warn('MiniManager: held back ' + deletes + ' deletions that looked accidental');
+    for (let i = writes.length - 1; i >= 0; i--) if (writes[i][3] === 'delete') writes.splice(i, 1);
+  }
+  syncState.allowMassDelete = false;
 
   if (now._stages !== prev._stages)
     writes.push(['set', `users/${uid}/stages/list`, { items: arr(data.stages), updated: Date.now() }]);
@@ -3132,6 +3183,7 @@ async function pushUp(){
       await batch.commit();
     }
     lastPushed = now;
+    saveBaseline();
     syncStatus('ok', { pending: 0, error: null });
   } catch (e) {
     /* Offline is not an error. Firestore has queued the writes and will
@@ -3140,6 +3192,7 @@ async function pushUp(){
       { error: navigator.onLine ? (e.message || 'Could not save to your account.') : null });
   }
   pushPhotos().catch(() => {});
+  flushCloudDeletes().catch(() => {});
 }
 
 /* --- folding down --------------------------------------------------------- */
@@ -3149,7 +3202,9 @@ function startSync(user){
   syncState.on = true;
   syncState.user = user;
   syncState.firstPullDone = false;
+  syncState.baselineReady = false;
   pulledOnce = new Set();
+  remoteSeen = {}; remoteFp = {}; SYNC_COLLECTIONS.forEach(c => { remoteSeen[c] = new Set(); remoteFp[c] = {}; });
   const { F, db } = fbInit();
   const uid = user.uid;
   syncStatus('syncing');
@@ -3161,16 +3216,16 @@ function startSync(user){
       snap.docChanges().forEach(ch => {
         const remote = ch.doc.data();
         if (!remote || !remote.id) return;
+        remoteSeen[c].add(remote.id);
         if (applyRemote(c, remote)) changed = true;
+        markInAccount(c, remote);
       });
-      if (changed){
-        saveLocalOnly();
-        lastPushed = snapshotOf(data);
-        render();
-      }
+      if (changed){ saveLocalOnly(); render(); }
+      saveBaseline();
       pulledOnce.add(c);
       if (!syncState.firstPullDone && pulledOnce.size >= SYNC_COLLECTIONS.length){
         syncState.firstPullDone = true;
+        if (!syncState.baselineReady) firstSyncOnThisDevice();
         render();                 /* anything waiting on a full pull can go now */
       }
       syncStatus('ok', { error: null });
@@ -3184,7 +3239,9 @@ function startSync(user){
     const v = d.data();
     if (v && Array.isArray(v.items) && v.items.length &&
         JSON.stringify(v.items) !== JSON.stringify(data.stages)){
-      data.stages = v.items; saveLocalOnly(); lastPushed = snapshotOf(data); render();
+      data.stages = v.items; saveLocalOnly();
+      if (lastPushed){ lastPushed._stages = snapshotOf(data)._stages; saveBaseline(); }
+      render();
     }
   }, () => {}));
 
@@ -3193,13 +3250,44 @@ function startSync(user){
     if (v){
       const { updated, ...rest } = v;
       if (JSON.stringify(rest) !== JSON.stringify(data.settings)){
-        data.settings = rest; saveLocalOnly(); lastPushed = snapshotOf(data); applyTheme(); render();
+        data.settings = rest; saveLocalOnly();
+        if (lastPushed){ lastPushed._settings = snapshotOf(data)._settings; saveBaseline(); }
+        applyTheme(); render();
       }
     }
   }, () => {}));
 
-  /* Send whatever this device has that the account does not. */
-  lastPushed = null;
+  /* Start from what this device last knew the account had, and send only
+     what changed here since. A device syncing this account for the first
+     time waits for the full download instead (firstSyncOnThisDevice). */
+  lastPushed = loadBaseline(uid);
+  syncState.baselineReady = !!lastPushed;
+  if (syncState.baselineReady) pushUp().catch(() => {});
+}
+
+/* Note what the account now holds for one entity. If this device's copy
+   differs (it was edited here more recently), the next send goes out. */
+function markInAccount(coll, remote){
+  if (!remoteFp[coll]) remoteFp[coll] = {};
+  if (remote.deleted) delete remoteFp[coll][remote.id];
+  else remoteFp[coll][remote.id] = fingerprint(remote);
+  if (!lastPushed) return;
+  if (!lastPushed[coll]) lastPushed[coll] = {};
+  if (remote.deleted) delete lastPushed[coll][remote.id];
+  else lastPushed[coll][remote.id] = remoteFp[coll][remote.id];
+}
+
+/* First time this account syncs on this device: everything the account
+   holds has now arrived. Treat all of it as already there, and send only
+   what exists on this device alone — things made here before signing in. */
+function firstSyncOnThisDevice(){
+  const base = snapshotOf(data);
+  /* Start from exactly what the account sent. Anything on this device that
+     differs (edited here in the first seconds) or is missing from it goes out. */
+  SYNC_COLLECTIONS.forEach(c => { base[c] = Object.assign({}, remoteFp[c] || {}); });
+  lastPushed = base;
+  syncState.baselineReady = true;
+  saveBaseline();
   pushUp().catch(() => {});
 }
 
@@ -3264,6 +3352,33 @@ async function pushPhotos(){
     }
     photoQueue.delete(pid);
   }
+}
+
+/* A photo deleted on this device is deleted from the account too. Queued,
+   so a delete made offline still happens the next time there is signal.
+   Before v015 only the phone's copy went, and the account kept it. */
+const PENDING_DEL = 'mm.photoDeletes';
+function queueCloudDelete(pid){
+  if (!pid) return;
+  try {
+    const q = JSON.parse(localStorage.getItem(PENDING_DEL) || '[]');
+    if (q.indexOf(pid) === -1) q.push(pid);
+    localStorage.setItem(PENDING_DEL, JSON.stringify(q));
+    localStorage.removeItem('mm.up.' + pid);
+  } catch (e) {}
+  flushCloudDeletes().catch(() => {});
+}
+async function flushCloudDeletes(){
+  if (!syncState.on || !syncState.user || !navigator.onLine) return;
+  const { F, storage } = fb;
+  let q = [];
+  try { q = JSON.parse(localStorage.getItem(PENDING_DEL) || '[]'); } catch (e) { return; }
+  const left = [];
+  for (const pid of q){
+    try { await F.deleteObject(F.storageRef(storage, `users/${syncState.user.uid}/photos/${pid}`)); }
+    catch (e){ if (!/object-not-found/.test(e.code || e.message || '')) left.push(pid); }
+  }
+  try { localStorage.setItem(PENDING_DEL, JSON.stringify(left)); } catch (e) {}
 }
 
 /* Called when a photo is wanted on screen but is not on this device. */
@@ -3363,7 +3478,7 @@ function syncPill(){
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v014';
+const APP_VERSION = 'v015';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -3473,6 +3588,12 @@ function load(){
       currency: CURRENCIES.some(c => c[0] === st.currency) ? st.currency : 'GBP'
     }
   };
+  /* Entries already at Finished from before v015 may count fewer models
+     done than they hold; finished means all of them. */
+  const last = data.stages[data.stages.length - 1];
+  data.minis.forEach(m => {
+    if (m && m.stage === last && (Number(m.done)||0) < (Number(m.total)||1)){ m.done = Number(m.total)||1; m.updated = Date.now(); }
+  });
 }
 
 /* Write to this device only. Used by the sync code when folding changes
@@ -3590,6 +3711,13 @@ function tx(mode, fn){
 const putPhoto = (id, blob) => tx('readwrite', s => s.put({ id, blob }));
 const getPhoto = id        => tx('readonly',  s => s.get(id));
 const delPhoto = id        => tx('readwrite', s => s.delete(id));
+/* Deleting a photo the person chose to delete: from this phone, and from
+   their account too (queued if offline). Not used by sign-out or by
+   clearing the device, which must leave the account's copy alone. */
+const forgetPhoto = id => {
+  if (typeof queueCloudDelete === 'function') queueCloudDelete(id);
+  return delPhoto(id);
+};
 /* Used only by "delete my account", where everything must really go. */
 const clearPhotos = ()     => tx('readwrite', s => s.clear());
 
@@ -4817,8 +4945,10 @@ function screenPaints(){
     <button class="fopen" data-act="openPaintFilter" aria-haspopup="dialog">Filter${state.pStock?` <span class="fc">1</span>`:''}</button></div>`;
   if (state.pStock)
     h += `<div class="chips"><button class="chip on-x" data-act="unfilter" data-k="stock" aria-label="Remove filter ${esc(state.pStock)}">${esc(state.pStock)} &times;</button></div>`;
-  if (nd.total)
-    h += `<button class="shopline" data-act="shop"><span class="sl">Shopping list &middot; <span class="num">${nd.total}</span> to buy</span><span class="sr" aria-hidden="true">&rsaquo;</span></button>`;
+  /* Always here: it is also the way to the wishlist and supplies, which
+     vanished whenever nothing happened to be running low (v011 to v014). */
+  const wn = arr(data.wishlist).length;
+  h += `<button class="shopline" data-act="shop"><span class="sl">Shopping list${nd.total ? ` &middot; <span class="num">${nd.total}</span> to buy` : ''}${wn ? ` &middot; wishlist <span class="num">${wn}</span>` : ' &amp; wishlist'}</span><span class="sr" aria-hidden="true">&rsaquo;</span></button>`;
 
   const q = state.pq.trim().toLowerCase();
   const list = paintList();
@@ -5421,7 +5551,13 @@ function reducedMotion(){
 function setStage(m, stage){
   const wasFinished = isFinished(m);
   m.stage = stage;
-  if (isDone(m) && (Number(m.total)||1) === 1) m.done = 1;
+  /* Finished means every model in the entry is finished, so the count says
+     so too. Before v015 a ten-model unit could sit at Finished with 0 of 10
+     counted, and every total under-reported. Leaving Finished again after
+     everything was counted done resets the count, since they are not. */
+  const n = Number(m.total) || 1;
+  if (isDone(m)) m.done = n;
+  else if (wasFinished && (Number(m.done)||0) >= n) m.done = 0;
   m.updated = Date.now(); save();
   advanceStrip(m, !wasFinished && isFinished(m));
 }
@@ -5688,7 +5824,9 @@ function openDialog(title, body, onOk, okLabel, cancelLabel){
       <button class="btn ghost" data-dlg="cancel">${esc(cancelLabel||'Cancel')}</button>
       ${onOk ? `<button class="btn" data-dlg="ok">${esc(okLabel||'Save')}</button>` : ''}</div>`;
   const dlg = $('#dlg');
-  dlg.showModal();
+  /* One dialog follows another (Restore asks from inside the menu), and
+     opening an already-open dialog throws. */
+  if (!dlg.open) dlg.showModal();
   dlg.onclick = e => {
     const b = e.target.closest('[data-dlg]');
     if (!b) return;
@@ -6497,9 +6635,9 @@ function saveMiniEdits(){
 function deleteMini(){
   const m = data.minis.find(x => x.id === state.openMini); if (!m) return;
   openDialog('Delete this entry?',
-    `<p class="user-text">${esc(m.name)} and its photos will be removed from this phone. This cannot be undone.</p>`,
+    `<p class="user-text">${esc(m.name)} and its photos will be deleted from this phone and from your account. This cannot be undone.</p>`,
     () => {
-      arr(m.photos).forEach(pid => { delPhoto(pid).catch(() => {}); });
+      arr(m.photos).forEach(pid => { forgetPhoto(pid).catch(() => {}); });
       data.minis = data.minis.filter(x => x.id !== m.id);
       data.links = data.links.filter(l => l.miniId !== m.id);
       save(); state.openMini = null; render(); toast('Deleted.');
@@ -6516,7 +6654,7 @@ function deletePaint(){
   openDialog('Delete this paint?',
     `<p class="user-text">${esc(p.name)}${sws.length?` and its ${sws.length} swatch photo${sws.length>1?'s':''}`:''} will be removed. This cannot be undone.</p>`,
     () => {
-      sws.forEach(s => { delPhoto(s.photoId).catch(() => {}); });
+      sws.forEach(s => { forgetPhoto(s.photoId).catch(() => {}); });
       data.swatches = data.swatches.filter(s => s.paintId !== p.id);
       data.paints = data.paints.filter(x => x.id !== p.id);
       save(); state.openPaint = null; render(); toast('Deleted.');
@@ -6552,7 +6690,7 @@ function deleteStep(id){
 }
 function deleteSwatch(id){
   const s = data.swatches.find(x => x.id === id); if (!s) return;
-  delPhoto(s.photoId).catch(() => {});
+  forgetPhoto(s.photoId).catch(() => {});
   data.swatches = data.swatches.filter(x => x.id !== id);
   if (urlCache.has(s.photoId)){ URL.revokeObjectURL(urlCache.get(s.photoId)); urlCache.delete(s.photoId); }
   save(); render(); toast('Swatch deleted.');
@@ -6601,7 +6739,7 @@ function removePhoto(pid){
   const m = data.minis.find(x => x.id === state.openMini); if (!m) return;
   m.photos = arr(m.photos).filter(x => x !== pid);
   m.updated = Date.now(); save();
-  delPhoto(pid).catch(err => toast('Removed from the entry, but the file could not be deleted: ' + err.message));
+  forgetPhoto(pid).catch(err => toast('Removed from the entry, but the file could not be deleted: ' + err.message));
   if (urlCache.has(pid)){ URL.revokeObjectURL(urlCache.get(pid)); urlCache.delete(pid); }
   render();
 }
@@ -6636,8 +6774,9 @@ $('#moreBtn').addEventListener('click', () => {
        <button class="btn ghost sm" data-act="privacy">What MiniManager keeps</button></div>
      <hr><h3 style="font-size:.9375rem">Appearance</h3>
      <div class="chips" id="themechips" role="group" aria-label="Light or dark">${themeChips()}</div>
-     <hr><h3 style="font-size:.9375rem">Paints</h3>
+     <hr><h3 style="font-size:.9375rem">Paints and shopping</h3>
      <div class="row wrapm" style="margin-top:.625rem">
+       <button class="btn ghost sm" data-act="shop">Shopping list and wishlist</button>
        <button class="btn ghost sm" data-act="openPlanner">Plan a colour scheme</button>
        <button class="btn ghost sm" data-act="openCompare">Compare swatches</button>
        <button class="btn ghost sm" data-act="setupPaintsOnly">Add several paints</button></div>
@@ -6711,9 +6850,19 @@ function importData(file){
     let p = null;
     try { p = JSON.parse(txt); } catch (e) { p = null; }
     if (!p || !Array.isArray(p.minis)){ toast('That file is not a MiniManager backup.'); return; }
-    localStorage.setItem('mm.data', txt);
-    load(); applyTheme(); $('#dlg').close(); render();
-    toast('Restored ' + p.minis.length + ' entries.');
+    /* Restoring replaces everything, here and in the account, so it says
+       exactly what will change and waits for a yes. */
+    const n = (x, one, many) => `<b>${arr(x).length}</b> ${arr(x).length === 1 ? one : many}`;
+    openDialog('Replace everything with this backup?',
+      `<p>Your collection now: ${n(data.minis,'entry','entries')}, ${n(data.paints,'paint','paints')}, ${n(data.recipes,'recipe','recipes')}.</p>
+       <p>The backup: ${n(p.minis,'entry','entries')}, ${n(p.paints,'paint','paints')}, ${n(p.recipes,'recipe','recipes')}.</p>
+       <p>Everything here and in your account is replaced by the backup. Anything added since the backup was made is deleted. Photos are not in backups; ones still in your account stay.</p>`,
+      () => {
+        localStorage.setItem('mm.data', txt);
+        if (typeof syncState !== 'undefined') syncState.allowMassDelete = true;
+        load(); applyTheme(); save(); render();
+        toast('Restored ' + p.minis.length + ' entries.');
+      }, 'Replace everything', 'Keep what I have');
   }).catch(err => toast('That file could not be read: ' + err.message));
   $('#impIn').value = '';
 }
