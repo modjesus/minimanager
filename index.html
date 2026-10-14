@@ -900,6 +900,18 @@ details summary{cursor:pointer;min-height:var(--tap);display:flex;align-items:ce
 .brmark input{width:1.125rem;height:1.125rem;margin:0}
 .wfnote{margin:.125rem 0 0}
 .wfnote .linkbtn{min-height:var(--tap)}
+/* --- v023: guest mode, nudges --- */
+.guestbtn{margin-top:.5rem}
+.guestbar{display:flex;flex-wrap:wrap;align-items:center;gap:.25rem .75rem;margin:.75rem 0 0;padding:.625rem .875rem;
+  border-radius:var(--r-ctl);background:color-mix(in srgb,var(--gold) 16%,transparent);font-size:.8125rem;line-height:1.45}
+.guestbar span{flex:1 1 12rem;min-width:0}
+.guestbar .linkbtn{min-height:var(--tap)}
+.nudge{display:flex;flex-wrap:wrap;align-items:center;gap:0 .75rem;margin:.75rem 0 0;padding:.25rem 0 .25rem .75rem;
+  border-left:3px solid var(--gold);font-size:.875rem;line-height:1.45}
+.nudge > span:first-child{flex:1 1 12rem;min-width:0}
+.nudgeacts{display:flex;gap:1rem}
+.nudgeacts .linkbtn{min-height:var(--tap)}
+.linkbtn.quiet{color:var(--text-2)}
 </style>
 </head>
 <body>
@@ -3610,7 +3622,7 @@ function syncPill(){
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v022';
+const APP_VERSION = 'v023';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -4273,6 +4285,11 @@ async function clearDevice(){
   data = JSON.parse(JSON.stringify(BLANK));
   saveLocalOnly();
   try { localStorage.removeItem('mm.photoDeletes'); } catch (e) {}
+  /* And every account's note of what it last synced from here. Without
+     this, a person returning to a phone someone else has since used would
+     find their note saying "you had all this" beside an empty phone, and
+     the next sync would read the difference as deletions. */
+  try { syncedAccounts().forEach(u => localStorage.removeItem('mm.synced.' + u)); } catch (e) {}
   try { await tx('readwrite', st => st.clear()); } catch (e) {}
   urlCache.clear();
 }
@@ -4280,7 +4297,8 @@ function claimDevice(user, go){
   const uid = user.uid, owner = deviceOwner(), seen = syncedAccounts();
   /* Before v020 there was no owner note, but every account that has synced
      here left its own record of what it holds, which says the same thing. */
-  const belongsTo = owner || (seen.length === 1 ? seen[0] : (seen.indexOf(uid) !== -1 ? uid : ''));
+  /* A guest's collection belongs to nobody yet: always ask. */
+  const belongsTo = owner === 'guest' ? '' : (owner || (seen.length === 1 ? seen[0] : (seen.indexOf(uid) !== -1 ? uid : '')));
   if (belongsTo === uid || !hasLocalRecords()){ setDeviceOwner(uid); go(); return; }
   if (belongsTo && belongsTo !== uid){
     clearDevice().then(() => { setDeviceOwner(uid); render(); go(); });
@@ -4318,7 +4336,9 @@ function screenHome(){
     .sort((a,b) => (b.updated||0)-(a.updated||0));
   const benchGroups = new Map();
   started.forEach(m => { const k = armyKey(m); if (!benchGroups.has(k)) benchGroups.set(k, []); benchGroups.get(k).push(m); });
-  let h = `<p class="muted small greet">${greeting()}</p>`;
+  let h = guestMode ? `<div class="guestbar"><span><b>On this phone only.</b> Sign in to keep it safe and use it on your other devices.</span>
+      <button class="linkbtn" data-act="signin">Sign in</button></div>` : '';
+  h += `<p class="muted small greet">${greeting()}</p>`;
   if (c.entries === 0){
     return h + `<h2 class="display" style="font-size:1.625rem;margin-bottom:.875rem">Your collection</h2>
       <div class="empty"><p>Nothing in here yet. Add your first miniature and the numbers start filling in.</p>
@@ -4347,7 +4367,8 @@ function screenHome(){
       <p class="small muted user-text herosub">${esc(armyLabel(g0))} &middot; ${esc(stageLabel(hero))}${n>1?` &middot; <span class="num">${d} of ${n}</span> finished`:''}</p>
       ${n > 1 ? stageBar(stageCounts(hero), 'sbar herobar') : stageRow(cur, heroStages)}
       ${n > 1 ? `<button class="btn homeadv" data-act="moveOn" data-id="${esc(hero.id)}">Move models on</button>`
-        : cur < last ? `<button class="btn homeadv" data-act="homeAdv" data-id="${esc(hero.id)}">Move to ${esc(heroStages[cur+1])}</button>` : ''}`;
+        : cur < last ? `<button class="btn homeadv" data-act="homeAdv" data-id="${esc(hero.id)}">Move to ${esc(heroStages[cur+1])}</button>` : ''}
+      ${nudges(hero)}`;
 
     const rest = new Map();
     started.filter(m => m !== hero).forEach(m => { const k = armyKey(m); if (!rest.has(k)) rest.set(k, []); rest.get(k).push(m); });
@@ -4421,6 +4442,77 @@ function ledger(c){
       <div class="lcell"><b>${c.paints}</b><span>${pl(c.paints,'paint','paints')} owned</span></div>
     </div>${c.terrain ? `<p class="small muted terrline">Plus <span class="num">${c.terrain}</span> terrain project${c.terrain === 1 ? '' : 's'}, counted separately from models.</p>` : ''}`;
 }
+/* ---------------------------------------------------------------------------
+   Nudges (v023). A line or two on Home when something has sat untouched for
+   longer than you chose in the menu (off, two weeks, a month). "Not now"
+   quietens that one for a fortnight on this phone. */
+const SNOOZE_KEY = id => 'mm.snooze.' + id;
+const snoozed = id => { try { return Number(localStorage.getItem(SNOOZE_KEY(id)) || 0) > Date.now(); } catch (e) { return false; } };
+function nudgeDays(){ const v = data.settings.nudgeDays; return v === 0 ? 0 : (Number(v) || 30); }
+function ageWords(ms){
+  const d = Math.floor(ms / 86400000);
+  if (d < 14) return d + ' days';
+  if (d < 60) return Math.round(d / 7) + ' weeks';
+  if (d < 730) return Math.round(d / 30.4) + ' months';
+  return Math.floor(d / 365) + ' years';
+}
+function nudges(skip){
+  const days = nudgeDays(); if (!days) return '';
+  const now = Date.now(), limit = days * 86400000;
+  const stale = liveMinis().filter(m => m !== skip && isStarted(m) && m.updated && now - m.updated > limit && !snoozed(m.id))
+    .sort((a, b) => a.updated - b.updated).slice(0, 2);
+  const box = liveMinis().filter(m => allUnbuilt(m) && m.acquired && monthsSince(m.acquired) >= 12 && !snoozed(m.id))
+    .sort((a, b) => String(a.acquired).localeCompare(String(b.acquired))).slice(0, stale.length ? 0 : 1);
+  const line = (m, text) => `<div class="nudge"><span>${text}</span>
+    <span class="nudgeacts"><button class="linkbtn" data-open="${esc(m.id)}">Pick ${(Number(m.total)||1) > 1 ? 'them' : 'it'} up</button>
+    <button class="linkbtn quiet" data-act="snooze" data-id="${esc(m.id)}">Not now</button></span></div>`;
+  return stale.map(m => line(m, `<b class="user-text">${esc(m.name)}</b> ${(Number(m.total)||1) > 1 ? 'have' : 'has'} waited ${ageWords(now - m.updated)} at ${esc(stageLabel(m))}.`)).join('')
+    + box.map(m => line(m, `<b class="user-text">${esc(m.name)}</b> ${(Number(m.total)||1) > 1 ? 'have' : 'has'} been in the box for ${esc(waitedFor(m.acquired))}.`)).join('');
+}
+
+/* ---------------------------------------------------------------------------
+   Calendar reminders (v023). "Remind me" makes a calendar event that your
+   phone's own calendar reminds you about, so it works with the app closed
+   and needs nothing on a server. */
+function icsDate(d){ return d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, ''); }
+function icsEscape(t){ return String(t).replace(/\\/g, '\\\\').replace(/[,;]/g, m => '\\' + m).replace(/\n/g, '\\n'); }
+function dlgRemind(m){
+  const at = new Date(); at.setHours(10, 0, 0, 0);
+  const sat = new Date(at); sat.setDate(sat.getDate() + ((6 - sat.getDay() + 7) % 7 || 7));
+  const tom = new Date(at); tom.setDate(tom.getDate() + 1);
+  const wk = new Date(at); wk.setDate(wk.getDate() + 7);
+  const opts = [['Tomorrow', tom], ['Saturday', sat], ['In a week', wk]];
+  let pick = sat;
+  const fmt = d => d.toLocaleDateString(undefined, { weekday:'long', day:'numeric', month:'long' });
+  openDialog('Remind me about ' + m.name,
+    `<div class="chips" id="rmChips">${opts.map(([l], i) => `<button class="chip" data-rm="${i}" aria-pressed="${i === 1}">${l}</button>`).join('')}</div>
+     <label for="rmDate">Or pick a day</label><input id="rmDate" type="date">
+     <label for="rmTime">Time</label><input id="rmTime" type="time" value="10:00" style="max-width:9rem">
+     <p class="small muted" id="rmSay">${esc(fmt(pick))}. Your phone adds it to its calendar, which reminds you.</p>`,
+    () => {
+      const [hh, mm] = ($('#rmTime').value || '10:00').split(':').map(Number);
+      const start = new Date(pick); start.setHours(hh || 0, mm || 0, 0, 0);
+      const end = new Date(start.getTime() + 60 * 60000);
+      const what = (Number(m.total)||1) > 1 ? runningTotals(m).filter(r => r.reached).map(r => r.reached + ' ' + stageDoneWord(r.name)).join(', ') : stageLabel(m);
+      const ics = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//MiniManager//EN','BEGIN:VEVENT',
+        'UID:' + m.id + '-' + Date.now() + '@minimanager.co.uk', 'DTSTAMP:' + icsDate(new Date()),
+        'DTSTART:' + icsDate(start), 'DTEND:' + icsDate(end),
+        'SUMMARY:' + icsEscape('Paint ' + m.name),
+        'DESCRIPTION:' + icsEscape(what + '. Open MiniManager: https://minimanager.co.uk/'),
+        'URL:https://minimanager.co.uk/',
+        'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:' + icsEscape('Paint ' + m.name),'TRIGGER:-PT0M','END:VALARM',
+        'END:VEVENT','END:VCALENDAR'].join('\r\n');
+      download('remind-' + m.name.replace(/[^a-z0-9]+/gi, '-').toLowerCase() + '.ics', ics, 'text/calendar');
+      toast('Reminder made. Open it to add it to your calendar.');
+    }, 'Add to my calendar');
+  const say = () => { const el = $('#rmSay'); if (el) el.textContent = fmt(pick) + '. Your phone adds it to its calendar, which reminds you.'; };
+  $('#rmChips').addEventListener('click', e => { const c = e.target.closest('[data-rm]'); if (!c) return;
+    pick = opts[+c.dataset.rm][1]; $('#rmDate').value = '';
+    $$('#rmChips [data-rm]').forEach(b => b.setAttribute('aria-pressed', String(b === c))); say(); });
+  $('#rmDate').addEventListener('change', e => { if (!e.target.value) return; pick = new Date(e.target.value + 'T10:00:00');
+    $$('#rmChips [data-rm]').forEach(b => b.setAttribute('aria-pressed', 'false')); say(); });
+}
+
 function greeting(){
   const hr = new Date().getHours();
   return hr < 12 ? 'Good morning.' : hr < 18 ? 'Good afternoon.' : 'Good evening.';
@@ -5516,6 +5608,7 @@ function screenMini(){
     <label for="eNotes">Notes</label><textarea id="eNotes" class="user-text">${esc(m.notes||'')}</textarea>
     <div class="row" style="margin-top:.875rem"><button class="btn" data-act="saveMini">Save changes</button></div></div>
     <div class="unitmore">
+      <button class="linkbtn" data-act="remindMini">Remind me</button>
       <button class="linkbtn" data-act="dupMini">Duplicate</button>
       ${m.archived ? '' : '<button class="linkbtn" data-act="archMini">Archive</button>'}
       <button class="linkbtn danger-link" data-act="delMini">Delete for good</button>
@@ -6276,6 +6369,20 @@ function celebrate(card){
    is offline but has signed in before.
    =========================================================================== */
 let authGate = 'loading';   /* loading | out | in */
+/* Guest mode (v023): the app without an account. Everything stays on this
+   phone; nothing syncs. Signing in later asks whether to add it to the
+   account (claimDevice). */
+let guestMode = false;
+const GUEST_KEY = 'mm.guest';
+const guestChosen = () => { try { return localStorage.getItem(GUEST_KEY) === '1'; } catch (e) { return false; } };
+async function enterGuest(){
+  /* A phone that last held someone's account starts clean, so a guest never
+     sees another person's collection. */
+  if (deviceOwner() && deviceOwner() !== 'guest' && hasLocalRecords()) await clearDevice();
+  setDeviceOwner('guest');
+  try { localStorage.setItem(GUEST_KEY, '1'); } catch (e) {}
+  guestMode = true; authGate = 'in'; state.tab = 'home'; render();
+}
 let authBusy = false;
 
 function screenSignIn(){
@@ -6285,12 +6392,14 @@ function screenSignIn(){
       <h2 class="display">Your collection. Your colours. Your progress.</h2>
       <p>MiniManager keeps your miniatures, your paints and your swatch
          photographs in step across your phone and your computer.</p>
-      <p class="small muted">You need a Google account because everything you
-         add is stored against it. Nothing is shared with anyone, and nobody
+      <p class="small muted">Sign in with Google to keep everything you add safe
+         and on all your devices. Nothing is shared with anyone, and nobody
          else can see it &mdash; not even me.</p>
       ${err ? `<p class="gateerr" role="alert">${esc(err)}</p>` : ''}
       <button class="btn big" data-act="signin"${authBusy ? ' disabled' : ''}>
         ${authBusy ? 'Opening Google…' : 'Continue with Google'}</button>
+      <button class="btn ghost big guestbtn" data-act="guest">Try it without an account</button>
+      <p class="small muted" style="margin:.375rem 0 0">Without an account, everything stays on this phone only.</p>
       <p class="small muted" style="margin-top:1rem">
         Before you do, here is exactly what gets stored and where:
         <button class="linkbtn" data-act="privacy">what MiniManager keeps</button>.
@@ -7013,7 +7122,9 @@ document.addEventListener('click', e => {
   if (act){
     const a = act.dataset.act;
     /* --- account and sign-in --- */
+    if (a === 'guest'){ enterGuest(); return; }
     if (a === 'signin'){
+      if ($('#dlg').open) $('#dlg').close();
       if (authBusy) return;
       authBusy = true; syncState.error = null; render();
       doSignIn().catch(err => { syncState.error = friendlyAuthError(err); })
@@ -7087,6 +7198,11 @@ document.addEventListener('click', e => {
     if (a === 'openArchive'){ navGo('fwd', () => { state.openArchive = true; state.openGame = null; state.openArmy = null; render(); window.scrollTo(0,0); }); return; }
     if (a === 'backArchive'){ navGo('back', () => { state.openArchive = false; state.openGame = null; state.openArmy = null; render(); window.scrollTo(0,0); }); return; }
     if (a === 'dupMini')   return duplicateMini();
+    if (a === 'remindMini'){ const m = data.minis.find(x => x.id === state.openMini); if (m) dlgRemind(m); return; }
+    if (a === 'snooze'){ try { localStorage.setItem(SNOOZE_KEY(act.dataset.id), String(Date.now() + 14 * 86400000)); } catch (e) {}
+      render(); toast('Quiet for two weeks.'); return; }
+    if (a === 'nudgeSet'){ data.settings.nudgeDays = Number(act.dataset.days); save();
+      $$('[data-act="nudgeSet"]').forEach(b => b.setAttribute('aria-pressed', String(b === act))); render(); return; }
     if (a === 'archMini')  return dlgArchive();
     if (a === 'restoreMini'){ const m = data.minis.find(x => x.id === state.openMini); if (!m) return;
       delete m.archived; m.updated = Date.now(); save(); state.openArchive = false; render(); toast('Back on your shelves.'); return; }
@@ -7674,13 +7790,19 @@ $('#moreBtn').addEventListener('click', () => {
        <span class="num">${c.paints}</span> paints, <span class="num">${c.swatches}</span> swatches,
        <span class="num">${c.recipes}</span> recipes</p>
      <hr><h3 style="font-size:.9375rem">Your account</h3>
+     ${guestMode ? `<p class="small muted">You are using MiniManager without an account. Everything is on this phone only:
+       if the phone is lost or reset, it is gone. Signing in keeps it safe and on your other devices,
+       and nothing here is lost when you do.</p>
+     <div class="row wrapm" style="margin-top:.625rem">
+       <button class="btn sm" data-act="signin">Sign in with Google</button>
+       <button class="btn ghost sm" data-act="privacy">What MiniManager keeps</button></div>` : `
      <p class="small muted">Signed in as
        <b class="user-text">${esc((syncState.user && (syncState.user.displayName || syncState.user.email)) || 'you')}</b>.
        Your collection is saved to your Google account and kept in step across
        your devices. Only you can see it.</p>
      <div class="row wrapm" style="margin-top:.625rem">
        <button class="btn ghost sm" data-act="account">Account and sign out</button>
-       <button class="btn ghost sm" data-act="privacy">What MiniManager keeps</button></div>
+       <button class="btn ghost sm" data-act="privacy">What MiniManager keeps</button></div>`}
      <hr><h3 style="font-size:.9375rem">Appearance</h3>
      <div class="chips" id="themechips" role="group" aria-label="Light or dark">${themeChips()}</div>
      <hr><h3 style="font-size:.9375rem">Paints and shopping</h3>
@@ -7689,6 +7811,11 @@ $('#moreBtn').addEventListener('click', () => {
        <button class="btn ghost sm" data-act="openPlanner">Plan a colour scheme</button>
        <button class="btn ghost sm" data-act="openCompare">Compare swatches</button>
        <button class="btn ghost sm" data-act="setupPaintsOnly">Add several paints</button></div>
+     <hr><h3 style="font-size:.9375rem">Reminders</h3>
+     <p class="small muted">A nudge on Home when something has sat untouched for:</p>
+     <div class="chips" role="group" aria-label="Nudge after">${[[0,'Off'],[14,'Two weeks'],[30,'A month']].map(([d,l]) =>
+       `<button class="chip" data-act="nudgeSet" data-days="${d}" aria-pressed="${nudgeDays() === d}">${l}</button>`).join('')}</div>
+     <p class="small muted">For a reminder on your phone, open a unit and choose Remind me.</p>
      <hr><h3 style="font-size:.9375rem">Painting stages</h3>
      <p class="small muted">Rename, add, remove or reorder your stages, and choose which counts as battle ready.</p>
      <div class="row wrapm" style="margin-top:.625rem">
@@ -7794,10 +7921,16 @@ load(); applyTheme(); render();
   try {
     await authStart(user => {
       if (user){
+        guestMode = false;
+        try { localStorage.removeItem(GUEST_KEY); } catch (e) {}
         authGate = 'in';
         if (state.tab === 'privacy' || state.tab === 'account') state.tab = 'home';
         render();
         claimDevice(user, () => startSync(user));
+      } else if (guestChosen()){
+        stopSync();
+        guestMode = true; authGate = 'in';
+        render();
       } else {
         authGate = 'out';
         stopSync();
@@ -7807,6 +7940,7 @@ load(); applyTheme(); render();
   } catch (err) {
     /* If Firebase itself cannot start there is no way in, and pretending
        otherwise would show an empty collection as though it were real. */
+    if (guestChosen()){ guestMode = true; authGate = 'in'; render(); return; }
     authGate = 'out';
     syncState.error = 'MiniManager could not reach the sign-in service. ' +
       (navigator.onLine ? (err.message || '') : 'You appear to be offline.');
