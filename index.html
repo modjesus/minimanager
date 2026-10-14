@@ -810,7 +810,7 @@ details summary{cursor:pointer;min-height:var(--tap);display:flex;align-items:ce
 .contact .tile .meta b{font-size:.8125rem}
 .contact .tile .meta .small{font-size:.75rem}
 .strip .phdrop,.contact .phdrop{display:none}
-.contact .tile.nophoto .ph.empty{padding-top:.75rem}
+.contact .tile.nophoto .ph.empty{padding-top:2.25rem}
 @media (max-width:22rem){ .grid.contact{grid-template-columns:repeat(2,minmax(0,1fr))} }
 /* A thin painted line for how much is finished. */
 .pline{display:block;height:3px;border-radius:2px;background:var(--border);overflow:hidden;margin:.625rem 0 .875rem}
@@ -864,6 +864,26 @@ details summary{cursor:pointer;min-height:var(--tap);display:flex;align-items:ce
    button off the side and made the whole page scroll sideways on a phone. */
 .swrow{padding:.625rem 0;border-top:1px solid var(--border);align-items:flex-start}
 .swrow .realswatch{width:4.5rem;height:4.5rem;aspect-ratio:auto;flex:0 0 auto}
+/* --- v021: several at once ----------------------------------------------- */
+.armytools{display:flex;flex-wrap:wrap;gap:0 1.5rem;margin:.25rem 0 0}
+.armytools .linkbtn{min-height:var(--tap)}
+.selhint{margin:.25rem 0 .5rem}
+.seltick{position:absolute;top:.5rem;left:.5rem;width:1.5rem;height:1.5rem;border-radius:50%;
+  border:2px solid #fff;background:rgba(8,20,32,.35);box-shadow:0 1px 3px rgba(0,0,0,.4);z-index:2;pointer-events:none}
+.tile[aria-pressed="true"]{outline:3px solid var(--gold);outline-offset:-3px}
+.tile[aria-pressed="true"] .seltick,.mrow[aria-pressed="true"] .seltick{background:var(--gold);border-color:var(--gold)}
+.tile[aria-pressed="true"] .seltick::after,.mrow[aria-pressed="true"] .seltick::after{content:"";position:absolute;left:.4rem;top:.15rem;
+  width:.35rem;height:.65rem;border:solid var(--ink-navy);border-width:0 2px 2px 0;transform:rotate(45deg)}
+.mrow .seltick{position:relative;top:auto;left:auto;flex:0 0 auto;border-color:var(--border);background:var(--surface);box-shadow:none}
+.mrow[aria-pressed="true"]{background:color-mix(in srgb,var(--gold) 10%,transparent)}
+.selbar{position:sticky;bottom:calc(4.5rem + env(safe-area-inset-bottom,0px));z-index:5;margin:1rem -1.25rem 0;padding:.75rem 1.25rem;
+  background:var(--surface);border-top:1px solid var(--border);box-shadow:0 -6px 18px rgba(15,42,68,.1);
+  display:flex;flex-wrap:wrap;align-items:center;gap:.5rem .75rem}
+.selcount{font-size:.875rem;margin-right:auto}
+.selacts{display:flex;flex-wrap:wrap;gap:.5rem}
+.selacts .btn:disabled{opacity:.45}
+.amrow{display:grid;grid-template-columns:minmax(0,1fr) 4rem;gap:.375rem;padding:.5rem 0;border-bottom:1px solid var(--border)}
+.amrow .amunit{grid-column:1/-1}
 </style>
 </head>
 <body>
@@ -3574,7 +3594,7 @@ function syncPill(){
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v020';
+const APP_VERSION = 'v021';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -4069,6 +4089,7 @@ function counts(){
 /* --- state ---------------------------------------------------------------- */
 const state = {
   tab:'home', openMini:null, openPaint:null, openRecipe:null,
+  selecting:false, sel:new Set(), selArmy:null,
   sub:null, openGame:null, q:'', fSys:'', fFac:'', fStage:'', sheet:'',
   /* Armies. openArmy is a "system|faction" key rather than an id, because an
      army is the pair. aStage is kept apart from fStage so that filtering
@@ -4390,7 +4411,7 @@ function tile(m){
      through its stages, and turns green when it is finished. */
   const last = data.stages.length - 1;
   const lv = isFinished(m) ? 100 : Math.round(unitProgress(m) * 100);
-  return `<button class="tile${pid?'':' nophoto'}" data-open="${esc(m.id)}">${img}${mark}
+  return `<button class="tile${pid?'':' nophoto'}" data-open="${esc(m.id)}"${selAttr(m)}>${img}${mark}${state.selecting ? '<i class="seltick" aria-hidden="true"></i>' : ''}
     ${lv ? `<i class="lvl${isFinished(m)?' done':''}" style="width:${lv}%"></i>` : ''}
     <span class="meta"><b class="user-text">${esc(m.name)}</b>
     <span class="small muted">${esc(stageLabel(m))}${n>1?` &middot; <span class="num">${d} of ${n}</span>`:''}</span>
@@ -4884,7 +4905,7 @@ function modelRow(m){
   const n = Number(m.total)||1, d = Number(m.done)||0;
   const note = sortNote(m) || (allUnbuilt(m) && m.acquired
     ? `<span class="small muted">${esc(waitedFor(m.acquired))}</span>` : '');
-  return `<button class="mrow" data-open="${esc(m.id)}">
+  return `<button class="mrow" data-open="${esc(m.id)}"${selAttr(m)}>${state.selecting ? '<i class="seltick" aria-hidden="true"></i>' : ''}
     <span class="grow user-text">${esc(m.name)}</span>
     <span class="small muted mst">${esc(stageLabel(m))}${n>1&&!isDone(m)&&d?` &middot; <span class="num">${d} of ${n}</span>`:''}${note?'<br>'+note:''}</span></button>`;
 }
@@ -4927,7 +4948,12 @@ function screenArmy(){
           s.terrain ? ` &middot; <span class="num">${s.terrain}</span> terrain project${s.terrain===1?'':'s'}` : ''}${
           s.priced ? ` &middot; ${esc(money(s.spent))} spent` : ''}</div></div>
     </div>
+    <div class="armytools">
+      <button class="linkbtn" data-act="addMany">Add several</button>
+      ${g.minis.length > 1 ? `<button class="linkbtn" data-act="${state.selecting ? 'selectOff' : 'selectOn'}">${state.selecting ? 'Done selecting' : 'Select several'}</button>` : ''}
+    </div>
     <hr class="keyline">`;
+  if (state.selecting) h += `<p class="small muted selhint">Tap units to select them.</p>`;
 
   /* Three shelves, in the order you would want them: what you are working on,
      what is still in the box, and what is done. */
@@ -4959,7 +4985,147 @@ function screenArmy(){
   h += shelf('On the bench', bench, true);
   h += shelf(`Still to build`, waiting, false);
   h += shelf('Finished', done, true);
+  if (state.selecting){
+    const n = state.sel.size;
+    h += `<div class="selbar" role="region" aria-label="Selected units">
+      <span class="selcount"><b class="num">${n}</b> selected</span>
+      <div class="selacts">
+        <button class="btn sm" data-act="bulkStage"${n ? '' : ' disabled'}>Move stage</button>
+        <button class="btn sm ghost" data-act="bulkMove"${n ? '' : ' disabled'}>Move to&hellip;</button>
+        <button class="btn sm ghost" data-act="bulkTag"${n ? '' : ' disabled'}>Tag</button>
+        <button class="btn sm danger" data-act="bulkDelete"${n ? '' : ' disabled'}>Delete</button>
+      </div></div>`;
+  }
   return h;
+}
+
+/* ---------------------------------------------------------------------------
+   Several units at once.
+
+   Select mode lives on one army's page. Tapping a unit selects it instead of
+   opening it, and a bar at the foot offers what you can do to all of them.
+   Leaving the army ends it, so a selection can never follow you somewhere
+   it does not belong.
+   --------------------------------------------------------------------------- */
+function selAttr(m){ return state.selecting ? ` aria-pressed="${state.sel.has(m.id)}"` : ''; }
+function selectedUnits(){ return data.minis.filter(m => state.sel.has(m.id)); }
+function endSelecting(msg){ state.selecting = false; state.sel = new Set(); save(); render(); if (msg) toast(msg); }
+
+function dlgBulkStage(){
+  const ms = selectedUnits(); if (!ms.length) return;
+  let pick = '';
+  openDialog(`Move ${ms.length} unit${ms.length===1?'':'s'}`,
+    `<p class="small muted" style="margin-top:0">Every model in ${ms.length === 1 ? 'it' : 'them'} moves to the stage you pick.</p>
+     <div class="chips" id="bsChips">${data.stages.map(s => `<button class="chip" data-bstage="${esc(s)}" aria-pressed="false">${esc(s)}</button>`).join('')}</div>`,
+    () => { if (!pick){ toast('Pick a stage first.'); return false; }
+      ms.forEach(m => { setCounts(m, data.stages.map((_, i) => i === data.stages.indexOf(pick) ? (Number(m.total)||1) : 0)); m.updated = Date.now(); });
+      endSelecting(`Moved ${ms.length} to ${pick}.`); }, 'Move');
+  $('#bsChips').addEventListener('click', e => { const c = e.target.closest('[data-bstage]'); if (!c) return;
+    pick = c.dataset.bstage;
+    $$('#bsChips [data-bstage]').forEach(b => b.setAttribute('aria-pressed', String(b === c)));
+    const ok = $('#dlg [data-dlg="ok"]'); if (ok) ok.textContent = 'Move to ' + pick; });
+}
+function dlgBulkMove(){
+  const ms = selectedUnits(); if (!ms.length) return;
+  const sysOpts = systemNames(), cur = sysName(ms[0].sys);
+  if (cur && sysOpts.indexOf(cur) === -1) sysOpts.push(cur);
+  openDialog(`Move ${ms.length} unit${ms.length===1?'':'s'}`,
+    `<label for="bmSys">Game system</label>
+     <select id="bmSys"><option value="">Not set</option>${sysOpts.map(n => `<option value="${esc(n)}"${n === cur ? ' selected' : ''}>${esc(n)}</option>`).join('')}</select>
+     <label for="bmFac">${esc(cap(GROUP_WORDS[cur] || 'army'))}</label>
+     <select id="bmFac">${armyOptions(cur, '')}</select>
+     <input id="bmFacOwn" type="text" placeholder="Your own" style="margin-top:.5rem" hidden>
+     <p class="small muted">Photos, recipes and progress go with them.</p>`,
+    () => {
+      const sName = $('#bmSys').value, fv = $('#bmFac').value;
+      const fName = fv === '__own' ? $('#bmFacOwn').value.trim() : fv;
+      const sys = systemIdByName(sName), fac = factionIdByName(fName, sys);
+      ms.forEach(m => { m.sys = sys; m.fac = fac; m.updated = Date.now(); });
+      const where = armyLabel({ sys, fac });
+      state.openGame = sys || NO_SYS_ID; state.openArmy = armyKey(ms[0]);
+      endSelecting(`Moved ${ms.length} to ${where}.`);
+    }, 'Move');
+  $('#bmSys').addEventListener('change', e => { $('#bmFac').innerHTML = armyOptions(e.target.value, '');
+    const lab = document.querySelector('label[for="bmFac"]'); if (lab) lab.textContent = cap(GROUP_WORDS[e.target.value] || 'army'); });
+  $('#bmFac').addEventListener('change', e => { const own = e.target.value === '__own'; $('#bmFacOwn').hidden = !own; if (own) $('#bmFacOwn').focus(); });
+}
+function dlgBulkTag(){
+  const ms = selectedUnits(); if (!ms.length) return;
+  openDialog(`Tag ${ms.length} unit${ms.length===1?'':'s'}`,
+    `${chips('btTag', CHIPS.tag, { label:'Tag', value:'', multi:true, ownPlaceholder:'Your own tag' })}
+     <p class="small muted">Added alongside any tags they already have.</p>`,
+    () => {
+      const add = ($('#btTag').value || '').split(',').map(x => x.trim()).filter(Boolean);
+      if (!add.length){ toast('Pick a tag first.'); return false; }
+      ms.forEach(m => { const have = String(m.tags || '').split(',').map(x => x.trim()).filter(Boolean);
+        add.forEach(t => { if (have.indexOf(t) === -1) have.push(t); }); m.tags = have.join(', '); m.updated = Date.now(); });
+      endSelecting(`Tagged ${ms.length}.`);
+    }, 'Add tag');
+}
+function dlgBulkDelete(){
+  const ms = selectedUnits(); if (!ms.length) return;
+  const models = ms.reduce((n, m) => n + (Number(m.total)||1), 0);
+  openDialog(`Delete ${ms.length} unit${ms.length===1?'':'s'}?`,
+    `<p><b class="num">${ms.length}</b> unit${ms.length===1?'':'s'} (<span class="num">${models}</span> models) and their photos will be deleted
+     from this phone and from your account. This cannot be undone.</p>`,
+    () => {
+      const ids = new Set(ms.map(m => m.id));
+      ms.forEach(m => arr(m.photos).forEach(pid => { forgetPhoto(pid).catch(() => {}); }));
+      data.minis = data.minis.filter(m => !ids.has(m.id));
+      data.links = data.links.filter(l => !ids.has(l.miniId));
+      /* You confirmed this one, so the guard against accidental mass
+         deletions lets it through. */
+      if (typeof syncState !== 'undefined') syncState.allowMassDelete = true;
+      endSelecting(`Deleted ${ms.length}.`);
+    }, 'Delete ' + ms.length, 'Keep them');
+}
+
+/* Add several units to the army you are in: one line each, a name, how
+   many, and a type. Return on a name moves to the next line. */
+function dlgAddMany(){
+  const key = state.openArmy || '';
+  const [sysId, facId] = key.split('|');
+  const g = { sys: sysId || '', fac: facId || '' };
+  const row = () => `<div class="amrow">
+      <input class="amname" type="text" placeholder="Unit name" aria-label="Unit name" autocomplete="off">
+      <input class="amcount" type="number" min="1" value="1" inputmode="numeric" aria-label="How many models">
+      <select class="amunit" aria-label="Unit type"><option value="">Type</option>${UNIT_TYPES.map(u => `<option>${esc(u)}</option>`).join('')}</select>
+    </div>`;
+  const label = () => {
+    const rows = $$('#amRows .amrow').filter(r => r.querySelector('.amname').value.trim());
+    const units = rows.length;
+    let models = 0, terr = 0;
+    rows.forEach(r => { if (r.querySelector('.amunit').value === 'Terrain') terr++; else models += Math.max(1, Number(r.querySelector('.amcount').value) || 1); });
+    if (!units) return 'Add';
+    return `Add ${units - terr ? `${units - terr} unit${units - terr === 1 ? '' : 's'} · ${models} model${models === 1 ? '' : 's'}` : ''}${terr ? `${units - terr ? ' + ' : ''}${terr} terrain` : ''}`;
+  };
+  openDialog('Add several',
+    `<p class="small muted" style="margin-top:0">Filed under <b>${esc(armyLabel(g))}</b>${g.sys ? ' &middot; ' + esc(gameLabel(g.sys)) : ''}.</p>
+     <div id="amRows">${row()}${row()}${row()}</div>
+     <button class="linkbtn" data-ammore>+ Another line</button>`,
+    () => {
+      const rows = $$('#amRows .amrow').map(r => ({ name: r.querySelector('.amname').value.trim(),
+        total: Math.max(1, Number(r.querySelector('.amcount').value) || 1), unit: r.querySelector('.amunit').value }))
+        .filter(r => r.name);
+      if (!rows.length){ toast(NAME_REQUIRED); return false; }
+      const now = Date.now();
+      rows.forEach((r, i) => data.minis.push({ id: uid(), name: r.name, sys: g.sys, fac: g.fac, unit: r.unit, base: '',
+        total: r.total, price: null, acquired: '', done: 0, stage: data.stages[0], tags: '', notes: '', photos: [],
+        created: now + i, updated: now + i }));
+      save(); render(); toast(`Added ${rows.length}.`);
+    }, 'Add');
+  const box = $('#amRows'), ok = () => $('#dlg [data-dlg="ok"]');
+  const refresh = () => { const b = ok(); if (b) b.textContent = label(); };
+  box.addEventListener('input', refresh); box.addEventListener('change', refresh);
+  box.addEventListener('keydown', e => {
+    if (e.key !== 'Enter' || !e.target.classList.contains('amname')) return;
+    e.preventDefault();
+    const rows = $$('#amRows .amrow'), i = rows.indexOf(e.target.closest('.amrow'));
+    if (i === rows.length - 1) box.insertAdjacentHTML('beforeend', row());
+    $$('#amRows .amname')[i + 1].focus();
+  });
+  $('#dlg [data-ammore]').addEventListener('click', () => { box.insertAdjacentHTML('beforeend', row()); $$('#amRows .amname').pop().focus(); });
+  const first = box.querySelector('.amname'); if (first) first.focus();
 }
 
 /* Moving between Collection's steps. Deeper slides in from the right, back
@@ -5564,6 +5730,9 @@ function headerAction(){
 }
 
 function render(){
+  if (state.selecting && (state.tab !== 'coll' || state.openMini || state.openArmy !== state.selArmy)){
+    state.selecting = false; state.sel = new Set();
+  }
   const app = $('#app');
   const nav = document.querySelector('nav.tabs');
   const bar = document.querySelector('header.bar');
@@ -6464,7 +6633,8 @@ function dlgAddMini(){
     : '';
 
   openDialog('Add a miniature',
-    `<label for="mName">What is it?</label>
+    `${state.tab === 'coll' && state.openArmy && !state.openMini ? `<p class="small" style="margin:0 0 .5rem"><button class="linkbtn" data-act="addMany">Add several at once instead</button></p>` : ''}
+    <label for="mName">What is it?</label>
      <input id="mName" placeholder="Skaven Clanrats" autocomplete="off">
      <label for="mTotal">How many models</label>
      <input id="mTotal" type="number" min="1" value="1" inputmode="numeric" style="max-width:7.5rem">
@@ -6737,6 +6907,11 @@ document.addEventListener('click', e => {
     state.tab = back.dataset.back; render(); window.scrollTo(0,0); return; }
 
   const open = t.closest('[data-open]');
+  if (open && state.selecting && open.closest('#app')){
+    const id = open.dataset.open;
+    if (state.sel.has(id)) state.sel.delete(id); else state.sel.add(id);
+    const y = window.scrollY; render(); window.scrollTo(0, y); return;
+  }
   if (open){ const m = data.minis.find(x => x.id === open.dataset.open);
     navGo('fwd', () => { state.openMini = open.dataset.open; state.tab='coll';
       if (m){ state.openGame = m.sys || NO_SYS_ID; state.openArmy = armyKey(m); }
@@ -6821,6 +6996,13 @@ document.addEventListener('click', e => {
 
     if (a === 'addMini')    return dlgAddMini();
     /* Add from inside a game or an army files the new model there. */
+    if (a === 'addMany'){ if ($('#dlg').open) $('#dlg').close(); return dlgAddMany(); }
+    if (a === 'selectOn'){ state.selecting = true; state.sel = new Set(); state.selArmy = state.openArmy; render(); return; }
+    if (a === 'selectOff'){ state.selecting = false; state.sel = new Set(); render(); return; }
+    if (a === 'bulkStage') return dlgBulkStage();
+    if (a === 'bulkMove')  return dlgBulkMove();
+    if (a === 'bulkTag')   return dlgBulkTag();
+    if (a === 'bulkDelete') return dlgBulkDelete();
     if (a === 'addHere'){
       const sys = state.openArmy ? state.openArmy.split('|')[0] : (state.openGame && state.openGame !== NO_SYS_ID ? state.openGame : '');
       const fac = state.openArmy ? state.openArmy.split('|')[1] : '';
@@ -7092,14 +7274,14 @@ function saveMiniEdits(){
 }
 function deleteMini(){
   const m = data.minis.find(x => x.id === state.openMini); if (!m) return;
-  openDialog('Delete this entry?',
+  openDialog('Delete this unit?',
     `<p class="user-text">${esc(m.name)} and its photos will be deleted from this phone and from your account. This cannot be undone.</p>`,
     () => {
       arr(m.photos).forEach(pid => { forgetPhoto(pid).catch(() => {}); });
       data.minis = data.minis.filter(x => x.id !== m.id);
       data.links = data.links.filter(l => l.miniId !== m.id);
       save(); state.openMini = null; render(); toast('Deleted.');
-    }, 'Delete entry', 'Keep it');
+    }, 'Delete unit', 'Keep it');
 }
 function savePaintEdits(){
   const p = paintOf(state.openPaint); if (!p) return;
