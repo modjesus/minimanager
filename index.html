@@ -3574,7 +3574,7 @@ function syncPill(){
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v019';
+const APP_VERSION = 'v020';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -4174,6 +4174,66 @@ function hydratePhotos(){
   });
 }
 const urlCache = new Map();
+
+/* ---------------------------------------------------------------------------
+   Whose collection is on this device.
+
+   Signing out leaves the collection on the phone, so signing back in is
+   instant and works offline. Before v020 that had a hole: if somebody else
+   then signed in on the same phone, their first sync treated the previous
+   person's collection as theirs and copied it into their account.
+
+   Now the device remembers which account its copy belongs to. The same
+   account carries on as before. A different account gets a clean phone
+   first, then its own collection from the account; nothing of the previous
+   person's is sent anywhere, and their account is untouched. */
+const OWNER_KEY = 'mm.owner';
+function deviceOwner(){ try { return localStorage.getItem(OWNER_KEY) || ''; } catch (e) { return ''; } }
+function setDeviceOwner(uid){ try { localStorage.setItem(OWNER_KEY, uid); } catch (e) {} }
+function syncedAccounts(){
+  const out = [];
+  try { for (let i = 0; i < localStorage.length; i++){ const k = localStorage.key(i);
+    if (k && k.indexOf('mm.synced.') === 0) out.push(k.slice(10)); } } catch (e) {}
+  return out;
+}
+const hasLocalRecords = () => ['minis','paints','recipes','swatches','supplies','wishlist']
+  .some(c => arr(data[c]).length);
+async function clearDevice(){
+  data = JSON.parse(JSON.stringify(BLANK));
+  saveLocalOnly();
+  try { localStorage.removeItem('mm.photoDeletes'); } catch (e) {}
+  try { await tx('readwrite', st => st.clear()); } catch (e) {}
+  urlCache.clear();
+}
+function claimDevice(user, go){
+  const uid = user.uid, owner = deviceOwner(), seen = syncedAccounts();
+  /* Before v020 there was no owner note, but every account that has synced
+     here left its own record of what it holds, which says the same thing. */
+  const belongsTo = owner || (seen.length === 1 ? seen[0] : (seen.indexOf(uid) !== -1 ? uid : ''));
+  if (belongsTo === uid || !hasLocalRecords()){ setDeviceOwner(uid); go(); return; }
+  if (belongsTo && belongsTo !== uid){
+    clearDevice().then(() => { setDeviceOwner(uid); render(); go(); });
+    return;
+  }
+  /* Records here that no account on this phone has ever synced. Ask, and
+     do not guess: they could be yours from before you signed in, or not. */
+  const c = { u: arr(data.minis).length, p: arr(data.paints).length };
+  let chose = false;
+  openDialog('Collection on this phone',
+    `<p>This phone already has <b class="num">${c.u}</b> unit${c.u===1?'':'s'} and <b class="num">${c.p}</b> paint${c.p===1?'':'s'}
+     that are not in your account.</p>
+     <p class="small muted">Add them if they are yours. If they belong to someone else, start fresh: they are removed from
+     this phone and your account gets only your own collection.</p>`,
+    () => { chose = true; setDeviceOwner(uid); go(); }, 'Add them to my account', 'Start fresh');
+  const dlg = $('#dlg');
+  const x = dlg.querySelector('.dlghead [data-dlg="cancel"]'); if (x) x.remove();
+  const noEsc = e => e.preventDefault();
+  dlg.addEventListener('cancel', noEsc);
+  dlg.addEventListener('close', () => {
+    dlg.removeEventListener('cancel', noEsc);
+    if (!chose) clearDevice().then(() => { setDeviceOwner(uid); render(); go(); });
+  }, { once:true });
+}
 
 /* ===========================================================================
    Home
@@ -7282,7 +7342,7 @@ load(); applyTheme(); render();
         authGate = 'in';
         if (state.tab === 'privacy' || state.tab === 'account') state.tab = 'home';
         render();
-        startSync(user);
+        claimDevice(user, () => startSync(user));
       } else {
         authGate = 'out';
         stopSync();
