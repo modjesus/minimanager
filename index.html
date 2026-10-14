@@ -858,6 +858,12 @@ details summary{cursor:pointer;min-height:var(--tap);display:flex;align-items:ce
   color:var(--text);font:inherit;font-size:1.25rem;line-height:1;cursor:pointer}
 .stepbtn:disabled{opacity:.4;cursor:default}
 .stepn{font-family:var(--f-display);font-size:2rem;min-width:2.5rem;text-align:center}
+/* --- v019 ---
+   Your swatches list: the photo is a thumbnail beside its words. It used to
+   take the full width of the card, which pushed the words and the delete
+   button off the side and made the whole page scroll sideways on a phone. */
+.swrow{padding:.625rem 0;border-top:1px solid var(--border);align-items:flex-start}
+.swrow .realswatch{width:4.5rem;height:4.5rem;aspect-ratio:auto;flex:0 0 auto}
 </style>
 </head>
 <body>
@@ -3568,7 +3574,7 @@ function syncPill(){
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v018';
+const APP_VERSION = 'v019';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -5294,7 +5300,7 @@ function screenPaintDetail(){
   if (sws.length){
     h += `<div class="card"><h3>Your swatches</h3>`;
     sws.forEach(s => {
-      h += `<div class="row" style="padding:.625rem 0;border-top:1px solid var(--border)">
+      h += `<div class="row swrow">
         ${photoImg(s.photoId,'realswatch')}
         <span class="grow"><b>Over ${esc(ucName(s.undercoatId).toLowerCase())}</b>
           <span class="small muted" style="display:block">${s.coats?esc(s.coats)+' coat'+(s.coats>1?'s':''):'Coats not noted'}${s.lighting?' · '+esc(s.lighting):''}</span>
