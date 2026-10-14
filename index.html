@@ -3275,7 +3275,7 @@ function syncPill(){
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v009';
+const APP_VERSION = 'v010';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -3370,7 +3370,10 @@ function load(){
     stages: arr(p.stages).length ? p.stages : DEFAULT_STAGES.slice(),
     paints:arr(p.paints),
     undercoats: mergeUndercoats(arr(p.undercoats)),
-    swatches:arr(p.swatches), recipes:arr(p.recipes), links:arr(p.links),
+    swatches:arr(p.swatches), recipes:arr(p.recipes),
+    /* Links made before v010 had no id, and the sync only carries records
+       that have one, so they never left the device. Give them one now. */
+    links:arr(p.links).map(l => l && !l.id ? Object.assign({ id:uid() }, l) : l),
     /* New in v3. Anyone upgrading has neither, so they default to empty
        rather than undefined — every list in this app must be an array by
        the time anything reads it. */
@@ -4240,16 +4243,20 @@ function armyStats(minis){
 
 function screenArmies(){
   const groups = armyGroups();
-  /* Order: most models first within each system, systems alphabetically,
-     with anything lacking a system last rather than first. */
+  /* Order: most models first within each system, and the biggest system
+     first too, so the thing you mostly play is at the top. Ties go A to Z.
+     Anything lacking a system goes last rather than first. */
   const bySys = new Map();
   groups.forEach(g => {
     const label = g.sys ? (sysName(g.sys) || NO_SYS) : NO_SYS;
     if (!bySys.has(label)) bySys.set(label, []);
     bySys.get(label).push(g);
   });
+  const sysModels = label => bySys.get(label)
+    .reduce((n, g) => n + armyStats(g.minis).models, 0);
   const labels = [...bySys.keys()].sort((a,b) =>
-    a === NO_SYS ? 1 : b === NO_SYS ? -1 : a.localeCompare(b));
+    a === NO_SYS ? 1 : b === NO_SYS ? -1
+      : (sysModels(b) - sysModels(a)) || a.localeCompare(b));
 
   let h = '';
   labels.forEach(label => {
@@ -5839,7 +5846,7 @@ function dlgLinkRecipe(){
      ${chips('lkArea', CHIPS.area, { label:'Which part of the model?',
         ownPlaceholder:'Which part?' })}`,
     () => {
-      data.links.push({ miniId:state.openMini, recipeId:$('#lkRec').value, area:$('#lkArea').value.trim(), notes:'' });
+      data.links.push({ id:uid(), miniId:state.openMini, recipeId:$('#lkRec').value, area:$('#lkArea').value.trim(), notes:'' });
       save(); render(); toast('Recipe attached.');
     }, 'Attach');
 }
