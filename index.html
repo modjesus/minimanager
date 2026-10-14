@@ -930,6 +930,11 @@ span.havedrop.gone{display:inline-grid;place-items:center;color:var(--text-2)}
 .checkrow{display:flex;align-items:center;gap:.625rem;min-height:var(--tap);font-weight:500;margin-top:.75rem}
 .checkrow input{width:1.25rem;height:1.25rem;accent-color:var(--text);flex:0 0 auto}
 #ucHex:disabled{opacity:.4}
+
+/* v026: split off some models */
+.sprow{display:flex;align-items:center;gap:.75rem;padding:.375rem 0;border-bottom:1px solid var(--border)}
+.sprow .stepper{margin:0}
+.spsum{background:var(--help-bg);border-radius:var(--r-ctl);padding:.75rem .875rem;margin:.875rem 0 .25rem;font-size:.9375rem;line-height:1.5}
 </style>
 </head>
 <body>
@@ -3640,7 +3645,7 @@ function syncPill(){
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v025';
+const APP_VERSION = 'v026';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -5628,6 +5633,8 @@ function screenMini(){
     <div class="unitmore">
       <button class="linkbtn" data-act="remindMini">Remind me</button>
       <button class="linkbtn" data-act="dupMini">Duplicate</button>
+      ${!m.archived && (Number(m.total)||1) >= 2 ? '<button class="linkbtn" data-act="splitMini">Split off some models</button>' : ''}
+      ${splitParent(m) ? `<button class="linkbtn" data-act="joinMini">Put these back into ${esc(splitParent(m).name)}</button>` : ''}
       ${m.archived ? '' : '<button class="linkbtn" data-act="archMini">Archive</button>'}
       <button class="linkbtn danger-link" data-act="delMini">Delete for good</button>
     </div>`;
@@ -7335,6 +7342,8 @@ document.addEventListener('click', e => {
     if (a === 'openArchive'){ navGo('fwd', () => { state.openArchive = true; state.openGame = null; state.openArmy = null; render(); window.scrollTo(0,0); }); return; }
     if (a === 'backArchive'){ navGo('back', () => { state.openArchive = false; state.openGame = null; state.openArmy = null; render(); window.scrollTo(0,0); }); return; }
     if (a === 'dupMini')   return duplicateMini();
+    if (a === 'splitMini') return dlgSplit();
+    if (a === 'joinMini')  return dlgJoinBack();
     if (a === 'remindMini'){ const m = data.minis.find(x => x.id === state.openMini); if (m) dlgRemind(m); return; }
     if (a === 'snooze'){ try { localStorage.setItem(SNOOZE_KEY(act.dataset.id), String(Date.now() + 14 * 86400000)); } catch (e) {}
       render(); toast('Quiet for two weeks.'); return; }
@@ -7793,6 +7802,108 @@ function battleReady(minis){
     let i = L.indexOf(w ? w.battleReady : br);
     if (i < 0) i = L.length - 1;
     return n + c.slice(i).reduce((a, b) => a + b, 0); }, 0);
+}
+
+/* --- split off some models (v026) -----------------------------------------
+   Some models leave a unit for a new one in the same army. Nothing is
+   created or lost: every model taken from the original is in the new unit,
+   at the stage it was at, and both are checked to add up before saving.
+   Photos, price and the bought-on date stay with the original so nothing is
+   counted twice. The new unit remembers where it came from (splitFrom), which
+   is what lets "Put these back" undo it. */
+const splitParent = m => m && m.splitFrom ? data.minis.find(x => x.id === m.splitFrom && x.id !== m.id) || null : null;
+function splitName(base){
+  const have = new Set(data.minis.map(x => String(x.name || '').toLowerCase()));
+  for (let i = 2; i < 999; i++){ const n = base + ' (' + i + ')'; if (!have.has(n.toLowerCase())) return n; }
+  return base + ' (copy)';
+}
+function dlgSplit(){
+  const m = data.minis.find(x => x.id === state.openMini); if (!m) return;
+  const names = stagesOf(m), cnt = stageCounts(m), total = Number(m.total) || 1;
+  const take = cnt.map(() => 0);
+  const links = data.links.filter(l => l.miniId === m.id);
+  const sum = () => take.reduce((a, b) => a + b, 0);
+  const rows = () => names.map((st, i) => cnt[i] ? `<div class="sprow">
+      <span class="grow"><b>${esc(st)}</b><span class="small muted" style="display:block">${cnt[i]} here</span></span>
+      <span class="stepper" role="group" aria-label="${esc(st)}: how many to take">
+        <button class="stepbtn" type="button" data-spstep="${i}:-1" aria-label="One fewer at ${esc(st)}"${take[i] <= 0 ? ' disabled' : ''}>&minus;</button>
+        <output class="stepn num" aria-live="polite">${take[i]}</output>
+        <button class="stepbtn" type="button" data-spstep="${i}:1" aria-label="One more at ${esc(st)}"${take[i] >= cnt[i] || sum() >= total - 1 ? ' disabled' : ''}>+</button>
+      </span></div>` : '').join('');
+  const summary = () => {
+    const k = sum(); const nm = esc(($('#spName') && $('#spName').value.trim()) || splitName(m.name));
+    if (!k) return 'Choose how many to take from each stage.';
+    const at = take.map((t, i) => t ? t + ' ' + esc(stageDoneWord(names[i]).replace(/^at (.*) or beyond$/, 'at $1')) : '').filter(Boolean);
+    return `<b class="user-text">${esc(m.name)}</b> keeps <b class="num">${total - k}</b>. <b class="user-text">${nm}</b> gets <b class="num">${k}</b>: ${at.join(', ')}. Your total stays <b class="num">${total}</b>.`;
+  };
+  openDialog('Split off some models',
+    `<label for="spName">New unit&rsquo;s name</label><input id="spName" class="user-text" autocomplete="off" value="${esc(splitName(m.name))}">
+     <p class="fsec">How many to take</p><div id="spRows">${rows()}</div>
+     ${links.length ? `<label class="checkrow"><input type="checkbox" id="spLinks" checked> Take the ${links.length === 1 ? 'recipe' : links.length + ' recipes'} with it</label>` : ''}
+     <p class="spsum" id="spSum" aria-live="polite">${summary()}</p>
+     <p class="small muted">Photos, price and the date you bought it stay with ${esc(m.name)}.</p>`,
+    () => {
+      const k = sum();
+      if (!k){ toast('Choose at least one model to split off.'); return false; }
+      if (k >= total){ toast('Leave at least one model in ' + m.name + '.'); return false; }
+      const name = $('#spName').value.trim();
+      if (!name){ toast(NAME_REQUIRED); return false; }
+      const now = Date.now(), before = JSON.stringify(m);
+      const keep = cnt.map((c, i) => c - take[i]);
+      const n = JSON.parse(JSON.stringify(m));
+      Object.assign(n, { id:uid(), name, total:k, photos:[], price:null, acquired:'', splitFrom:m.id, created:now, updated:now });
+      delete n.archived;
+      setCounts(n, take.slice());
+      m.total = total - k; setCounts(m, keep); m.updated = now;
+      /* Belt and braces: the two must add back up to what there was. */
+      const back = stageCounts(m).map((c, i) => c + stageCounts(n)[i]);
+      if (back.some((c, i) => c !== cnt[i])){ toast('Something did not add up, so nothing was changed.'); Object.keys(m).forEach(key => delete m[key]); Object.assign(m, JSON.parse(before)); return false; }
+      data.minis.push(n);
+      if (links.length && $('#spLinks') && $('#spLinks').checked)
+        links.forEach(l => data.links.push(Object.assign({}, l, { id:uid(), miniId:n.id })));
+      save(); state.openMini = n.id; render(); window.scrollTo(0,0);
+      toast(`Split off ${k} model${k > 1 ? 's' : ''} into ${name}.`);
+    }, 'Split off models');
+  const okBtn = () => $('#dlg [data-dlg="ok"]');
+  const refresh = () => {
+    $('#spRows').innerHTML = rows(); $('#spSum').innerHTML = summary();
+    const k = sum(); if (okBtn()){ okBtn().textContent = k ? `Split off ${k} model${k > 1 ? 's' : ''}` : 'Split off models'; }
+  };
+  $('#spRows').addEventListener('click', e => {
+    const b = e.target.closest('[data-spstep]'); if (!b) return;
+    const [i, d] = b.dataset.spstep.split(':').map(Number);
+    const next = take[i] + d;
+    if (next < 0 || next > cnt[i] || (d > 0 && sum() >= total - 1)) return;
+    take[i] = next; refresh();
+    const again = $(`#spRows [data-spstep="${i}:${d}"]`); if (again && !again.disabled) again.focus();
+  });
+  $('#spName').addEventListener('input', () => { $('#spSum').innerHTML = summary(); });
+}
+function dlgJoinBack(){
+  const n = data.minis.find(x => x.id === state.openMini); if (!n) return;
+  const m = splitParent(n); if (!m) return;
+  const mNames = stagesOf(m), nNames = stagesOf(n);
+  const nc = stageCounts(n);
+  const missing = nNames.filter((s, i) => nc[i] && mNames.indexOf(s) === -1);
+  if (missing.length){ toast(`${m.name} has no ${missing[0]} stage any more, so these can't go back automatically.`); return; }
+  const k = Number(n.total) || 1;
+  openDialog('Put these back?',
+    `<p class="user-text">The ${k} model${k > 1 ? 's' : ''} in ${esc(n.name)} go back into ${esc(m.name)}, each at the stage it is at now, and ${esc(n.name)} is removed.
+     ${arr(n.photos).length ? ` Its ${arr(n.photos).length} photo${arr(n.photos).length > 1 ? 's go' : ' goes'} with them.` : ''} Your total doesn&rsquo;t change.</p>`,
+    () => {
+      const mc = stageCounts(m);
+      nNames.forEach((s, i) => { if (nc[i]) mc[mNames.indexOf(s)] += nc[i]; });
+      m.total = (Number(m.total) || 1) + k; setCounts(m, mc);
+      m.photos = arr(m.photos).concat(arr(n.photos));
+      m.updated = Date.now();
+      data.links.filter(l => l.miniId === n.id).forEach(l => {
+        if (data.links.some(x => x.miniId === m.id && x.recipeId === l.recipeId)) data.links = data.links.filter(x => x !== l);
+        else l.miniId = m.id;
+      });
+      data.minis = data.minis.filter(x => x.id !== n.id);
+      save(); state.openMini = m.id; render(); window.scrollTo(0,0);
+      toast(`Put ${k} back into ${m.name}.`);
+    }, 'Put them back', 'Keep them separate');
 }
 
 function deleteMini(){
