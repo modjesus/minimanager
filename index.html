@@ -912,6 +912,19 @@ details summary{cursor:pointer;min-height:var(--tap);display:flex;align-items:ce
 .nudgeacts{display:flex;gap:1rem}
 .nudgeacts .linkbtn{min-height:var(--tap)}
 .linkbtn.quiet{color:var(--text-2)}
+
+/* v024: which of a recipe's paints you own */
+.havecard h3{font-family:var(--f-display);font-weight:400;font-size:1.25rem}
+.haverow{display:flex;align-items:center;gap:.75rem;padding:.5rem 0;border-top:1px solid var(--border);min-height:var(--tap)}
+.haverow .nm{flex:1;min-width:0;display:flex;flex-direction:column}
+.haverow .nm span{font-size:.8125rem;color:var(--text-2)}
+.havedrop{width:1.0625rem;height:1.9375rem;flex:0 0 auto}
+span.havedrop.gone{display:inline-grid;place-items:center;color:var(--text-2)}
+.gonename{font-style:italic;font-weight:500;color:var(--text-2)}
+.havest{font-size:.8125rem;font-weight:700;text-align:right}
+.havest.have{color:color-mix(in srgb,var(--success) 62%,var(--text))}
+.havest.out,.havest.wish,.havest.gone{color:color-mix(in srgb,var(--warning) 72%,var(--text))}
+.havecard .linkbtn{margin-top:.5rem;min-height:var(--tap)}
 </style>
 </head>
 <body>
@@ -3622,7 +3635,7 @@ function syncPill(){
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v023';
+const APP_VERSION = 'v024';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -5855,6 +5868,69 @@ function screenRecipes(){
   return h;
 }
 
+/* --- which of a recipe's paints you own (v024) ----------------------------
+   A step points at your paints by id. From v024 it also keeps each paint's
+   name and brand, written when the step is made and again when a paint is
+   deleted, so a deleted paint leaves a readable step rather than a blank.
+   Nothing is rewritten on load: the names are filled in at those two moments
+   only, so opening the app never sends every recipe back to the account. */
+const OWNED_STOCK = s => s !== 'Out' && s !== 'Wishlist';
+function stepPaints(s){
+  const ids = arr(s.paintIds), names = arr(s.paintNames);
+  return ids.map((id, i) => {
+    const p = paintOf(id), n = names[i] || {};
+    return { id, paint: p || null, name: p ? p.name : (n.name || ''), brand: p ? (p.brand || '') : (n.brand || '') };
+  });
+}
+function recipePaints(r){
+  const seen = new Set(), out = [];
+  arr(r.steps).forEach(s => stepPaints(s).forEach(x => {
+    if (seen.has(x.id)) return; seen.add(x.id);
+    const st = !x.paint ? 'gone' : (OWNED_STOCK(x.paint.stock) ? 'have' : (x.paint.stock === 'Out' ? 'out' : 'wish'));
+    out.push(Object.assign(x, { state: st }));
+  }));
+  return out;
+}
+const onWishlist = (x) => arr(data.wishlist).some(w => w && w.kind === 'paint' &&
+  (w.paintId === x.id || (w.name === x.name && (w.brand || '') === (x.brand || ''))));
+/* Missing paints that the one tap would add. Out paints are already on the
+   Need tab of Shopping, so they are never added a second time. */
+const toAdd = list => list.filter(x => (x.state === 'wish' || x.state === 'gone') && x.name && !onWishlist(x));
+function recipeHaveCard(r){
+  const list = recipePaints(r);
+  if (!list.length) return '';
+  const have = list.filter(x => x.state === 'have').length;
+  const LABEL = { have:null, out:'Out &middot; on your shopping list', wish:'Wishlist', gone:'No longer in your paints' };
+  let h = `<div class="card havecard"><div class="row spread"><h3 style="margin:0">You have <span class="num">${have}</span> of <span class="num">${list.length}</span></h3>
+    <span class="small muted">paints</span></div>`;
+  list.forEach(x => {
+    const p = x.paint;
+    const sub = p ? [p.brand, p.type || p.range].filter(Boolean).join(' · ') : (x.brand || '');
+    h += `<div class="haverow">${p ? dropSvg('havedrop', p.hex && x.state === 'have' ? esc(p.hex) : '') : '<span class="havedrop gone" aria-hidden="true">&ndash;</span>'}
+      <span class="nm"><b class="user-text${p?'':' gonename'}">${esc(x.name || 'A deleted paint')}</b>${sub?`<span class="user-text">${esc(sub)}</span>`:''}</span>
+      <span class="havest ${x.state}">${x.state === 'have' ? esc(p.stock || 'Have it') : LABEL[x.state]}</span></div>`;
+  });
+  const add = toAdd(list);
+  if (add.length) h += `<button class="linkbtn" data-act="addMissing">Add ${add.length === 1 ? 'the missing one' : 'the ' + add.length + ' missing'} to your shopping list</button>`;
+  else if (have < list.length) h += `<p class="small muted" style="margin:.5rem 0 0">The missing ${list.length - have === 1 ? 'one is' : 'ones are'} already on your shopping list.</p>`;
+  return h + `</div>`;
+}
+function addMissing(){
+  const r = data.recipes.find(x => x.id === state.openRecipe); if (!r) return;
+  const add = toAdd(recipePaints(r));
+  if (!add.length) return;
+  if (!Array.isArray(data.wishlist)) data.wishlist = [];
+  add.forEach(x => {
+    const p = x.paint;
+    data.wishlist.push({ id:uid(), name:x.name, kind:'paint', brand:x.brand || '',
+      note:[x.brand, 'for ' + r.title].filter(Boolean).join(' · '),
+      price:null, paintId:x.id, recipeId:r.id, hex: p && p.hex ? p.hex : '',
+      created:Date.now(), updated:Date.now() });
+  });
+  save(); render();
+  toast(add.length === 1 ? add[0].name + ' added to your shopping list.' : add.length + ' paints added to your shopping list.');
+}
+
 function screenRecipeDetail(){
   const r = data.recipes.find(x => x.id === state.openRecipe);
   if (!r) return `<div class="empty"><p>That recipe no longer exists.</p>
@@ -5865,16 +5941,18 @@ function screenRecipeDetail(){
   if (r.category) h += `<p class="muted" style="margin-top:-.25rem">${esc(r.category)}</p>`;
   if (used.length) h += `<p class="small muted">Used on <b>${used.length}</b> model${used.length>1?'s':''}.
     Editing it changes all of them.</p>`;
+  h += recipeHaveCard(r);
 
   h += `<div class="card"><div class="row spread"><h3 style="margin:0">Steps</h3>
     <button class="btn sm ghost" data-act="addStep">Add step</button></div>`;
   if (!arr(r.steps).length) h += `<p class="small muted">No steps yet.</p>`;
   arr(r.steps).forEach((s,i) => {
-    const names = arr(s.paintIds).map(id => { const p = paintOf(id); return p ? p.name : null; }).filter(Boolean);
+    const names = stepPaints(s).map(x => x.paint ? esc(x.paint.name)
+      : `<i>${esc(x.name || 'A deleted paint')}</i> &middot; no longer in your paints`);
     h += `<div class="row" style="padding:.625rem 0;border-top:1px solid var(--border);align-items:flex-start">
       <span class="num" style="min-width:1.5rem;color:var(--text-2)">${i+1}</span>
       <span class="grow"><b class="user-text">${esc(s.technique||'Step')}</b>
-        ${names.length?`<span class="small" style="display:block">${esc(names.join(' + '))}${s.mix?' · '+esc(s.mix):''}</span>`:''}
+        ${names.length?`<span class="small" style="display:block">${names.join(' + ')}${s.mix?' · '+esc(s.mix):''}</span>`:''}
         ${s.notes?`<span class="small muted user-text" style="display:block">${esc(s.notes)}</span>`:''}
         ${s.dry?`<span class="small muted" style="display:block">Leave ${esc(s.dry)}</span>`:''}</span>
       <button class="iconbtn" data-delstep="${esc(s.id)}" aria-label="Delete step">&times;</button></div>`;
@@ -6056,7 +6134,7 @@ function wishRow(w){
       aria-label="${got?'Untick':'Got it'}: ${esc(w.name)}">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 13 L10 18 L19 6" fill="none"
         stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </button>
+    </button>${w.kind === 'paint' ? dropSvg('shopdrop', w.hex ? esc(w.hex) : '') : ''}
     <span class="nm"><b class="user-text">${esc(w.name)}</b>
       ${bits.length?`<span class="user-text">${esc(bits.join(' · '))}</span>`:''}</span>
     <button class="iconbtn" data-delwish="${esc(w.id)}" aria-label="Remove ${esc(w.name)} from the wishlist">&times;</button>
@@ -7018,7 +7096,9 @@ function dlgAddStep(){
       const tech = $('#stTech').value.trim();
       if (!tech){ toast('Give the step a technique.'); return false; }
       arr(r.steps); if (!Array.isArray(r.steps)) r.steps = [];
-      r.steps.push({ id:uid(), technique:tech, paintIds:$('#stPaint').value?[$('#stPaint').value]:[],
+      const sp = paintOf($('#stPaint').value);
+      r.steps.push({ id:uid(), technique:tech, paintIds:sp?[sp.id]:[],
+        paintNames:sp?[{ name:sp.name, brand:sp.brand || '' }]:[],
         mix:$('#stMix').value.trim(), dry:$('#stDry').value.trim(), notes:$('#stNotes').value.trim() });
       save(); render(); toast('Step added.');
     }, 'Add step');
@@ -7225,6 +7305,7 @@ document.addEventListener('click', e => {
     if (a === 'addPaint')   return dlgAddPaint();
     if (a === 'newRecipe')  return dlgNewRecipe();
     if (a === 'addStep')    return dlgAddStep();
+    if (a === 'addMissing') return addMissing();
     if (a === 'linkRecipe') return dlgLinkRecipe();
     if (a === 'saveMini')   return saveMiniEdits();
     if (a === 'delMini')    return deleteMini();
@@ -7676,9 +7757,27 @@ function savePaintEdits(){
 function deletePaint(){
   const p = paintOf(state.openPaint); if (!p) return;
   const sws = data.swatches.filter(s => s.paintId === p.id);
+  const inRecipes = data.recipes.filter(r => arr(r.steps).some(s => arr(s.paintIds).indexOf(p.id) !== -1));
   openDialog('Delete this paint?',
-    `<p class="user-text">${esc(p.name)}${sws.length?` and its ${sws.length} swatch photo${sws.length>1?'s':''}`:''} will be removed. This cannot be undone.</p>`,
+    `<p class="user-text">${esc(p.name)}${sws.length?` and its ${sws.length} swatch photo${sws.length>1?'s':''}`:''} will be removed. This cannot be undone.</p>
+     ${inRecipes.length ? `<p><b>It&rsquo;s used in ${inRecipes.length} recipe${inRecipes.length>1?'s':''}:</b></p>
+     <ul class="user-text">${inRecipes.map(r => `<li>${esc(r.title)}</li>`).join('')}</ul>
+     <p class="small muted">${inRecipes.length>1?'Those recipes keep':'That recipe keeps'} the name, marked &ldquo;no longer in your paints&rdquo;.</p>` : ''}`,
     () => {
+      /* Write the name into every step that uses it before the paint goes,
+         so the recipe still says what it was. */
+      inRecipes.forEach(r => {
+        arr(r.steps).forEach(s => {
+          const ids = arr(s.paintIds); if (ids.indexOf(p.id) === -1) return;
+          const names = arr(s.paintNames).slice();
+          ids.forEach((id, i) => {
+            if (names[i] && names[i].name) return;
+            const q = paintOf(id); names[i] = q ? { name:q.name, brand:q.brand || '' } : (names[i] || { name:'', brand:'' });
+          });
+          s.paintNames = names;
+        });
+        r.updated = Date.now();
+      });
       sws.forEach(s => { forgetPhoto(s.photoId).catch(() => {}); });
       data.swatches = data.swatches.filter(s => s.paintId !== p.id);
       data.paints = data.paints.filter(x => x.id !== p.id);
