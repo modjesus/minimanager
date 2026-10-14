@@ -948,6 +948,11 @@ span.havedrop.gone{display:inline-grid;place-items:center;color:var(--text-2)}
 .plown{display:flex;align-items:center;gap:.375rem;font-size:.8125rem;font-weight:600;min-height:var(--tap);white-space:nowrap}
 .plown input{width:1.125rem;height:1.125rem;accent-color:var(--text)}
 #plText{font-family:ui-monospace,Menlo,monospace;font-size:.9375rem;line-height:1.5}
+
+/* v028: dated history */
+.hrow{display:flex;gap:.75rem;align-items:center;padding:.25rem 0;border-bottom:1px solid var(--border);font-size:.9375rem}
+.hrow .hdate{min-width:4.5rem;min-height:var(--tap);font-size:.875rem;text-align:left}
+#mvWhen{max-width:14rem}
 </style>
 </head>
 <body>
@@ -3658,7 +3663,7 @@ function syncPill(){
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v027';
+const APP_VERSION = 'v028';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -4118,6 +4123,59 @@ function setCounts(m, cnt){
   m.stage = names[lo < 0 ? 0 : lo];
   m.atSig = atSig(m);
 }
+/* --- dated history (v028) --------------------------------------------------
+   Each unit keeps a short list of its stage moves: when, how many, from and
+   to. It is written alongside the counts and never read to work them out, so
+   a damaged or trimmed history can never change a total. The newest 100 are
+   kept per unit; that is years of painting and keeps each record small. */
+const HISTORY_MAX = 100;
+const localISO = d => { const x = d || new Date(); return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0'); };
+function logMove(m, from, to, n, on){
+  n = Number(n) || 0;
+  if (!m || !n || from === to) return;
+  const log = arr(m.log).slice();
+  log.push({ id:uid(), on: /^\d{4}-\d{2}-\d{2}$/.test(on || '') ? on : localISO(), from, to, n, at:Date.now() });
+  m.log = log.length > HISTORY_MAX ? log.slice(-HISTORY_MAX) : log;
+}
+/* Everything that was not already at `to` moved there. */
+function logAllTo(m, before, names, to, on){ before.forEach((k, i) => { if (k && names[i] !== to) logMove(m, names[i], to, k, on); }); }
+function historySince(){
+  if (!data.settings.historySince){ data.settings.historySince = localISO(); save(); }
+  return data.settings.historySince;
+}
+const fmtDay = iso => { const [y, mo, d] = String(iso).split('-').map(Number); if (!y) return iso;
+  const dt = new Date(y, mo - 1, d); return dt.toLocaleDateString('en-GB', { day:'numeric', month:'short', year: y === new Date().getFullYear() ? undefined : 'numeric' }); };
+function historyCard(m){
+  const log = arr(m.log).slice().sort((a, b) => (b.on || '').localeCompare(a.on || '') || (b.at || 0) - (a.at || 0));
+  const since = historySince();
+  const old = (m.created || 0) < new Date(since + 'T00:00:00').getTime();
+  if (!log.length && !old) return '';
+  const all = state.showAllHistory === m.id, show = all ? log : log.slice(0, 6);
+  let h = `<div class="card"><h3 style="margin:0 0 .25rem">History</h3>`;
+  if (!log.length) h += `<p class="small muted" style="margin:.25rem 0 0">Nothing dated yet. Moves you make from now on are kept here with their date.</p>`;
+  show.forEach(e => {
+    h += `<div class="hrow"><button class="linkbtn hdate" data-hdate="${esc(e.id)}" aria-label="Change the date: ${esc(fmtDay(e.on))}">${esc(fmtDay(e.on))}</button>
+      <span><span class="num">${Number(e.n) || 0}</span> moved from ${esc(e.from)} to <b>${esc(e.to)}</b></span></div>`;
+  });
+  if (log.length > show.length) h += `<button class="linkbtn" data-act="allHistory">Show all ${log.length}</button>`;
+  if (old) h += `<p class="small muted" style="margin:.5rem 0 0">Progress from before ${esc(fmtDay(since))} has no dates.</p>`;
+  return h + `</div>`;
+}
+function dlgHistoryDate(id){
+  const m = data.minis.find(x => x.id === state.openMini); if (!m) return;
+  const e = arr(m.log).find(x => x.id === id); if (!e) return;
+  openDialog('When did this happen?',
+    `<p class="small muted" style="margin-top:0">${Number(e.n) || 0} moved from ${esc(e.from)} to ${esc(e.to)}.</p>
+     <label for="hdDate">Date</label><input id="hdDate" type="date" value="${esc(e.on)}" max="${localISO()}">`,
+    () => {
+      const v = $('#hdDate').value;
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(v)){ toast('Choose a date.'); return false; }
+      if (v > localISO()){ toast('That date is in the future.'); return false; }
+      m.log = arr(m.log).map(x => x.id === id ? Object.assign({}, x, { on:v }) : x);
+      m.updated = Date.now(); save(); render(); toast('Date changed.');
+    }, 'Save date');
+}
+
 /* Started: some model is past the first stage, and not all are finished. */
 const isStarted = m => { const c = stageCounts(m); return !isDone(m) && c[0] < (Number(m.total)||1); };
 const allUnbuilt = m => stageCounts(m)[0] === (Number(m.total)||1);
@@ -5221,7 +5279,7 @@ function dlgBulkStage(){
     `<p class="small muted" style="margin-top:0">Every model in ${ms.length === 1 ? 'it' : 'them'} moves to the stage you pick.</p>
      <div class="chips" id="bsChips">${L.map(s => `<button class="chip" data-bstage="${esc(s)}" aria-pressed="false">${esc(s)}</button>`).join('')}</div>`,
     () => { if (!pick){ toast('Pick a stage first.'); return false; }
-      ms.forEach(m => { setCounts(m, L.map((_, i) => i === L.indexOf(pick) ? (Number(m.total)||1) : 0)); m.updated = Date.now(); });
+      ms.forEach(m => { logAllTo(m, stageCounts(m), L, pick); setCounts(m, L.map((_, i) => i === L.indexOf(pick) ? (Number(m.total)||1) : 0)); m.updated = Date.now(); });
       endSelecting(`Moved ${ms.length} to ${pick}.`); }, 'Move');
   $('#bsChips').addEventListener('click', e => { const c = e.target.closest('[data-bstage]'); if (!c) return;
     pick = c.dataset.bstage;
@@ -5588,6 +5646,7 @@ function screenMini(){
   h += `</div>`;
   }
 
+  h += historyCard(m);
   h += `<div class="card"><div class="row spread"><h3 style="margin:0">Photos</h3>
     <button class="btn sm ghost" data-act="addPhotos">Add photo</button></div><div class="photos">`;
   arr(m.photos).forEach(pid => {
@@ -6372,6 +6431,7 @@ function setStage(m, stage){
   const cnt = L.map(() => 0);
   const i = L.indexOf(stage);
   cnt[i < 0 ? 0 : i] = n;
+  logAllTo(m, stageCounts(m), L, L[i < 0 ? 0 : i]);
   setCounts(m, cnt);
   m.updated = Date.now(); save();
   advanceStrip(m, !wasFinished && isFinished(m));
@@ -6696,10 +6756,15 @@ function moveModels(m){
       ${cnt[mv.from] > 1 ? `<button class="linkbtn" data-mvall>All ${cnt[mv.from]}</button>` : ''}
     </div>`;
   const label = () => `Move ${mv.k} to ${names[mv.to]}`;
-  openDialog('Move ' + m.name + (mv.from === last ? ' back' : ' on'), `<div id="mvBody">${body()}</div>`, () => {
+  openDialog('Move ' + m.name + (mv.from === last ? ' back' : ' on'), `<div id="mvBody">${body()}</div>
+    <label for="mvWhen" class="fsec" style="display:block">When</label>
+    <input id="mvWhen" type="date" value="${localISO()}" max="${localISO()}">`, () => {
     const c = stageCounts(m), wasDone = isDone(m);
     const k = Math.min(mv.k, c[mv.from]);
     if (!k) return;
+    const when = $('#mvWhen').value;
+    if (when && when > localISO()){ toast('That date is in the future.'); return false; }
+    logMove(m, names[mv.from], names[mv.to], k, when);
     c[mv.from] -= k; c[mv.to] += k;
     setCounts(m, c); m.updated = Date.now(); save(); render();
     toast(isDone(m) && !wasDone ? `All ${m.total} finished.` : `Moved ${k} to ${names[mv.to]}.`);
@@ -7502,6 +7567,7 @@ document.addEventListener('click', e => {
     if (a === 'backArchive'){ navGo('back', () => { state.openArchive = false; state.openGame = null; state.openArmy = null; render(); window.scrollTo(0,0); }); return; }
     if (a === 'dupMini')   return duplicateMini();
     if (a === 'splitMini') return dlgSplit();
+    if (a === 'allHistory'){ state.showAllHistory = state.openMini; render(); return; }
     if (a === 'joinMini')  return dlgJoinBack();
     if (a === 'remindMini'){ const m = data.minis.find(x => x.id === state.openMini); if (m) dlgRemind(m); return; }
     if (a === 'snooze'){ try { localStorage.setItem(SNOOZE_KEY(act.dataset.id), String(Date.now() + 14 * 86400000)); } catch (e) {}
@@ -7668,6 +7734,7 @@ document.addEventListener('click', e => {
     return;
   }
   const dp = t.closest('[data-delphoto]'); if (dp) return removePhoto(dp.dataset.delphoto);
+  const hd = t.closest('[data-hdate]'); if (hd) return dlgHistoryDate(hd.dataset.hdate);
   const ds = t.closest('[data-delswatch]'); if (ds) return deleteSwatch(ds.dataset.delswatch);
   const dst = t.closest('[data-delstep]'); if (dst) return deleteStep(dst.dataset.delstep);
   const ul = t.closest('[data-unlink]');
