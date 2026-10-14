@@ -935,6 +935,19 @@ span.havedrop.gone{display:inline-grid;place-items:center;color:var(--text-2)}
 .sprow{display:flex;align-items:center;gap:.75rem;padding:.375rem 0;border-bottom:1px solid var(--border)}
 .sprow .stepper{margin:0}
 .spsum{background:var(--help-bg);border-radius:var(--r-ctl);padding:.75rem .875rem;margin:.875rem 0 .25rem;font-size:.9375rem;line-height:1.5}
+
+/* v027: paste in a paint list */
+.plrow{display:flex;align-items:center;gap:.625rem;padding:.5rem 0;border-bottom:1px solid var(--border);min-height:var(--tap)}
+.plrow .grow{display:flex;flex-direction:column;min-width:0}
+.plrow .grow span{font-size:.8125rem;color:var(--text-2)}
+.plrow .sw{width:1.5rem;height:1.5rem;border-radius:6px;flex:0 0 auto;border:1px solid var(--border)}
+.plrow .sw.none{background:repeating-linear-gradient(135deg,transparent 0 4px,var(--border) 4px 5px)}
+.pltag{font-size:.8125rem;font-weight:700;color:var(--text-2)}
+.pltag.ok{color:color-mix(in srgb,var(--success) 62%,var(--text))}
+.plsel{width:auto;max-width:9.5rem;min-height:var(--tap);font-size:.875rem;padding:.25rem .5rem}
+.plown{display:flex;align-items:center;gap:.375rem;font-size:.8125rem;font-weight:600;min-height:var(--tap);white-space:nowrap}
+.plown input{width:1.125rem;height:1.125rem;accent-color:var(--text)}
+#plText{font-family:ui-monospace,Menlo,monospace;font-size:.9375rem;line-height:1.5}
 </style>
 </head>
 <body>
@@ -3645,7 +3658,7 @@ function syncPill(){
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v026';
+const APP_VERSION = 'v027';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -7038,7 +7051,8 @@ function dlgAddMini(){
 /* Paint picker: searches the catalogue, falls back to a hand-typed paint. */
 function dlgAddPaint(){
   openDialog('Add a paint',
-    `<label for="catq">Search the catalogue</label>
+    `${addPaintModes('one')}
+     <label for="catq">Search the catalogue</label>
      <input id="catq" type="search" placeholder="Kislev Flesh, Vallejo, 72.001" autocomplete="off">
      <div id="catres" style="margin-top:.625rem;max-height:17rem;overflow-y:auto"></div>
      <hr><p class="small muted" style="margin:0 0 .5rem">Not in there? Add your own.</p>
@@ -7077,12 +7091,157 @@ function dlgAddPaint(){
       : `<p class="small muted">Nothing in the catalogue matches that.</p>`;
   };
   q.addEventListener('input', run);
+  wireAddPaintModes();
   res.addEventListener('click', e => {
     const b = e.target.closest('[data-ci]'); if (!b) return;
     $$('#catres [data-ci]').forEach(x => x.setAttribute('aria-pressed','false'));
     b.setAttribute('aria-pressed','true');
   });
   run();
+}
+
+/* --- paste in a paint list (v027) ------------------------------------------
+   One paint per line, brand optional. Every line is matched against the
+   catalogue and shown back as found, choose one, not found or already yours
+   before anything is added. Nothing is guessed: a name shared by several
+   paints in different brands waits for you to choose. */
+const addPaintModes = on => `<div class="chips" role="group" aria-label="How to add">
+  <button class="chip" type="button" data-apmode="one" aria-pressed="${on === 'one'}">Search the catalogue</button>
+  <button class="chip" type="button" data-apmode="list" aria-pressed="${on === 'list'}">Paste a list</button></div>`;
+function wireAddPaintModes(){
+  $$('#dlg [data-apmode]').forEach(b => b.addEventListener('click', () => {
+    if (b.getAttribute('aria-pressed') === 'true') return;
+    if (b.dataset.apmode === 'list') dlgPastePaints(); else dlgAddPaint();
+  }));
+}
+const pnorm = t => String(t || '').toLowerCase().replace(/[’']/g, '').replace(/[^a-z0-9.]+/g, ' ').trim();
+const BRAND_ALIAS = { 'gw':'Citadel', 'games workshop':'Citadel', 'citadel colour':'Citadel', 'army painter':'The Army Painter',
+  'tap':'The Army Painter', 'ak':'AK Interactive', 'ak interactive':'AK Interactive', 'scale 75':'Scale75', 'pro acryl':'Monument',
+  'monument hobbies':'Monument', 'two thin coats':'Duncan', 'green stuff':'Green Stuff World', 'gsw':'Green Stuff World' };
+/* Ranges people rarely want when they just type a name. */
+const RANGE_LAST = /\b(air|spray|primer|aerosol)\b/i;
+function cleanLine(line){
+  return String(line).replace(/^[\s\-*•·]+/, '').replace(/^\d+[.)]\s+/, '').replace(/^\d+\s*x\s+/i, '')
+    .replace(/\s+x\s*\d+\s*$/i, '').replace(/\s*\(\s*\d+\s*\)\s*$/, '').trim();
+}
+function matchPaintLine(line, ownKeys){
+  const cat = catalogue();
+  const text = pnorm(line);
+  /* A brand at the start or end of the line, longest first so "AK Interactive" beats "AK". */
+  const brands = cat.brands.map(b => [pnorm(b), b]).concat(Object.entries(BRAND_ALIAS))
+    .sort((a, b) => b[0].length - a[0].length);
+  let brand = '', rest = text;
+  for (const [k, b] of brands){
+    if (!k) continue;
+    if (rest.startsWith(k + ' ')){ brand = b; rest = rest.slice(k.length + 1).trim(); break; }
+    if (rest.endsWith(' ' + k)){ brand = b; rest = rest.slice(0, -k.length - 1).trim(); break; }
+  }
+  if (!rest) return { line, status:'none' };
+  const hits = [];
+  cat.rows.forEach((r, i) => {
+    if (brand && r.b !== brand) return;
+    const n = pnorm(r.n), rg = pnorm(r.rg);
+    if (n === rest || (rg && (rg + ' ' + n === rest || n + ' ' + rg === rest)) || (r.c && pnorm(r.c) === rest)) hits.push(i);
+  });
+  const key = i => pnorm(cat.rows[i].n) + '|' + cat.rows[i].b;
+  if (hits.some(i => ownKeys.has(key(i))) || (!hits.length && ownKeys.has(rest + '|Your own')))
+    return { line, status:'have', name: hits.length ? cat.rows[hits[0]].n : rest };
+  if (!hits.length) return { line, status:'none', name: line.trim() };
+  if (hits.length === 1) return { line, status:'found', pick: hits[0], hits };
+  /* The same paint as a pot, an airbrush bottle and a spray (Citadel's Base,
+     Air and Spray): the pot is the one meant. Anything more varied than that,
+     such as twelve different Vallejo blacks, waits for you to choose. */
+  const pref = hits.filter(i => !RANGE_LAST.test(cat.rows[i].rg));
+  if (pref.length === 1) return { line, status:'found', pick: pref[0], hits };
+  const multiBrand = new Set(hits.map(i => cat.rows[i].b)).size > 1;
+  return { line, status:'choose', hits, pick: null, multiBrand };
+}
+function dlgPastePaints(text){
+  let results = null, stock = 'Have it';
+  const ownKeys = () => new Set(data.paints.map(p => pnorm(p.name) + '|' + (p.brand || '')));
+  const lines = () => $('#plText').value.split(/\r?\n/).map(cleanLine).filter(Boolean);
+  const toAddList = () => !results ? [] : results.filter(r => (r.status === 'found' || r.status === 'choose') && r.pick != null || (r.status === 'none' && r.own));
+  const label = () => results ? (toAddList().length ? `Add ${toAddList().length} paint${toAddList().length > 1 ? 's' : ''}` : 'Nothing to add yet')
+                              : `Check ${lines().length || ''} ${lines().length === 1 ? 'line' : 'lines'}`.replace('  ', ' ');
+  const setLabel = () => { const ok = $('#dlg [data-dlg="ok"]'); if (ok) ok.textContent = label(); };
+  const row = (r, i) => {
+    const cat = catalogue().rows, p = r.pick != null ? cat[r.pick] : null;
+    const sw = p ? `<span class="sw" style="background:${esc(p.hex)}"></span>` : `<span class="sw none" aria-hidden="true"></span>`;
+    if (r.status === 'found') return `<div class="plrow">${sw}<span class="grow"><b class="user-text">${esc(p.n)}</b><span>${esc([p.b, p.rg].filter(Boolean).join(' · '))}</span></span><span class="pltag ok">Add</span></div>`;
+    if (r.status === 'choose') return `<div class="plrow">${sw}<span class="grow"><b class="user-text">${esc(cat[r.hits[0]].n)}</b>
+        <span>${r.hits.length} paints have this name</span></span>
+        <select class="plsel" data-plpick="${i}" aria-label="Which ${esc(cat[r.hits[0]].n)}">
+          <option value="">Pick one</option>
+          ${r.hits.map(h => `<option value="${h}"${h === r.pick ? ' selected' : ''}>${esc(r.multiBrand ? cat[h].b + (cat[h].rg ? ' · ' + cat[h].rg : '') : cat[h].rg || cat[h].b)}</option>`).join('')}
+        </select></div>`;
+    if (r.status === 'none') return `<div class="plrow">${sw}<span class="grow"><b class="user-text">${esc(r.name)}</b><span>Not in the catalogue</span></span>
+        <label class="plown"><input type="checkbox" data-plown="${i}"${r.own ? ' checked' : ''}> Add as my own</label></div>`;
+    return `<div class="plrow">${sw}<span class="grow"><b class="user-text">${esc(r.name)}</b></span><span class="pltag">Skipped</span></div>`;
+  };
+  const body = () => {
+    if (!results) return `${addPaintModes('list')}
+      <label for="plText">One paint per line</label>
+      <textarea id="plText" class="user-text" rows="9" placeholder="Abaddon Black&#10;Mephiston Red&#10;Vallejo Black">${esc(text || '')}</textarea>
+      <p class="small muted">Add the brand if you know it, e.g. &ldquo;Vallejo Black&rdquo;. Nothing is added until you&rsquo;ve checked what was found.</p>`;
+    const groups = [['found','Found'],['choose','Choose one'],['none','Not found'],['have','Already in your paints']];
+    let h = `<p class="small" style="margin:0 0 .25rem"><b class="num">${results.length}</b> line${results.length > 1 ? 's' : ''} checked.
+      <button class="linkbtn" type="button" data-pledit>Edit the list</button></p>`;
+    groups.forEach(([k, t]) => {
+      const idx = results.map((r, i) => r.status === k ? i : -1).filter(i => i >= 0);
+      if (!idx.length) return;
+      h += `<p class="grouphead">${t} &middot; <span class="num">${idx.length}</span></p>` + idx.map(i => row(results[i], i)).join('');
+    });
+    h += chips('plStock', ['Have it', 'Wishlist'], { label:'Add them as', value:stock, noOwn:true });
+    return h;
+  };
+  const draw = () => { $('#plBody').innerHTML = body(); setLabel(); if (!results) { wireAddPaintModes(); $('#plText').addEventListener('input', setLabel); } };
+  openDialog('Add paints', `<div id="plBody"></div>`, () => {
+    if (!results){
+      const ls = lines();
+      if (!ls.length){ toast('Paste or type at least one paint.'); return false; }
+      if (ls.length > 300){ toast('That is more than 300 lines. Add them in smaller batches.'); return false; }
+      text = $('#plText').value;
+      const keys = ownKeys(), seen = new Set();
+      results = ls.map(l => {
+        const r = matchPaintLine(l, keys);
+        const k = r.pick != null ? 'c' + r.pick : (r.status === 'choose' ? null : 'n' + pnorm(r.name || l));
+        if (k && seen.has(k)) return { line:l, status:'have', name: r.pick != null ? catalogue().rows[r.pick].n : (r.name || l) };
+        if (k) seen.add(k);
+        return r;
+      });
+      draw(); return false;
+    }
+    stock = $('#plStock').value || 'Have it';
+    const add = toAddList();
+    if (!add.length){ toast('Nothing to add. Choose a paint for the lines that need one.'); return false; }
+    const cat = catalogue().rows, now = Date.now(), have = ownKeys();
+    let n = 0;
+    add.forEach(r => {
+      if (r.status === 'none'){
+        if (have.has(pnorm(r.name) + '|Your own')) return;
+        data.paints.push({ id:uid(), name:r.name, brand:'Your own', range:'', code:'', hex:'', type:'', stock, notes:'', created:now });
+      } else {
+        const c = cat[r.pick];
+        if (have.has(pnorm(c.n) + '|' + c.b)) return;
+        have.add(pnorm(c.n) + '|' + c.b);
+        data.paints.push({ id:uid(), name:c.n, brand:c.b, range:c.rg, code:c.c, hex:c.hex, type:'', stock, notes:'', created:now });
+      }
+      n++;
+    });
+    save(); render(); toast(n === 1 ? '1 paint added.' : n + ' paints added.');
+  }, 'Check');
+  draw();
+  $('#plBody').addEventListener('change', e => {
+    const sel = e.target.closest('[data-plpick]'), own = e.target.closest('[data-plown]');
+    if (sel){ const r = results[+sel.dataset.plpick]; r.pick = sel.value === '' ? null : +sel.value;
+      const sw = sel.closest('.plrow').querySelector('.sw'); const c = r.pick != null ? catalogue().rows[r.pick] : null;
+      sw.classList.toggle('none', !c); sw.style.background = c ? c.hex : ''; setLabel(); }
+    if (own){ results[+own.dataset.plown].own = own.checked; setLabel(); }
+  });
+  $('#plBody').addEventListener('click', e => {
+    if (e.target.closest('[data-pledit]')){ results = null; draw(); $('#plText').focus(); }
+  });
+  if (!text) $('#plText').focus();
 }
 
 /* Camera first: the photograph happens before anything else, because it is the
