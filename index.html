@@ -1079,6 +1079,34 @@ nav.tabs button[aria-current="page"]::after{content:"";position:absolute;bottom:
   .wbgrid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:0 2.25rem;align-items:start}
   .wbside .meds{margin-top:4.25rem}
 }
+
+/* Painting sessions (v032) */
+.sess{display:flex;align-items:center;gap:.75rem;width:100%;margin:.25rem 0 0;padding:.75rem;border:0;border-radius:12px;text-align:left;color:var(--text);font:inherit;cursor:pointer;
+  background:linear-gradient(90deg,var(--raised),var(--surface));box-shadow:inset 0 0 0 1px var(--gold-line);min-height:var(--tap)}
+.sess .play,.bigplay{display:grid;place-items:center;flex:0 0 auto;border-radius:50%;color:var(--ink-navy);
+  background:radial-gradient(circle at 35% 30%,#E2C788,#B08F4A);box-shadow:0 0 0 3px var(--deep),0 0 0 4px var(--gold-line)}
+.sess .play{width:2.875rem;height:2.875rem}
+.sess .tx{flex:1;min-width:0}.sess .tx b{display:block;font-size:.875rem;font-weight:600;overflow-wrap:anywhere}
+.sess .tx small{display:block;font-size:.75rem;color:var(--text-2)}
+.sess .time{font-family:var(--f-display);font-size:1.375rem;color:#E8D7A8}
+.sess:focus-visible,.bigplay:focus-visible,.sstep:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.sesshead{text-align:center;margin:.5rem 0 0}
+.sessname{font-family:var(--f-display);font-weight:600;font-size:min(1.75rem,9vw);margin:.25rem 0 0;overflow-wrap:anywhere}
+.sclock{font-family:var(--f-display);font-size:min(4.25rem,18vw);line-height:1;color:#E8D7A8;text-align:center;margin:1rem 0 .375rem}
+.ctr{text-align:center}
+.btn.gold{background:linear-gradient(180deg,#D3B676,#B8964F);color:var(--ink-navy);border:0;font-weight:700}
+.sessdiv{display:block;width:100%;max-width:22rem;height:1.25rem;margin:1.25rem auto .25rem;opacity:.9}
+.bigplay{width:4rem;height:4rem;border:0;margin:1rem auto 0;cursor:pointer}
+.bigplay svg{width:1.375rem;height:1.375rem}
+.sstep{display:flex;align-items:center;gap:.75rem;width:100%;padding:.625rem 0;border:0;border-bottom:1px solid var(--border);background:none;
+  color:var(--text);font:inherit;text-align:left;cursor:pointer;min-height:var(--tap)}
+.sstep .n{width:1.875rem;height:1.875rem;border-radius:50%;display:grid;place-items:center;flex:0 0 auto;border:1px solid var(--gold-line);
+  font-family:var(--f-display);color:#E8D7A8}
+.sstep.done .n{background:var(--gold);border-color:var(--gold);color:var(--ink-navy)}
+.sstep .tx{flex:1;min-width:0;font-size:.875rem}.sstep .tx small{display:block;font-size:.75rem;color:var(--text-2)}
+.sstep.done .tx b{color:var(--text-2);text-decoration:line-through;text-decoration-color:var(--gold-line)}
+.sstep .sw{width:1.375rem;height:1.375rem;border-radius:50%;flex:0 0 auto;box-shadow:inset 0 0 0 1px rgba(255,255,255,.2)}
+.pinbtn svg{width:1.125rem;height:1.125rem}
 </style>
 </head>
 <body>
@@ -3797,7 +3825,7 @@ function syncPill(){
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v031';
+const APP_VERSION = 'v032';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -4289,13 +4317,14 @@ function historyCard(m){
   const log = arr(m.log).slice().sort((a, b) => (b.on || '').localeCompare(a.on || '') || (b.at || 0) - (a.at || 0));
   const since = historySince();
   const old = (m.created || 0) < new Date(since + 'T00:00:00').getTime();
-  if (!log.length && !old) return '';
+  if (!log.length && !old && !paintedMins(m)) return '';
   const all = state.showAllHistory === m.id, show = all ? log : log.slice(0, 6);
   let h = `<div class="card"><h3 style="margin:0 0 .25rem">History</h3>`;
   if (!log.length) h += `<p class="small muted" style="margin:.25rem 0 0">Nothing dated yet. Moves you make from now on are kept here with their date.</p>`;
+  if (paintedMins(m)) h += `<p class="small muted" style="margin:0 0 .25rem">Painted for <b>${esc(fmtDur(paintedMins(m)))}</b> in all.</p>`;
   show.forEach(e => {
     h += `<div class="hrow"><button class="linkbtn hdate" data-hdate="${esc(e.id)}" aria-label="Change the date: ${esc(fmtDay(e.on))}">${esc(fmtDay(e.on))}</button>
-      <span><span class="num">${Number(e.n) || 0}</span> moved from ${esc(e.from)} to <b>${esc(e.to)}</b></span></div>`;
+      <span>${logWords(e)}</span></div>`;
   });
   if (log.length > show.length) h += `<button class="linkbtn" data-act="allHistory">Show all ${log.length}</button>`;
   if (old) h += `<p class="small muted" style="margin:.5rem 0 0">Progress from before ${esc(fmtDay(since))} has no dates.</p>`;
@@ -4305,7 +4334,7 @@ function dlgHistoryDate(id){
   const m = data.minis.find(x => x.id === state.openMini); if (!m) return;
   const e = arr(m.log).find(x => x.id === id); if (!e) return;
   openDialog('When did this happen?',
-    `<p class="small muted" style="margin-top:0">${Number(e.n) || 0} moved from ${esc(e.from)} to ${esc(e.to)}.</p>
+    `<p class="small muted" style="margin-top:0">${logWords(e)}.</p>
      <label for="hdDate">Date</label><input id="hdDate" type="date" value="${esc(e.on)}" max="${localISO()}">`,
     () => {
       const v = $('#hdDate').value;
@@ -4315,6 +4344,162 @@ function dlgHistoryDate(id){
       m.updated = Date.now(); save(); render(); toast('Date changed.');
     }, 'Save date');
 }
+
+/* --- painting sessions (v032) ----------------------------------------------
+   One session at a time, kept in settings so it follows you between devices.
+   It stores when it started and how long it has been paused, never a running
+   count, so closing the app or locking the phone loses nothing. Finishing
+   adds the minutes to the unit, writes one line to its history and, only if
+   you say so, moves models on a stage. */
+function sessNow(){
+  const s = data.settings && data.settings.session;
+  return s && typeof s === 'object' && typeof s.miniId === 'string' && Number(s.start) > 0 ? s : null;
+}
+const sessMs = s => !s ? 0 : Math.max(0, (s.pausedAt || Date.now()) - Number(s.start) - (Number(s.pausedMs) || 0));
+const fmtClock = ms => { const t = Math.floor(ms / 1000);
+  return Math.floor(t / 3600) + ':' + String(Math.floor(t % 3600 / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0'); };
+const fmtDur = mins => { mins = Math.max(0, Math.round(Number(mins) || 0));
+  if (mins < 60) return mins + ' min'; const h = Math.floor(mins / 60), r = mins % 60; return h + ' h' + (r ? ' ' + r + ' m' : ''); };
+const paintedMins = m => Math.max(0, Number(m && m.paintMins) || 0);
+const totalPainted = () => liveMinis().reduce((a, m) => a + paintedMins(m), 0);
+/* The recipes linked to a unit, with the area each is for. */
+const unitRecipes = m => arr(data.links).filter(l => l && l.miniId === m.id)
+  .map(l => ({ area:l.area || '', r:arr(data.recipes).find(r => r.id === l.recipeId) })).filter(x => x.r);
+/* One history line, in words. Sessions have no stage move of their own. */
+function logWords(e){
+  if (e.kind === 'session') return `<b>${esc(fmtDur(e.mins))}</b> painting${e.note ? ` <span class="muted user-text">&middot; ${esc(e.note)}</span>` : ''}`;
+  return `<span class="num">${Number(e.n) || 0}</span> moved from ${esc(e.from)} to <b>${esc(e.to)}</b>`;
+}
+function sessionStrip(heroM){
+  const s = sessNow();
+  const m = s ? data.minis.find(x => x.id === s.miniId) : heroM;
+  if (!m) return '';
+  const tot = totalPainted();
+  let h = `<div class="sect"><h3>Painting session</h3>${tot ? `<span class="small muted">${esc(fmtDur(tot))} painted</span>` : ''}</div>`;
+  if (s){
+    return h + `<button class="sess on" data-act="sessOpen"><span class="play" aria-hidden="true">${s.pausedAt ? PLAY_SVG : PAUSE_SVG}</span>
+      <span class="tx"><b>${s.pausedAt ? 'Paused' : 'Painting'} <span class="user-text">${esc(m.name)}</span></b><small>Open the session</small></span>
+      <span class="time num" data-sessclock>${fmtClock(sessMs(s))}</span></button>`;
+  }
+  const R = unitRecipes(m)[0];
+  return h + `<button class="sess" data-act="sessStart" data-id="${esc(m.id)}"><span class="play" aria-hidden="true">${PLAY_SVG}</span>
+    <span class="tx"><b>Start painting <span class="user-text">${esc(m.name)}</span></b>
+    <small>${R ? `${R.area ? esc(R.area) + ' &middot; ' : ''}<span class="user-text">${esc(R.r.title || 'Recipe')}</span> &middot; ${arr(R.r.steps).length} step${arr(R.r.steps).length === 1 ? '' : 's'}` : 'No recipe linked yet'}</small></span>
+    <span class="time num" aria-hidden="true">0:00</span></button>`;
+}
+const PLAY_SVG = '<svg viewBox="0 0 24 24" width="18" height="18"><path d="M7 4v16l13-8Z" fill="currentColor"/></svg>';
+const PAUSE_SVG = '<svg viewBox="0 0 24 24" width="18" height="18"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" fill="currentColor"/></svg>';
+function screenSession(){
+  const s = sessNow();
+  let h = backBtn('home', 'Workbench');
+  if (!s) return h + `<div class="empty"><p>No painting session running. Start one from the Workbench.</p></div>`;
+  const m = data.minis.find(x => x.id === s.miniId);
+  if (!m) return h + `<div class="empty"><p>The unit this session was for has gone. You can stop the session.</p>
+    <button class="btn ghost" data-act="sessCancel">Stop without saving</button></div>`;
+  const RS = unitRecipes(m);
+  const cur = RS.find(x => x.r.id === s.recipeId) || RS[0];
+  const g = { sys:m.sys || '', fac:m.fac || '' };
+  const t0 = new Date(Number(s.start));
+  h += `<div class="sesshead"><p class="eyebrow">${esc(armyLabel(g))}${g.sys ? ' &middot; ' + esc(gameLabel(g.sys)) : ''}</p>
+    <h2 class="sessname user-text">${esc(m.name)}</h2></div>
+    <p class="sclock num" role="timer" aria-label="Time painted" data-sessclock>${fmtClock(sessMs(s))}</p>
+    <p class="small muted ctr">${s.pausedAt ? 'Paused' : 'Started ' + t0.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' }) + ' &middot; keeps counting if you leave the app'}</p>
+    <div class="ctr"><button class="bigplay" data-act="sessPause" aria-label="${s.pausedAt ? 'Carry on' : 'Pause'}">${s.pausedAt ? PLAY_SVG : PAUSE_SVG}</button></div>
+    <span class="orn o-thin sessdiv" aria-hidden="true"></span>`;
+  if (cur){
+    if (RS.length > 1) h += `<div class="chips" role="group" aria-label="Which recipe">${RS.map(x =>
+      `<button class="chip" data-sessrec="${esc(x.r.id)}" aria-pressed="${x === cur}">${x.area ? esc(x.area) + ' &middot; ' : ''}${esc(x.r.title || 'Recipe')}</button>`).join('')}</div>`;
+    const ticks = arr(s.ticks);
+    h += `<div class="sect"><h3>${cur.area ? esc(cur.area) + ' &middot; ' : ''}<span class="user-text">${esc(cur.r.title || 'Recipe')}</span></h3>
+      <button class="linkbtn" data-openrecipe="${esc(cur.r.id)}">Open recipe</button></div>`;
+    arr(cur.r.steps).forEach((st, i) => {
+      const done = ticks.indexOf(st.id) !== -1;
+      const ps = arr(st.paintIds).map(id => arr(data.paints).find(p => p.id === id)).filter(Boolean);
+      const sub = [ps.map(p => p.name).join(' + '), st.dry, st.notes].filter(Boolean).join(' &middot; ');
+      h += `<button class="sstep${done ? ' done' : ''}" data-sesstep="${esc(st.id)}" aria-pressed="${done}">
+        <span class="n num" aria-hidden="true">${done ? '&#10003;' : i + 1}</span>
+        <span class="tx"><b>${esc(st.technique || 'Step ' + (i + 1))}</b>${sub ? `<small>${esc(sub).replace(/&amp;middot;/g, '&middot;')}</small>` : ''}</span>
+        ${ps.slice(0, 2).map(p => `<span class="sw" style="background:${/^#[0-9a-f]{6}$/i.test(p.hex || '') ? p.hex : 'transparent'}" aria-hidden="true"></span>`).join('')}</button>`;
+    });
+  } else {
+    h += `<p class="small muted ctr">No recipe linked to this unit. You can link one from the unit&rsquo;s page.</p>`;
+  }
+  h += `<div class="row" style="margin-top:1.25rem"><button class="btn gold wide" data-act="sessFinish">Finish session</button></div>
+    <p class="ctr" style="margin-top:.75rem"><button class="linkbtn" data-act="sessCancel">Stop without saving</button></p>`;
+  return h;
+}
+function sessStart(id){
+  const m = data.minis.find(x => x.id === id); if (!m) return;
+  const R = unitRecipes(m)[0];
+  data.settings.session = { miniId:m.id, start:Date.now(), pausedMs:0, pausedAt:0, recipeId: R ? R.r.id : '', ticks:[] };
+  save(); state.tab = 'session'; state.openMini = null; render(); window.scrollTo(0, 0);
+}
+function sessPause(){
+  const s = sessNow(); if (!s) return;
+  if (s.pausedAt){ s.pausedMs = (Number(s.pausedMs) || 0) + (Date.now() - s.pausedAt); s.pausedAt = 0; }
+  else s.pausedAt = Date.now();
+  save(); render();
+}
+function sessFinish(){
+  const s = sessNow(); if (!s) return;
+  const m = data.minis.find(x => x.id === s.miniId); if (!m) return;
+  if (!s.pausedAt){ s.pausedAt = Date.now(); save(); render(); }
+  const mins0 = Math.max(1, Math.round(sessMs(s) / 60000));
+  const names = stagesOf(m), last = names.length - 1, cnt = stageCounts(m);
+  const f0 = cnt.findIndex((k, i) => k > 0 && i < last);
+  const mv = { from: f0 < 0 ? -1 : f0, to: f0 < 0 ? -1 : f0 + 1, k:0 };
+  const body = () => mv.from < 0 ? `<p class="small muted">Every model is finished, so there is nothing to move on.</p>` : `
+    <p class="fsec" id="sfFromL">Move from</p>
+    <div class="chips" role="group" aria-labelledby="sfFromL">${names.map((n, i) => cnt[i] && i < last ?
+      `<button class="chip" data-sffrom="${i}" aria-pressed="${i === mv.from}">${esc(n)} <span class="n">${cnt[i]}</span></button>` : '').join('')}</div>
+    <p class="fsec" id="sfToL">To</p>
+    <div class="chips" role="group" aria-labelledby="sfToL">${names.map((n, i) => i > mv.from ?
+      `<button class="chip" data-sfto="${i}" aria-pressed="${i === mv.to}">${esc(n)}</button>` : '').join('')}</div>
+    <p class="fsec" id="sfNL">How many</p>
+    <div class="stepper" role="group" aria-labelledby="sfNL">
+      <button class="stepbtn" data-sfstep="-1" aria-label="One fewer"${mv.k <= 0 ? ' disabled' : ''}>&minus;</button>
+      <output class="stepn num" aria-live="polite">${mv.k}</output>
+      <button class="stepbtn" data-sfstep="1" aria-label="One more"${mv.k >= cnt[mv.from] ? ' disabled' : ''}>+</button>
+      <span class="small muted">of ${cnt[mv.from]} at ${esc(names[mv.from])}</span></div>`;
+  const label = () => mv.k ? `Save and move ${mv.k}` : 'Save the time';
+  openDialog('What did you get done?', `<p class="small muted" style="margin-top:0">Painting <span class="user-text">${esc(m.name)}</span>. Leave it at 0 to save just the time.</p>
+    <div id="sfBody">${body()}</div>
+    <label for="sfMins">Minutes painted</label><input id="sfMins" type="number" inputmode="numeric" min="1" max="1440" value="${mins0}">
+    <label for="sfNote">Note <span class="muted">(optional)</span></label><input id="sfNote" type="text" maxlength="140" autocomplete="off">`, () => {
+    const mins = Math.round(Number($('#sfMins').value));
+    if (!(mins >= 1 && mins <= 1440)){ toast('Enter the minutes painted, from 1 to 1440.'); return false; }
+    const note = $('#sfNote').value.trim().slice(0, 140);
+    const log = arr(m.log).slice();
+    log.push({ id:uid(), on:localISO(), kind:'session', mins, note, at:Date.now() });
+    m.log = log.length > HISTORY_MAX ? log.slice(-HISTORY_MAX) : log;
+    m.paintMins = paintedMins(m) + mins;
+    const c = stageCounts(m), wasDone = isDone(m);
+    const k = mv.from < 0 ? 0 : Math.min(mv.k, c[mv.from]);
+    if (k){ logMove(m, names[mv.from], names[mv.to], k); c[mv.from] -= k; c[mv.to] += k; setCounts(m, c); }
+    m.updated = Date.now();
+    delete data.settings.session;
+    save(); state.tab = 'home'; render(); window.scrollTo(0, 0);
+    toast(k && isDone(m) && !wasDone ? `All ${m.total} finished. ${fmtDur(mins)} saved.` : k ? `${fmtDur(mins)} saved. Moved ${k} to ${names[mv.to]}.` : `${fmtDur(mins)} saved to ${m.name}.`);
+  }, label(), 'Keep painting');
+  const dlg = $('#dlg');
+  const refresh = () => { $('#sfBody').innerHTML = body(); const ok = dlg.querySelector('[data-dlg="ok"]'); if (ok) ok.textContent = label(); };
+  $('#sfBody').addEventListener('click', e => {
+    const f = e.target.closest('[data-sffrom]'), t = e.target.closest('[data-sfto]'), st = e.target.closest('[data-sfstep]');
+    if (f){ mv.from = +f.dataset.sffrom; mv.to = mv.from + 1; mv.k = Math.min(mv.k, cnt[mv.from]); refresh(); }
+    else if (t){ mv.to = +t.dataset.sfto; refresh(); }
+    else if (st){ mv.k = Math.max(0, Math.min(cnt[mv.from], mv.k + Number(st.dataset.sfstep))); refresh(); }
+  });
+}
+function sessCancel(){
+  openDialog('Stop without saving?', `<p style="margin-top:0">The time from this session will not be kept.</p>`, () => {
+    delete data.settings.session; save(); state.tab = 'home'; render(); window.scrollTo(0, 0); toast('Session stopped.');
+  }, 'Stop', 'Keep painting');
+}
+/* The clocks on screen move once a second. Nothing is stored as it ticks. */
+setInterval(() => {
+  const s = sessNow(); if (!s || s.pausedAt) return;
+  document.querySelectorAll('[data-sessclock]').forEach(el => { el.textContent = fmtClock(sessMs(s)); });
+}, 1000);
 
 /* Started: some model is past the first stage, and not all are finished. */
 const isStarted = m => { const c = stageCounts(m); return !isDone(m) && c[0] < (Number(m.total)||1); };
@@ -4583,15 +4768,16 @@ function screenHome(){
   h += `<div class="segbar" role="tablist" aria-label="Workbench lists">${tabs.map(([k, t, list]) =>
     `<button role="tab" data-bench="${k}" aria-selected="${k === tab}"${list.length ? '' : ' disabled'}>${t}<b class="num">${list.length}</b></button>`).join('')}</div>`;
   const list = L[tab];
+  let heroM = null;
   if (list.length){
     const i = Math.min(Math.max(state.heroIdx || 0, 0), list.length - 1); state.heroIdx = i;
-    const m = list[i];
+    const m = list[i]; heroM = m;
     h += heroCard(m, tab, i, list.length);
     h += nudges(m);
   } else {
     h += `<p class="muted" style="margin:1rem 0">Nothing here yet.</p>`;
   }
-  h += `</div><div class="wbside">` + medallions(c) + activityList() + `</div></div>`;
+  h += `</div><div class="wbside">` + medallions(c) + sessionStrip(heroM) + activityList() + `</div></div>`;
   /* Everything else on the bench, by army, as before: the card shows one at
      a time, this shows them all at a glance. */
   const started = L.bench;
@@ -4680,8 +4866,10 @@ function activityList(){
     const pid = arr(m.photos)[0];
     const L = stagesOf(m), fin = e.to === L[L.length - 1];
     const when = e.on === today ? 'Today' : e.on === yest ? 'Yesterday' : fmtDay(e.on);
+    const what = e.kind === 'session' ? `Painted for <b>${esc(fmtDur(e.mins))}</b>`
+      : `<span class="num">${Number(e.n) || 0}</span> ${fin ? '<b>finished</b>' : `moved to <b>${esc(e.to)}</b>`}`;
     return `<button class="act2" data-open="${esc(m.id)}">${pid ? photoImg(pid, 'ath') : `<span class="ath${fin ? ' fin' : ''}" aria-hidden="true">${fin ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">${MED_ICON.laurel}</svg>` : ''}</span>`}
-      <span class="tx"><span class="num">${Number(e.n) || 0}</span> ${fin ? '<b>finished</b>' : `moved to <b>${esc(e.to)}</b>`}<small class="user-text">${esc(m.name)}</small></span><time>${esc(when)}</time></button>`;
+      <span class="tx">${what}<small class="user-text">${esc(m.name)}</small></span><time>${esc(when)}</time></button>`;
   }).join('');
 }
 
@@ -5781,6 +5969,9 @@ function screenMini(){
   if (!m.archived) h += `<button class="pinbtn" data-act="togglePin" aria-pressed="${m.pinned ? 'true' : 'false'}">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6l-1 6 4 4H6l4-4-1-6Z M12 13v8" fill="${m.pinned ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
       ${m.pinned ? 'Pinned to Workbench' : 'Pin to Workbench'}</button>`;
+  if (!m.archived){ const s = sessNow();
+    h += s && s.miniId === m.id ? `<button class="pinbtn" data-act="sessOpen">${PAUSE_SVG} Painting now &middot; open the session</button>`
+      : `<button class="pinbtn" data-act="sessStart" data-id="${esc(m.id)}">${PLAY_SVG} Start painting</button>`; }
 
   const stageHelp = helpBlock('stages');
   const prog = last ? cur / last : 1;
@@ -6244,7 +6435,7 @@ function screenRecipeDetail(){
 /* ===========================================================================
    Render
    =========================================================================== */
-const TITLES = { home:'MiniManager', coll:'Collection', paints:'Paints', recipes:'Recipes' };
+const TITLES = { home:'MiniManager', coll:'Collection', paints:'Paints', recipes:'Recipes', session:'Painting session' };
 
 /* The one thing you most often do on each list screen, in the top bar beside
    its title. Detail screens and the setup flow have their own buttons. */
@@ -6285,6 +6476,7 @@ function render(){
   else if (state.tab === 'account')  html = screenAccount();
   else if (state.tab === 'privacy')  html = screenPrivacy('home');
   else if (state.tab === 'pick')     html = screenPick();
+  else if (state.tab === 'session')  html = screenSession();
   else if (state.tab === 'shop')     html = screenShop();
   else if (state.tab === 'home')     html = screenHome();
   else if (state.tab === 'coll')     html = state.openMini ? screenMini() : screenCollection();
@@ -6327,7 +6519,7 @@ function screenShop(){
   const want = arr(data.wishlist);
   const tab = state.shopTab;
 
-  let h = `${backBtn('home','Home')}
+  let h = `${backBtn('home','Workbench')}
     <h2 class="display" style="font-size:1.5rem;margin:0 0 .5rem">Shopping</h2>
     <div class="tabs2" role="tablist">
       <button role="tab" data-shop="need" aria-selected="${tab==='need'}">Need
@@ -6503,7 +6695,7 @@ function screenPick(){
   arr(data.minis).forEach(m => { if (m.sys) withMinis[m.sys] = true; });
   const systems = arr(data.systems).filter(s => withMinis[s.id]);
 
-  let h = `${backBtn('home','Home')}
+  let h = `${backBtn('home','Workbench')}
     <h2 class="display" style="font-size:1.5rem">What should I do next?</h2>
     <div class="chips">
       <button class="chip" data-pk="build" aria-pressed="${p.kind==='build'}">To build</button>
@@ -6814,7 +7006,7 @@ function screenPrivacy(back, label){
 /* --- the account screen ---------------------------------------------------- */
 function screenAccount(){
   const u = syncState.user;
-  return `${backBtn('home','Home')}
+  return `${backBtn('home','Workbench')}
   <h2 class="display" style="font-size:1.5rem">Your account</h2>
   <div class="card">
     <p style="margin:0"><b>${esc((u && (u.displayName || u.email)) || 'Signed in')}</b></p>
@@ -7674,6 +7866,11 @@ document.addEventListener('click', e => {
   /* Workbench (v031): the three lists, and moving along the framed card. */
   const bt = t.closest('[data-bench]');
   if (bt && !bt.disabled){ state.benchTab = bt.dataset.bench; state.benchPicked = true; state.heroIdx = 0; render(); return; }
+  const sst = t.closest('[data-sesstep]');
+  if (sst){ const s = sessNow(); if (!s) return; const id = sst.dataset.sesstep, tk = arr(s.ticks);
+    s.ticks = tk.indexOf(id) === -1 ? tk.concat(id) : tk.filter(x => x !== id); save(); render(); return; }
+  const srec = t.closest('[data-sessrec]');
+  if (srec){ const s = sessNow(); if (!s) return; s.recipeId = srec.dataset.sessrec; s.ticks = []; save(); render(); return; }
   const hs = t.closest('[data-hero]');
   if (hs && !hs.disabled){ state.heroIdx = (state.heroIdx || 0) + Number(hs.dataset.hero); render(); return; }
   const go = t.closest('[data-tab-go]');
@@ -7778,6 +7975,14 @@ document.addEventListener('click', e => {
     if (a === 'backArchive'){ navGo('back', () => { state.openArchive = false; state.openGame = null; state.openArmy = null; render(); window.scrollTo(0,0); }); return; }
     if (a === 'dupMini')   return duplicateMini();
     if (a === 'splitMini') return dlgSplit();
+    if (a === 'sessStart'){ const s = sessNow();
+      if (s && s.miniId !== act.dataset.id){ state.tab = 'session'; render(); window.scrollTo(0,0); toast('Finish this session before starting another.'); return; }
+      if (s){ state.tab = 'session'; state.openMini = null; render(); window.scrollTo(0,0); return; }
+      sessStart(act.dataset.id); return; }
+    if (a === 'sessOpen'){ state.tab = 'session'; state.openMini = null; render(); window.scrollTo(0,0); return; }
+    if (a === 'sessPause') return sessPause();
+    if (a === 'sessFinish') return sessFinish();
+    if (a === 'sessCancel') return sessCancel();
     if (a === 'togglePin'){ const m = data.minis.find(x => x.id === state.openMini); if (!m) return;
       if (m.pinned) delete m.pinned; else m.pinned = Date.now();
       m.updated = Date.now(); save(); render(); toast(m.pinned ? 'Pinned to the top of your Workbench.' : 'Unpinned.'); return; }
@@ -8079,7 +8284,7 @@ function duplicateMini(){
   const m = data.minis.find(x => x.id === state.openMini); if (!m) return;
   const c = JSON.parse(JSON.stringify(m));
   c.id = uid(); c.photos = []; c.done = 0; c.stage = stagesOf(m)[0];
-  delete c.at; delete c.atSig; delete c.archived; delete c.pinned; delete c.log;
+  delete c.at; delete c.atSig; delete c.archived; delete c.pinned; delete c.log; delete c.paintMins;
   c.acquired = ''; c.created = c.updated = Date.now();
   data.minis.push(c); save();
   state.openMini = c.id; state.openArchive = false; render(); window.scrollTo(0,0);
@@ -8292,7 +8497,7 @@ function dlgSplit(){
       const keep = cnt.map((c, i) => c - take[i]);
       const n = JSON.parse(JSON.stringify(m));
       Object.assign(n, { id:uid(), name, total:k, photos:[], price:null, acquired:'', splitFrom:m.id, created:now, updated:now });
-      delete n.archived; delete n.pinned; delete n.log;
+      delete n.archived; delete n.pinned; delete n.log; delete n.paintMins;
       setCounts(n, take.slice());
       m.total = total - k; setCounts(m, keep); m.updated = now;
       /* Belt and braces: the two must add back up to what there was. */
