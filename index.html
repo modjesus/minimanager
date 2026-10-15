@@ -415,7 +415,7 @@ html[data-nav="back"]::view-transition-new(main){animation-name:mm-in-left}
   dialog.sheet.leaving{transform:translateY(100%)!important;opacity:1!important}
   dialog.sheet.dragging{transition:none!important}
 }
-header.bar.gated #actslot,header.bar.gated #moreBtn{display:none}
+header.bar.gated #actslot,header.bar.gated #moreBtn,header.bar.gated #plusBtn{display:none}
 /* nav.tabs sets display:flex, which beats the browser's own [hidden] rule.
    Without this the tab bar stays on screen behind the sign-in gate, offering
    four tabs that cannot do anything. */
@@ -933,6 +933,7 @@ span.havedrop.gone{display:inline-grid;place-items:center;color:var(--text-2)}
 
 /* v025: your own undercoats */
 .checkrow{display:flex;align-items:center;gap:.625rem;min-height:var(--tap);font-weight:500;margin-top:.75rem}
+.checkrow .ctext{min-width:0;overflow-wrap:anywhere}
 .checkrow input{width:1.25rem;height:1.25rem;accent-color:var(--text);flex:0 0 auto}
 #ucHex:disabled{opacity:.4}
 
@@ -1227,6 +1228,65 @@ nav.tabs button{font-size:.75rem}
 .penopt .pennant{width:2rem;height:3.75rem}
 .penopt em{font-style:normal;color:var(--text-2)}
 .penopt[aria-pressed="true"]{border-color:var(--gold-ink);background:color-mix(in srgb,var(--gold-ink) 14%,transparent);box-shadow:inset 0 0 0 1px var(--gold-ink)}
+
+/* ---- v035 ------------------------------------------------------------- */
+/* The gold + in the top bar, and the menu of things to add. */
+.plusbtn{background:linear-gradient(180deg,#D3B676,#B8964F);border-color:transparent;color:var(--ink-navy);padding:0;width:var(--tap)}
+.plusbtn[aria-expanded="true"]{box-shadow:0 0 0 3px color-mix(in srgb,var(--gold) 35%,transparent)}
+.plusshade{position:fixed;inset:0;z-index:40;background:rgba(4,10,20,.5)}
+.plusmenu{position:fixed;z-index:41;top:calc(env(safe-area-inset-top,0px) + 4rem);right:max(.75rem,env(safe-area-inset-right,0px));
+  width:min(18rem,calc(100vw - 1.5rem));max-height:calc(100dvh - 6rem);overflow:auto;
+  background:var(--surface);border:1px solid color-mix(in srgb,var(--gold) 45%,transparent);border-radius:14px;padding:.375rem;box-shadow:0 18px 40px rgba(0,0,0,.5)}
+.plusmenu .pmh{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-ink);padding:.5rem .75rem .25rem;margin:0}
+.plusmenu button{display:flex;align-items:center;gap:.75rem;width:100%;min-height:var(--tap);padding:0 .75rem;border:0;background:none;color:var(--text);font:inherit;font-size:.9375rem;text-align:left;border-radius:10px;cursor:pointer}
+.plusmenu button:hover,.plusmenu button:focus-visible{background:color-mix(in srgb,var(--gold) 14%,transparent);outline:none}
+.plusmenu button:focus-visible{box-shadow:inset 0 0 0 2px var(--focus)}
+.plusmenu svg{width:1.125rem;height:1.125rem;color:var(--gold);flex:0 0 auto}
+.plusmenu hr{border:0;border-top:1px solid var(--border);margin:.25rem .5rem}
+/* The clear Add button at the top of each list. */
+.addtop{margin:.875rem 0 0}
+.addtop .btn{width:100%;display:inline-flex;align-items:center;justify-content:center;gap:.45rem}
+.addtop .btn svg,.wbacts .btn svg{width:1.2rem;height:1.2rem;flex:0 0 auto}
+@media (min-width:42rem){.addtop .btn{width:auto;min-width:16rem}}
+/* Workbench: progress first, then the two things you do most. */
+.wbprog{display:grid;gap:.375rem;margin:.75rem 0 0;padding:.625rem .875rem;border:1px solid color-mix(in srgb,var(--gold) 38%,transparent);border-radius:12px;background:color-mix(in srgb,var(--gold) 7%,transparent)}
+.wbprog .t{display:flex;justify-content:space-between;align-items:baseline;gap:.25rem .75rem;flex-wrap:wrap;font-size:.8125rem;color:var(--text-2)}
+.wbprog .t b{font-family:var(--f-display);font-weight:600;font-size:1.375rem;color:var(--text);margin-right:.2rem}
+.wbprog .bar{height:.5rem;border-radius:1rem;background:color-mix(in srgb,var(--text) 14%,transparent);overflow:hidden}
+.wbprog .bar i{display:block;height:100%;border-radius:1rem;background:var(--success)}
+.wbprog .mini{display:flex;flex-wrap:wrap;gap:.25rem 1rem;margin-top:.25rem;padding-top:.5rem;border-top:1px solid color-mix(in srgb,var(--text) 12%,transparent);font-size:.8125rem;color:var(--text-2)}
+.wbprog .mini span{display:inline-flex;align-items:center;gap:.3rem}
+.wbprog .mini .plink{display:inline-flex;align-items:center;gap:.3rem;font-size:inherit;color:var(--text-2);padding:.6rem 0;margin:-.6rem 0;min-height:0;text-decoration:none}
+.wbprog .mini .plink b{color:var(--text)}
+.wbprog .mini svg{width:1rem;height:1rem;color:var(--gold);flex:0 0 auto}
+.wbprog .mini b{color:var(--text);font-weight:600}
+.wbacts{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin:.75rem 0 1rem;max-width:30rem}
+.wbacts .btn{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;width:100%;white-space:nowrap;padding-inline:.5rem}
+@media (max-width:22rem){.wbacts{grid-template-columns:1fr}}
+/* Paint finishes: metallics catch the light; washes, shades, inks and
+   contrast paints sit over a light-and-dark check so you can see through them. */
+.sw.metal,.estchip.metal{background-image:linear-gradient(135deg,rgba(0,0,0,.42) 0%,rgba(0,0,0,0) 30%,rgba(255,255,255,.75) 46%,rgba(255,255,255,0) 58%,rgba(0,0,0,0) 72%,rgba(0,0,0,.38) 100%)}
+.sw.thin,.estchip.thin{background-image:linear-gradient(180deg,color-mix(in srgb,var(--c) 35%,transparent),color-mix(in srgb,var(--c) 92%,transparent)),repeating-conic-gradient(#F2EFE8 0 25%,#8F8A80 0 50%);background-size:auto,.625rem .625rem}
+.sw.contrast,.estchip.contrast{background-image:linear-gradient(180deg,color-mix(in srgb,var(--c) 55%,transparent),var(--c)),repeating-conic-gradient(#F2EFE8 0 25%,#8F8A80 0 50%);background-size:auto,.625rem .625rem}
+.estchip.thin,.estchip.contrast{background-size:auto,1.25rem 1.25rem}
+.finword{font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:var(--gold-ink)}
+/* Sessions that wait to be shared out. */
+.sessor{display:flex;align-items:center;gap:.5rem;margin:.5rem 0;font-size:.75rem;color:var(--text-2)}
+.sessor::before,.sessor::after{content:"";flex:1;height:1px;background:color-mix(in srgb,var(--text) 15%,transparent)}
+.sessfree{width:100%}
+.toassign{display:flex;align-items:center;gap:.75rem;width:100%;margin:.5rem 0 0;padding:.625rem .75rem;border:1px dashed var(--gold);border-radius:12px;background:none;color:var(--text);font:inherit;text-align:left;cursor:pointer}
+.toassign b{font-weight:600}.toassign small{display:block;color:var(--text-2);font-size:.75rem}
+.asfind{margin:.25rem 0 .5rem}
+.aslist{display:grid;gap:.375rem;max-height:min(22rem,45vh);overflow:auto;padding:.125rem}
+.asrow{display:flex;align-items:center;gap:.6rem;border:1px solid var(--border);border-radius:10px;padding:.375rem .5rem .375rem .625rem;min-height:var(--tap)}
+.asrow.on{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 12%,transparent)}
+.asrow input[type=checkbox]{width:1.125rem;height:1.125rem;accent-color:var(--gold);flex:0 0 auto;margin:0}
+.asrow label{flex:1;min-width:0;font-size:.875rem;margin:0;overflow-wrap:anywhere;cursor:pointer}
+.asrow label small{display:block;color:var(--text-2);font-size:.75rem}
+.asrow .asmin{width:4.25rem;flex:0 0 auto;text-align:right;padding:.375rem .5rem}
+.asrow .asmin:disabled{opacity:.35}
+.astot{font-size:.8125rem;color:var(--text-2);margin:.5rem 0 0}
+.astot.bad{color:var(--warning)}
 </style>
 </head>
 <body>
@@ -1250,8 +1310,23 @@ nav.tabs button{font-size:.75rem}
   <h1 id="screenTitle">MiniManager</h1>
   <span id="syncslot"></span>
   <span id="actslot"></span>
+  <button class="iconbtn plusbtn" id="plusBtn" aria-label="Add" aria-haspopup="menu" aria-expanded="false" aria-controls="plusMenu"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg></button>
   <button class="iconbtn" id="moreBtn" aria-label="More">&#8943;</button>
 </header>
+<div id="plusShade" class="plusshade" hidden></div>
+<div id="plusMenu" class="plusmenu" role="menu" aria-label="Add" hidden></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+  <linearGradient id="mmMetal" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#000" stop-opacity=".42"/><stop offset=".3" stop-color="#000" stop-opacity="0"/>
+    <stop offset=".46" stop-color="#fff" stop-opacity=".75"/><stop offset=".58" stop-color="#fff" stop-opacity="0"/>
+    <stop offset=".72" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".38"/></linearGradient>
+  <pattern id="mmCheck" width="16" height="16" patternUnits="userSpaceOnUse">
+    <rect width="16" height="16" fill="#8f8a80"/><rect width="8" height="8" fill="#f2efe8"/><rect x="8" y="8" width="8" height="8" fill="#f2efe8"/></pattern>
+  <linearGradient id="mmThin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".35"/><stop offset="1" stop-color="#fff" stop-opacity=".92"/></linearGradient>
+  <linearGradient id="mmThick" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="1"/></linearGradient>
+  <mask id="mmThinMask" maskContentUnits="objectBoundingBox"><rect width="1" height="1" fill="url(#mmThin)"/></mask>
+  <mask id="mmThickMask" maskContentUnits="objectBoundingBox"><rect width="1" height="1" fill="url(#mmThick)"/></mask>
+</defs></svg>
 
 <main id="app" class="wrap"></main>
 
@@ -3946,7 +4021,7 @@ function syncPill(){
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v034';
+const APP_VERSION = 'v035';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -4482,7 +4557,10 @@ const fmtClock = ms => { const t = Math.floor(ms / 1000);
 const fmtDur = mins => { mins = Math.max(0, Math.round(Number(mins) || 0));
   if (mins < 60) return mins + ' min'; const h = Math.floor(mins / 60), r = mins % 60; return h + ' h' + (r ? ' ' + r + ' m' : ''); };
 const paintedMins = m => Math.max(0, Number(m && m.paintMins) || 0);
-const totalPainted = () => liveMinis().reduce((a, m) => a + paintedMins(m), 0);
+/* Time not tied to one unit (v035): basing, terrain, prep. Kept in settings. */
+const hobbyMins = () => Math.max(0, Number(data.settings && data.settings.hobbyMins) || 0);
+const toAssign = () => arr(data.settings && data.settings.toAssign).filter(x => x && Number(x.mins) > 0);
+const totalPainted = () => liveMinis().reduce((a, m) => a + paintedMins(m), 0) + hobbyMins();
 /* The recipes linked to a unit, with the area each is for. */
 const unitRecipes = m => arr(data.links).filter(l => l && l.miniId === m.id)
   .map(l => ({ area:l.area || '', r:arr(data.recipes).find(r => r.id === l.recipeId) })).filter(x => x.r);
@@ -4494,26 +4572,44 @@ function logWords(e){
 function sessionStrip(heroM){
   const s = sessNow();
   const m = s ? data.minis.find(x => x.id === s.miniId) : heroM;
-  if (!m) return '';
   const tot = totalPainted();
   let h = `<div class="sect"><h3>Painting session</h3>${tot ? `<span class="small muted">${esc(fmtDur(tot))} painted</span>` : ''}</div>`;
+  const waiting = toAssign().slice(0, 3).map(x => `<button class="toassign" data-act="assignOpen" data-id="${esc(x.id)}">
+      <span class="tx"><b>${esc(fmtDur(x.mins))} to share out</b><small>Painted ${esc(new Date(Number(x.at) || Date.now()).toLocaleDateString('en-GB', { day:'numeric', month:'short' }))}. Choose what it was for.</small></span></button>`).join('');
   if (s){
     return h + `<button class="sess on" data-act="sessOpen"><span class="play" aria-hidden="true">${s.pausedAt ? PLAY_SVG : PAUSE_SVG}</span>
-      <span class="tx"><b>${s.pausedAt ? 'Paused' : 'Painting'} <span class="user-text">${esc(m.name)}</span></b><small>Open the session</small></span>
-      <span class="time num" data-sessclock>${fmtClock(sessMs(s))}</span></button>`;
+      <span class="tx"><b>${s.pausedAt ? 'Paused' : 'Painting'}${m ? ` <span class="user-text">${esc(m.name)}</span>` : ''}</b><small>${m ? 'Open the session' : 'You&rsquo;ll choose what it was for when you finish'}</small></span>
+      <span class="time num" data-sessclock>${fmtClock(sessMs(s))}</span></button>` + waiting;
   }
+  const free = `<button class="btn ghost sessfree" data-act="sessStartFree">Start the clock, choose later</button>`;
+  if (!m) return h + free + waiting;
   const R = unitRecipes(m)[0];
   return h + `<button class="sess" data-act="sessStart" data-id="${esc(m.id)}"><span class="play" aria-hidden="true">${PLAY_SVG}</span>
     <span class="tx"><b>Start painting <span class="user-text">${esc(m.name)}</span></b>
     <small>${R ? `${R.area ? esc(R.area) + ' &middot; ' : ''}<span class="user-text">${esc(R.r.title || 'Recipe')}</span> &middot; ${arr(R.r.steps).length} step${arr(R.r.steps).length === 1 ? '' : 's'}` : 'No recipe linked yet'}</small></span>
-    <span class="time num" aria-hidden="true">0:00</span></button>`;
+    <span class="time num" aria-hidden="true">0:00</span></button>
+    <div class="sessor" aria-hidden="true">or</div>${free}` + waiting;
 }
+const PLUS_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>';
+const DICE_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="3.5"/><circle cx="8.5" cy="8.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="15.5" cy="8.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="8.5" cy="15.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="15.5" cy="15.5" r="1.3" fill="currentColor" stroke="none"/></svg>';
+const addTop = (act, label) => `<div class="addtop"><button class="btn" data-act="${act}">${PLUS_SVG}${label}</button></div>`;
 const PLAY_SVG = '<svg viewBox="0 0 24 24" width="18" height="18"><path d="M7 4v16l13-8Z" fill="currentColor"/></svg>';
 const PAUSE_SVG = '<svg viewBox="0 0 24 24" width="18" height="18"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" fill="currentColor"/></svg>';
 function screenSession(){
   const s = sessNow();
   let h = backBtn('home', 'Workbench');
   if (!s) return h + `<div class="empty"><p>No painting session running. Start one from the Workbench.</p></div>`;
+  if (!s.miniId){
+    const t1 = new Date(Number(s.start));
+    return h + `<div class="sesshead"><p class="eyebrow">Choose what it was for when you finish</p>
+      <h2 class="sessname">Painting</h2></div>
+      <p class="sclock num" role="timer" aria-label="Time painted" data-sessclock>${fmtClock(sessMs(s))}</p>
+      <p class="small muted ctr">${s.pausedAt ? 'Paused' : 'Started ' + t1.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' }) + ' &middot; keeps counting if you leave the app'}</p>
+      <div class="ctr"><button class="bigplay" data-act="sessPause" aria-label="${s.pausedAt ? 'Carry on' : 'Pause'}">${s.pausedAt ? PLAY_SVG : PAUSE_SVG}</button></div>
+      <span class="orn o-thin sessdiv" aria-hidden="true"></span>
+      <div class="row" style="margin-top:1.25rem"><button class="btn gold wide" data-act="sessFinish">Finish session</button></div>
+      <p class="ctr" style="margin-top:.75rem"><button class="linkbtn" data-act="sessCancel">Stop without saving</button></p>`;
+  }
   const m = data.minis.find(x => x.id === s.miniId);
   if (!m) return h + `<div class="empty"><p>The unit this session was for has gone. You can stop the session.</p>
     <button class="btn ghost" data-act="sessCancel">Stop without saving</button></div>`;
@@ -4540,7 +4636,7 @@ function screenSession(){
       h += `<button class="sstep${done ? ' done' : ''}" data-sesstep="${esc(st.id)}" aria-pressed="${done}">
         <span class="n num" aria-hidden="true">${done ? '&#10003;' : i + 1}</span>
         <span class="tx"><b>${esc(st.technique || 'Step ' + (i + 1))}</b>${sub ? `<small>${esc(sub).replace(/&amp;middot;/g, '&middot;')}</small>` : ''}</span>
-        ${ps.slice(0, 2).map(p => swChip(p.hex)).join('')}</button>`;
+        ${ps.slice(0, 2).map(p => swChip(p.hex, p)).join('')}</button>`;
     });
   } else {
     h += `<p class="small muted ctr">No recipe linked to this unit. You can link one from the unit&rsquo;s page.</p>`;
@@ -4555,6 +4651,10 @@ function sessStart(id){
   data.settings.session = { miniId:m.id, start:Date.now(), pausedMs:0, pausedAt:0, recipeId: R ? R.r.id : '', ticks:[] };
   save(); state.tab = 'session'; state.openMini = null; render(); window.scrollTo(0, 0);
 }
+function sessStartFree(){
+  data.settings.session = { miniId:'', start:Date.now(), pausedMs:0, pausedAt:0, recipeId:'', ticks:[] };
+  save(); state.tab = 'session'; state.openMini = null; render(); window.scrollTo(0, 0);
+}
 function sessPause(){
   const s = sessNow(); if (!s) return;
   if (s.pausedAt){ s.pausedMs = (Number(s.pausedMs) || 0) + (Date.now() - s.pausedAt); s.pausedAt = 0; }
@@ -4563,6 +4663,10 @@ function sessPause(){
 }
 function sessFinish(){
   const s = sessNow(); if (!s) return;
+  if (!s.miniId){
+    if (!s.pausedAt){ s.pausedAt = Date.now(); save(); render(); }
+    return dlgAssign(Math.max(1, Math.round(sessMs(s) / 60000)), null);
+  }
   const m = data.minis.find(x => x.id === s.miniId); if (!m) return;
   if (!s.pausedAt){ s.pausedAt = Date.now(); save(); render(); }
   const mins0 = Math.max(1, Math.round(sessMs(s) / 60000));
@@ -4609,6 +4713,89 @@ function sessFinish(){
     if (f){ mv.from = +f.dataset.sffrom; mv.to = mv.from + 1; mv.k = Math.min(mv.k, cnt[mv.from]); refresh(); }
     else if (t){ mv.to = +t.dataset.sfto; refresh(); }
     else if (st){ mv.k = Math.max(0, Math.min(cnt[mv.from], mv.k + Number(st.dataset.sfstep))); refresh(); }
+  });
+}
+/* Share a stretch of painting time between units (v035). From a session
+   that was started with "choose later" (pendId null), or from one that was
+   saved to share out later (pendId = its id). Ticking a row shares the time
+   evenly between everything ticked; the minutes can then be changed. */
+function dlgAssign(total, pendId){
+  const live = sessNow();
+  const units = liveMinis().slice().sort((a, b) => (isStarted(b) - isStarted(a)) || (Number(b.updated) || 0) - (Number(a.updated) || 0));
+  const HOBBY = '__hobby';
+  const pick = new Map();
+  const rowsHtml = q => {
+    q = (q || '').trim().toLowerCase();
+    const list = units.filter(m => !q || m.name.toLowerCase().indexOf(q) !== -1 || armyLabel({ sys:m.sys || '', fac:m.fac || '' }).toLowerCase().indexOf(q) !== -1);
+    const row = (id, name, sub) => { const on = pick.has(id);
+      return `<div class="asrow${on ? ' on' : ''}" data-asrow="${esc(id)}"><input type="checkbox" id="as_${esc(id)}" data-ascheck="${esc(id)}"${on ? ' checked' : ''}>
+        <label for="as_${esc(id)}"><span class="user-text">${esc(name)}</span>${sub ? `<small>${esc(sub)}</small>` : ''}</label>
+        <input class="asmin" type="number" inputmode="numeric" min="0" max="1440" data-asmin="${esc(id)}" aria-label="Minutes for ${esc(name)}" value="${on ? pick.get(id) : ''}"${on ? '' : ' disabled'}></div>`; };
+    return (q ? '' : row(HOBBY, 'General hobby time', 'Basing, terrain, prep: not one unit')) +
+      list.slice(0, 60).map(m => row(m.id, m.name, armyLabel({ sys:m.sys || '', fac:m.fac || '' }) + ' · ' + stageLabel(m))).join('') +
+      (list.length > 60 ? `<p class="small muted">Showing 60 of ${list.length}. Search to find the rest.</p>` : '') +
+      (!list.length && q ? `<p class="small muted">Nothing matches that.</p>` : '');
+  };
+  const sum = () => [...pick.values()].reduce((a, b) => a + (Number(b) || 0), 0);
+  const share = () => { const ids = [...pick.keys()]; if (!ids.length) return;
+    const t = Math.round(Number($('#asTotal').value) || total), each = Math.floor(t / ids.length); let left = t - each * ids.length;
+    ids.forEach(id => { pick.set(id, each + (left > 0 ? 1 : 0)); left--; }); };
+  const totLine = () => { const t = Math.round(Number($('#asTotal').value) || 0), n = sum();
+    const el = $('#asTot'); if (!el) return;
+    el.textContent = !pick.size ? 'Tick what you worked on.' : n === t ? `All ${fmtDur(t)} shared out.` : n < t ? `${fmtDur(n)} of ${fmtDur(t)} shared out. ${fmtDur(t - n)} left over goes to general hobby time.` : `That adds up to ${fmtDur(n)}, more than the ${fmtDur(t)} painted.`;
+    el.classList.toggle('bad', n > t); };
+  openDialog('What did you work on?', `<p class="small muted" style="margin-top:0">Tick everything you worked on and the time is shared between them. You can change the minutes.</p>
+    <label for="asTotal">Minutes painted</label><input id="asTotal" type="number" inputmode="numeric" min="1" max="1440" value="${total}">
+    <div class="asfind"><label for="asQ" class="sr-only">Find a unit</label><input id="asQ" type="search" placeholder="Find a unit" autocomplete="off"></div>
+    <div class="aslist" id="asList" role="group" aria-label="What you worked on">${rowsHtml('')}</div>
+    <p class="astot" id="asTot" aria-live="polite">Tick what you worked on.</p>
+    <label for="asNote">Note <span class="muted">(optional)</span></label><input id="asNote" type="text" maxlength="140" autocomplete="off">
+    ${pendId ? `<p class="small" style="margin:.75rem 0 0"><button type="button" class="linkbtn quiet" data-asdrop>Don&rsquo;t keep this time</button></p>`
+      : `<p class="small" style="margin:.75rem 0 0"><button type="button" class="linkbtn" data-aslater>Decide later: keep it on the Workbench</button></p>`}`, () => {
+    const t = Math.round(Number($('#asTotal').value));
+    if (!(t >= 1 && t <= 1440)){ toast('Enter the minutes painted, from 1 to 1440.'); return false; }
+    if (!pick.size){ toast('Tick what you worked on, or General hobby time.'); return false; }
+    const n = sum();
+    if (n > t){ toast(`The minutes add up to more than ${t}. Lower one of them.`); return false; }
+    const note = $('#asNote').value.trim().slice(0, 140);
+    let hobby = t - n, touched = 0;
+    pick.forEach((mins, id) => {
+      mins = Math.round(Number(mins) || 0); if (mins <= 0) return;
+      if (id === HOBBY){ hobby += mins; return; }
+      const m = data.minis.find(x => x.id === id); if (!m){ hobby += mins; return; }
+      const log = arr(m.log).slice();
+      log.push({ id:uid(), on:localISO(), kind:'session', mins, note, at:Date.now() });
+      m.log = log.length > HISTORY_MAX ? log.slice(-HISTORY_MAX) : log;
+      m.paintMins = paintedMins(m) + mins; m.updated = Date.now(); touched++;
+    });
+    if (hobby > 0) data.settings.hobbyMins = hobbyMins() + hobby;
+    if (pendId) data.settings.toAssign = toAssign().filter(x => x.id !== pendId);
+    else if (live && !live.miniId) delete data.settings.session;
+    save(); state.tab = 'home'; render(); window.scrollTo(0, 0);
+    toast(touched ? `${fmtDur(t)} saved across ${touched} unit${touched === 1 ? '' : 's'}${hobby > 0 ? ` and hobby time` : ''}.` : `${fmtDur(t)} saved as hobby time.`);
+  }, 'Save', pendId ? 'Close' : 'Keep painting');
+  const list = $('#asList');
+  list.addEventListener('change', e => {
+    const c = e.target.closest('[data-ascheck]'); if (!c) return;
+    if (c.checked) pick.set(c.dataset.ascheck, 0); else pick.delete(c.dataset.ascheck);
+    share(); list.innerHTML = rowsHtml($('#asQ').value); totLine();
+    const again = list.querySelector(`[data-ascheck="${CSS.escape(c.dataset.ascheck)}"]`); if (again) again.focus();
+  });
+  list.addEventListener('input', e => { const i = e.target.closest('[data-asmin]'); if (!i) return;
+    pick.set(i.dataset.asmin, Math.max(0, Math.round(Number(i.value) || 0))); totLine(); });
+  $('#asQ').addEventListener('input', e => { list.innerHTML = rowsHtml(e.target.value); });
+  $('#asTotal').addEventListener('input', () => { share(); list.innerHTML = rowsHtml($('#asQ').value); totLine(); });
+  const later = $('#dlg [data-aslater]');
+  if (later) later.addEventListener('click', () => {
+    const t = Math.max(1, Math.min(1440, Math.round(Number($('#asTotal').value) || total)));
+    data.settings.toAssign = toAssign().concat([{ id:uid(), mins:t, at:Date.now() }]);
+    delete data.settings.session; closeSheet($('#dlg'));
+    save(); state.tab = 'home'; render(); window.scrollTo(0, 0); toast(`${fmtDur(t)} kept on the Workbench to share out later.`);
+  });
+  const drop = $('#dlg [data-asdrop]');
+  if (drop) drop.addEventListener('click', () => {
+    data.settings.toAssign = toAssign().filter(x => x.id !== pendId); closeSheet($('#dlg'));
+    save(); render(); toast('That time has been removed.');
   });
 }
 function sessCancel(){
@@ -4759,8 +4946,37 @@ const SPARKLE = 'M 150 16 C 154 34 160 39 178 43 C 160 47 154 52 150 70 C 146 52
 /* A colour is shown only when one is on record. Otherwise an empty, dashed
    chip: never a beige stand-in that looks like an estimate. (v033) */
 const validHex = h => /^#[0-9a-f]{6}$/i.test(h || '');
-const swChip = h => validHex(h) ? `<span class="sw" style="background:${h}" aria-hidden="true"></span>` : `<span class="sw none" aria-hidden="true"></span>`;
-function dropSvg(cls, fill){
+/* How a paint sits on the model (v035). The type you set wins; with no type,
+   the catalogue range's own name decides (e.g. "Metallic Colors", "Shade",
+   "Contrast", "Speedpaint", "Ink (3rd Gen)"). Nothing is guessed from colour. */
+/* Paints the makers sell as metallic, by brand, from their own ranges.
+   Many sit in Base or Layer (Leadbelcher is a Citadel Base), so the range
+   name alone can't tell. Filled from published lists; see METALLIC_SOURCES. */
+const METALLIC = {"Citadel": ["auric armour gold", "balthasar gold", "beaten copper", "boltgun metal", "brass scorpion", "brazen brass", "burnished gold", "canoptek alloy", "castellax bronze", "chainmail", "dwarf bronze", "fulgurite copper", "gehenna gold", "gehennas gold", "golden griffon", "grey knights steel", "hashut copper", "iron hands steel", "iron warriors", "ironbreaker", "leadbelcher", "liberator gold", "mithril silver", "necron compound", "relictor gold", "retributor armour", "runefang steel", "runelord brass", "screaming bell", "shining gold", "skullcrusher brass", "stormhost silver", "sycorax bronze", "thallax gold", "tin bitz", "valdor gold", "warplock bronze"], "Vallejo": ["brass", "brassy brass", "bright bronze", "bronze", "chainmail silver", "copper", "glorious gold", "gold", "gunmetal", "gunmetal blue", "gunmetal grey", "gunmetal metal", "hammered copper", "natural steel", "oily steel", "old gold", "polished gold", "silver", "tinny tin"], "The Army Painter": ["bright gold", "cobalt metal", "dark emerald", "death metal", "evil chrome", "gemstone red", "glittering green", "greedy gold", "gun metal", "mithril", "plate mail metal", "red copper", "rough iron", "shining silver", "tainted gold", "true brass", "true copper", "weapon bronze"]};
+const normName = s => String(s || '').toLowerCase().replace(/[\u2019']/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+const listedMetal = p => { const L = METALLIC[String(p.brand || '')]; return !!(L && L.indexOf(normName(p.name)) !== -1); };
+/* Your own tick wins (p.metal true or false); otherwise the type, the maker's
+   list, then the range name. */
+const autoMetal = p => String(p.type || '').toLowerCase() === 'metallic' || listedMetal(p) || /metal/i.test(String(p.range || ''));
+const isMetal = p => !!p && (typeof p.metal === 'boolean' ? p.metal : autoMetal(p));
+function paintFinish(p){
+  if (!p) return '';
+  const t = String(p.type || '').toLowerCase();
+  if (isMetal(p)) return 'metal';
+  if (t === 'contrast') return 'contrast';
+  if (t === 'wash' || t === 'shade' || t === 'ink') return 'thin';
+  if (t) return '';
+  const r = String(p.range || '');
+  if (/contrast|speedpaint|xpress/i.test(r)) return 'contrast';
+  if (/wash|shade|\bink|glaze|transparent/i.test(r)) return 'thin';
+  return '';
+}
+const FINISH_WORD = { metal:'Metallic', thin:'See-through', contrast:'Contrast' };
+const swChip = (h, p) => { const f = paintFinish(p);
+  return validHex(h) ? `<span class="sw${f ? ' ' + f : ''}" style="background-color:${h};--c:${h}" aria-hidden="true"></span>` : `<span class="sw none" aria-hidden="true"></span>`; };
+function dropSvg(cls, fill, finish){
+  if (fill && finish === 'metal') return `<svg class="${cls}" viewBox="112 76 78 130" aria-hidden="true"><path d="${DROP}" fill="${fill}"/><path d="${DROP}" fill="url(#mmMetal)"/></svg>`;
+  if (fill && (finish === 'thin' || finish === 'contrast')) return `<svg class="${cls}" viewBox="112 76 78 130" aria-hidden="true"><path d="${DROP}" fill="url(#mmCheck)"/><path d="${DROP}" fill="${fill}" mask="url(#${finish === 'thin' ? 'mmThinMask' : 'mmThickMask'})"/></svg>`;
   return `<svg class="${cls}" viewBox="112 76 78 130" aria-hidden="true"><path d="${DROP}"
     ${fill ? `fill="${fill}"` : 'fill="none" stroke="var(--warm-grey)" stroke-width="9"'}
     stroke-linejoin="round"/></svg>`;
@@ -4899,6 +5115,9 @@ function screenHome(){
       <button class="linkbtn" data-act="signin">Sign in</button></div>` : '';
   h += `<div class="wbhead"><p class="muted small greet">${greeting()}</p><h2 class="wbtitle">Your Workbench</h2>
     <p class="wbtag">Plan. Paint. Track. Belong.</p><span class="orn o-topdiv" aria-hidden="true"></span></div>`;
+  if (c.entries !== 0) h += progStrip(c) + `<div class="wbacts">
+      <button class="btn" data-act="addMini">${PLUS_SVG}Add a miniature</button>
+      <button class="btn ghost" data-act="pick">${DICE_SVG}Pick for me</button></div>`;
   if (c.entries === 0){
     return h + `<div class="empty"><p>Nothing on your workbench yet. Add your first miniature and it will wait for you here.</p>
       <div class="row wrapm" style="justify-content:center">
@@ -4925,7 +5144,7 @@ function screenHome(){
   } else {
     h += `<p class="muted" style="margin:1rem 0">Nothing here yet.</p>`;
   }
-  h += `</div><div class="wbside">` + medallions(c) + sessionStrip(heroM) + activityList() + `</div></div>`;
+  h += `</div><div class="wbside">` + sessionStrip(heroM) + activityList() + `</div></div>`;
   /* Everything else on the bench, by army, as before: the card shows one at
      a time, this shows them all at a glance. */
   const started = L.bench;
@@ -4943,9 +5162,6 @@ function screenHome(){
       h += `<p class="small muted">And ${rest.size - 4} more ${rest.size - 4 === 1 ? 'army' : 'armies'} with something on the bench, in Collection.</p>`;
   }
   h += valuePanel();
-  h += `<div class="homelinks">
-    <button class="linkbtn spark" data-act="pick"><svg width="14" height="14" viewBox="120 12 60 62" aria-hidden="true"><path d="${SPARKLE}" fill="var(--gold)"/></svg> Can&rsquo;t decide? Pick one for me</button>
-    <button class="linkbtn" data-act="addMini">Add a miniature</button></div>`;
   return h;
 }
 
@@ -4994,6 +5210,16 @@ const MED_ICON = {
   tools:'<path d="M4 20 14 10M14 10l2-6 4 4-6 2M20 20l-8-8M6.5 4.5a2.5 2.5 0 0 0 3 3l1 1-2 2-1-1a2.5 2.5 0 0 0-3-3l2-2Z"/>',
   pot:'<path d="M9.5 3h5v3h-5zM7.5 9a3 3 0 0 1 3-3h3a3 3 0 0 1 3 3v9.5A2.5 2.5 0 0 1 14 21h-4a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M7.5 13h9"/>'
 };
+/* Where you stand, first thing (v035): finished out of everything, as a bar,
+   with the other counts in one quiet line underneath. */
+function progStrip(c){
+  const pct = c.total ? Math.round(c.done / c.total * 100) : 0;
+  const ic = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${MED_ICON[k]}</svg>`;
+  return `<div class="wbprog">
+    <div class="t"><span><b class="num">${c.done}</b>of <span class="num">${c.total}</span> models finished</span><span class="num">${pct}% &middot; ${c.total - c.done} to go</span></div>
+    <div class="bar" role="progressbar" aria-label="Models finished" aria-valuemin="0" aria-valuemax="${c.total}" aria-valuenow="${c.done}" aria-valuetext="${c.done} of ${c.total} models finished, ${pct}%"><i style="width:${pct}%"></i></div>
+    <div class="mini"><span>${ic('brush')}<b class="num">${c.started}</b> on the bench</span><span>${ic('tools')}<b class="num">${c.backlog}</b> to build</span><button class="linkbtn plink" data-tab-go="paints">${ic('pot')}<b class="num">${c.paints}</b> paint${c.paints === 1 ? '' : 's'}</button>${c.terrain ? `<span><b class="num">${c.terrain}</b> terrain</span>` : ''}</div></div>`;
+}
 function medallions(c){
   const one = (ic, n, t, cls, act) => `<${act ? `button data-tab-go="${act}"` : 'div'} class="med${cls ? ' ' + cls : ''}">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${MED_ICON[ic]}</svg>
@@ -5646,6 +5872,7 @@ function screenCollection(){
       <button class="btn" data-act="addMini">Add your first</button></div>`;
 
   const nOn = (state.fStage?1:0) + (state.sort?1:0);
+  h += addTop('addHere', 'Add a miniature');
   h += `<div class="findrow" style="margin-top:.875rem"><div class="field">
       <label for="q" class="sr-only">Search every model</label>
       <input id="q" type="search" placeholder="Search every model" value="${esc(state.q)}">
@@ -5740,6 +5967,7 @@ function screenGame(){
   const x = gameGroups().find(g => g.id === state.openGame);
   let h = backLink('backGames', 'Collection');
   if (!x) return h + `<div class="empty"><p>Nothing is filed under that game any more.</p></div>`;
+  h += addTop('addHere', 'Add to this game');
   const sysId = x.id === NO_SYS_ID ? '' : x.id;
   let loose = null;
   x.armies.forEach(g => {
@@ -5765,6 +5993,7 @@ function screenArmy(){
   const sysId = (state.openArmy || '').split('|')[0];
   let h = backLink('backGame', gameLabel(sysId || NO_SYS_ID));
   if (!g) return h + `<div class="empty"><p>That ${groupWord(sysId)} no longer has anything in it.</p></div>`;
+  h += addTop('addHere', 'Add to this ' + groupWord(sysId));
 
   const s = armyStats(g.minis);
   h += `<div class="armyhead${g.fac ? ' penhead' : ''}">
@@ -6323,6 +6552,7 @@ function screenPaints(){
       <button class="btn ghost" data-act="setupPaintsOnly">Add several at once</button></div></div>`;
   }
 
+  h += addTop('addPaint', 'Add a paint');
   h += `<div class="findrow" style="margin-top:.875rem"><div class="field">
       <label for="pq" class="sr-only">Search your paints</label>
       <input id="pq" type="search" placeholder="Search ${data.paints.length} paints" value="${esc(state.pq)}">
@@ -6349,9 +6579,9 @@ function screenPaints(){
   list.forEach(p => {
     const sw = data.swatches.filter(s => s.paintId === p.id).length;
     h += `<button class="paintrow" data-openpaint="${esc(p.id)}" style="margin-bottom:.5rem">
-      ${swChip(p.hex)}
+      ${swChip(p.hex, p)}
       <span class="grow"><span class="nm user-text">${esc(p.name)}</span><br>
-        <span class="br">${esc([p.brand,p.range].filter(Boolean).join(' · '))}${p.code?' · '+esc(p.code):''}</span></span>
+        <span class="br">${esc([p.brand,p.range].filter(Boolean).join(' · '))}${p.code?' · '+esc(p.code):''}${paintFinish(p) && !/metal|contrast|wash|shade|ink|glaze|speedpaint|xpress|transparent/i.test(p.range || '') ? ` · <span class="finword">${FINISH_WORD[paintFinish(p)]}</span>` : ''}</span></span>
       ${sw?`<span class="tagmini">${sw} swatch${sw>1?'es':''}</span>`:''}</button>`;
   });
   return h + `</div>`;
@@ -6371,7 +6601,7 @@ function screenPaintDetail(){
     <p class="small muted">${validHex(p.hex) ? 'The chip is the maker&rsquo;s estimate.' : 'There is no maker&rsquo;s colour for this paint, so nothing is guessed.'} Your swatches are photographs of the paint
       as it actually went on, over a named undercoat.</p>
     <div class="swatchpair">
-      ${validHex(p.hex) ? `<figure><div class="estchip" style="background:${esc(p.hex)}"></div>
+      ${validHex(p.hex) ? `<figure><div class="estchip${paintFinish(p) ? ' ' + paintFinish(p) : ''}" style="background-color:${esc(p.hex)};--c:${esc(p.hex)}"></div>
         <figcaption>Maker&rsquo;s estimate</figcaption></figure>`
         : `<figure><div class="estchip none" role="img" aria-label="No colour on record"><span>No colour on record</span></div>
         <figcaption>No maker&rsquo;s colour</figcaption></figure>`}
@@ -6401,6 +6631,7 @@ function screenPaintDetail(){
       `<option${p.stock===s?' selected':''}>${esc(s)}</option>`).join('')}</select>`, 'stock')}
     ${field('pType','Type', `<select id="pType"><option value="">Not set</option>${PAINT_TYPES.map(t =>
       `<option${p.type===t?' selected':''}>${esc(t)}</option>`).join('')}</select>`, 'paintType')}
+    <label class="checkrow"><input type="checkbox" id="pMetal"${isMetal(p) ? ' checked' : ''}><span class="ctext">Metallic <span class="muted">(has metal flake, shown with a shine)</span></span></label>
     <label for="pNotes">Notes</label><textarea id="pNotes" class="user-text">${esc(p.notes||'')}</textarea>
     <div class="row spread wrapm" style="margin-top:.875rem"><button class="btn" data-act="savePaint">Save changes</button>
     <button class="btn danger" data-act="delPaint">Delete paint</button></div></div>`;
@@ -6520,8 +6751,8 @@ function wheelSvg(sch, baseHex){
    =========================================================================== */
 function screenRecipes(){
   if (state.openRecipe) return screenRecipeDetail();
-  /* New is in the top bar, like Add on Collection and Paints. */
   let h = `<div style="height:.875rem"></div>`;
+  if (data.recipes.length) h = addTop('newRecipe', 'New recipe') + `<div style="height:.75rem"></div>`;
   if (!data.recipes.length)
     return h + `<div class="empty"><p>No recipes yet. A recipe is an ordered set of steps &mdash; Aged Bone,
       Oxidised Copper &mdash; that you can attach to as many models as you like.</p>
@@ -6584,7 +6815,7 @@ function recipeHaveCard(r){
   list.forEach(x => {
     const p = x.paint;
     const sub = p ? [p.brand, p.type || p.range].filter(Boolean).join(' · ') : (x.brand || '');
-    h += `<div class="haverow">${p ? dropSvg('havedrop', p.hex && x.state === 'have' ? esc(p.hex) : '') : '<span class="havedrop gone" aria-hidden="true">&ndash;</span>'}
+    h += `<div class="haverow">${p ? dropSvg('havedrop', p.hex && x.state === 'have' ? esc(p.hex) : '', paintFinish(p)) : '<span class="havedrop gone" aria-hidden="true">&ndash;</span>'}
       <span class="nm"><b class="user-text${p?'':' gonename'}">${esc(x.name || 'A deleted paint')}</b>${sub?`<span class="user-text">${esc(sub)}</span>`:''}
       <span class="havest ${x.state}${x.state === 'have' && p.stock === 'Running low' ? ' low' : ''}">${x.state === 'have' ? esc(p.stock || 'Have it') : LABEL[x.state]}</span></span></div>`;
   });
@@ -6632,7 +6863,7 @@ function screenRecipeDetail(){
   arr(r.steps).forEach((s,i) => {
     const sp = stepPaints(s);
     const names = sp.map(x => x.paint
-      ? `<span class="rp">${dropSvg('rpdrop', /^#[0-9a-f]{6}$/i.test(x.paint.hex || '') ? esc(x.paint.hex) : '')}<span class="user-text">${esc(x.paint.name)}</span></span>`
+      ? `<span class="rp">${dropSvg('rpdrop', /^#[0-9a-f]{6}$/i.test(x.paint.hex || '') ? esc(x.paint.hex) : '', paintFinish(x.paint))}<span class="user-text">${esc(x.paint.name)}</span></span>`
       : `<span class="rp gone"><i class="user-text">${esc(x.name || 'A deleted paint')}</i> <span class="muted">(no longer in your paints)</span></span>`);
     h += `<li class="rstep"><span class="rn num" aria-hidden="true">${i+1}</span>
       <span class="grow"><b class="user-text">${esc(s.technique||'Step')}</b>
@@ -6667,6 +6898,9 @@ const TITLES = { home:'MiniManager', coll:'Collection', paints:'Paints', recipes
 /* The one thing you most often do on each list screen, in the top bar beside
    its title. Detail screens and the setup flow have their own buttons. */
 function headerAction(){
+  /* v035: adding moved to the gold + beside More, and to a clear button at
+     the top of each list. Nothing goes in this slot now. */
+  return '';
   if (state.setup.step) return '';
   if (state.tab === 'coll' && !state.openMini && !state.openArchive && data.minis.length)
     return `<button class="btn sm ghost" data-act="addHere">Add</button>`;
@@ -6720,6 +6954,9 @@ function render(){
   if (slot){ slot.innerHTML = ''; slot.appendChild(syncPill()); }
   const actslot = document.getElementById('actslot');
   if (actslot) actslot.innerHTML = headerAction();
+  const plusB = document.getElementById('plusBtn');
+  if (plusB) plusB.hidden = !!state.setup.step;
+  closePlus(false);
   refreshFilterSheet();
   hydratePhotos();
   /* Last, and guarded so it can only ever fire once: it renders again. */
@@ -8205,6 +8442,8 @@ document.addEventListener('click', e => {
     if (a === 'changePennant') return dlgPennant(act.dataset.kind, act.dataset.id);
     if (a === 'editRecipe'){ state.editRecipe = state.openRecipe; render(); return; }
     if (a === 'doneRecipe'){ state.editRecipe = null; render(); return; }
+    if (a === 'sessStartFree'){ if (sessNow()){ state.tab = 'session'; render(); window.scrollTo(0,0); toast('Finish this session before starting another.'); return; } return sessStartFree(); }
+    if (a === 'assignOpen'){ const x = toAssign().find(y => y.id === act.dataset.id); if (x) dlgAssign(Math.round(Number(x.mins)), x.id); return; }
     if (a === 'sessStart'){ const s = sessNow();
       if (s && s.miniId !== act.dataset.id){ state.tab = 'session'; render(); window.scrollTo(0,0); toast('Finish this session before starting another.'); return; }
       if (s){ state.tab = 'session'; state.openMini = null; render(); window.scrollTo(0,0); return; }
@@ -8795,6 +9034,8 @@ function deleteMini(){
 function savePaintEdits(){
   const p = paintOf(state.openPaint); if (!p) return;
   p.stock = $('#pStock').value; p.type = $('#pType').value; p.notes = $('#pNotes').value;
+  const mt = $('#pMetal').checked; delete p.metal; if (mt !== autoMetal(p)) p.metal = mt;
+  p.updated = Date.now();
   save(); render(); toast('Saved.');
 }
 function deletePaint(){
@@ -8923,6 +9164,57 @@ function refreshThemeChips(){
   const box = document.getElementById('themechips');
   if (box) box.innerHTML = themeChips();
 }
+
+/* --- the gold + (v035) -------------------------------------------------------
+   One place to add anything, on every screen. What the screen is about comes
+   first; the rest keep their order. Each item runs the same action as the
+   matching button elsewhere in the app. */
+function plusItems(){
+  const ic = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${MED_ICON[k]}</svg>`;
+  const I = {
+    mini:  ['addHere', state.tab === 'coll' && state.openArmy ? 'A miniature to this ' + groupWord((state.openArmy || '').split('|')[0]) : 'A miniature', 'laurel'],
+    many:  ['addMany', 'Several miniatures at once', 'laurel'],
+    paint: ['addPaint', 'A paint', 'pot'],
+    paints:['setupPaintsOnly', 'Several paints at once', 'pot'],
+    recipe:['newRecipe', 'A recipe', 'brush'],
+    sys:   ['addSys', 'A game system or army', 'tools'],
+    wish:  ['addWish', 'Something to my wishlist', 'pot'],
+    supply:['addSupply', 'A hobby supply', 'tools']
+  };
+  let first = ['mini'];
+  if (state.tab === 'coll' && state.openArmy && !state.openMini) first = ['mini', 'many'];
+  else if (state.tab === 'paints' || state.tab === 'shop') first = ['paint', 'paints'];
+  else if (state.tab === 'recipes') first = ['recipe'];
+  const rest = ['mini', 'paint', 'recipe', 'sys', 'wish', 'supply'].filter(k => first.indexOf(k) === -1);
+  const btn = k => `<button type="button" role="menuitem" data-act="${I[k][0]}">${ic(I[k][2])}<span>${esc(I[k][1])}</span></button>`;
+  return `<p class="pmh" aria-hidden="true">Add</p>${first.map(btn).join('')}<hr>${rest.map(btn).join('')}`;
+}
+function openPlus(){
+  const m = $('#plusMenu'), b = $('#plusBtn'); if (!m || !b) return;
+  m.innerHTML = plusItems(); m.hidden = false; $('#plusShade').hidden = false;
+  b.setAttribute('aria-expanded', 'true');
+  const f = m.querySelector('[role="menuitem"]'); if (f) f.focus();
+}
+function closePlus(focusBack){
+  const m = document.getElementById('plusMenu'); if (!m || m.hidden) return;
+  m.hidden = true; $('#plusShade').hidden = true;
+  const b = $('#plusBtn'); b.setAttribute('aria-expanded', 'false');
+  if (focusBack) b.focus();
+}
+$('#plusBtn').addEventListener('click', () => { if ($('#plusMenu').hidden) openPlus(); else closePlus(true); });
+$('#plusShade').addEventListener('click', () => closePlus(true));
+/* Choosing an item closes the menu; the click carries on to the app's own
+   handler, which does the adding. */
+$('#plusMenu').addEventListener('click', e => { if (e.target.closest('[role="menuitem"]')) closePlus(false); });
+$('#plusMenu').addEventListener('keydown', e => {
+  const items = $$('#plusMenu [role="menuitem"]'), i = items.indexOf(document.activeElement);
+  if (e.key === 'Escape'){ e.preventDefault(); closePlus(true); }
+  else if (e.key === 'Tab'){ closePlus(false); }
+  else if (e.key === 'ArrowDown'){ e.preventDefault(); items[(i + 1) % items.length].focus(); }
+  else if (e.key === 'ArrowUp'){ e.preventDefault(); items[(i - 1 + items.length) % items.length].focus(); }
+  else if (e.key === 'Home'){ e.preventDefault(); items[0].focus(); }
+  else if (e.key === 'End'){ e.preventDefault(); items[items.length - 1].focus(); }
+});
 
 $('#moreBtn').addEventListener('click', () => {
   const c = counts();
