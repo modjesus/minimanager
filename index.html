@@ -1107,6 +1107,106 @@ nav.tabs button[aria-current="page"]::after{content:"";position:absolute;bottom:
 .sstep.done .tx b{color:var(--text-2);text-decoration:line-through;text-decoration-color:var(--gold-line)}
 .sstep .sw{width:1.375rem;height:1.375rem;border-radius:50%;flex:0 0 auto;box-shadow:inset 0 0 0 1px rgba(255,255,255,.2)}
 .pinbtn svg{width:1.125rem;height:1.125rem}
+
+/* ===== v033 refinements ===================================================== */
+/* Buttons. One primary (gold), one secondary (outline), one destructive.
+   The main action of any screen or dialog is the only gold one. */
+.btn{background:linear-gradient(180deg,#D3B676,#B8964F);color:var(--ink-navy);border:1px solid transparent;font-weight:700}
+.btn.ghost,.pc-btns .btn.ghost{background:transparent;color:var(--text);border:1px solid var(--gold-line);font-weight:600}
+.btn.ghost:hover{background:rgba(196,164,97,.08)}
+.btn.danger,.btn.sm.danger{background:transparent;color:#F0A39C;border:1px solid #C9675F;font-weight:600}
+.btn.danger:hover{background:rgba(232,133,126,.1)}
+.btn.ghost.danger-text{color:#F0A39C;border-color:rgba(201,103,95,.7)}
+.btn.gold,.pc-btns .btn.gold{background:linear-gradient(180deg,#D3B676,#B8964F);color:var(--ink-navy);border:1px solid transparent;font-weight:700}
+.btn:disabled{opacity:.45}
+.btn:focus-visible,.tile:focus-visible,summary:focus-visible,.paintrow:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.dangerzone{border-color:rgba(201,103,95,.45)}
+.dangerzone h3{font-size:1rem}
+
+/* Collection cards: photo, then name and progress on the card below it. */
+.grid,.grid.cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem;margin-inline:0}
+@media(min-width:42rem){.grid,.grid.cards{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(min-width:60rem){.grid,.grid.cards{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.tile,.contact .tile,.tile.nophoto{display:flex;flex-direction:column;aspect-ratio:auto;border:1px solid var(--border);border-radius:14px;
+  background:var(--surface);overflow:hidden;min-width:0}
+.tile .tph{position:relative;display:block;aspect-ratio:1;background:var(--deep);overflow:hidden}
+.tile .tph .ph{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:var(--deep)}
+.tile .ph.none{display:grid;place-items:center}
+.tile .ph.none .phdrop{display:block;width:1.75rem;height:3.2rem;opacity:.28}
+.tile .meta,.tile.nophoto .meta{position:static;display:flex;flex-direction:column;gap:.25rem;padding:.625rem .75rem .75rem;background:none;color:var(--text)}
+.tile .meta b{font-size:.9375rem;line-height:1.3;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.tile .tst{font-size:.8125rem;color:var(--text-2);line-height:1.35}
+.tile .tprog{display:flex;align-items:center;gap:.5rem;font-size:.8125rem;color:var(--text-2)}
+.tfin{display:block;height:5px;border-radius:3px;overflow:hidden;background:var(--border);margin-top:.25rem}
+.tfin i{display:block;height:100%;background:var(--st7)}
+.tile .tcount{font-size:.8125rem;color:var(--text-2)}
+.tile .mk{top:.5rem;right:.5rem}
+.tile .seltick{top:.5rem;left:.5rem}
+/* The Workbench strip keeps small square thumbnails, without stripes. */
+.strip .tile,.strip .tile.nophoto{width:4.25rem;height:4.25rem;border-radius:10px;background:var(--deep)}
+.strip .tile .tph{aspect-ratio:auto;height:100%}
+.strip .tile .ph.none .phdrop{width:1.1rem;height:2rem}
+
+/* The featured miniature is shown whole: contained, never cropped. */
+.pc-ph{height:auto;aspect-ratio:4/3;max-height:min(28rem,62vh);background:var(--deep)}
+.pc-ph img.ph{object-fit:contain}
+.pc-ph.empty{height:5.5rem;aspect-ratio:auto;background:var(--deep)}
+.pc-none{font-size:.875rem;color:var(--text-2)}
+
+/* Stage words: always say which meaning. */
+.nowlab{margin:.625rem 0 0;font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-ink)}
+.pc-stages{font-size:.8125rem;margin-top:.375rem}
+.unitprog .pc-stages{color:var(--text)}
+
+/* Recipes: steps first, then a one-line paint summary with the list folded. */
+.rhead{display:flex;align-items:flex-start;gap:.75rem;margin-bottom:.5rem}
+.rdesc{margin:.25rem 0 .75rem;color:var(--text-2);max-width:65ch}
+.rsteps{list-style:none;margin:.5rem 0 0;padding:0}
+.rstep{display:flex;align-items:flex-start;gap:.75rem;padding:.75rem 0;border-top:1px solid var(--border)}
+.rstep .rn{width:1.75rem;height:1.75rem;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;border:1px solid var(--gold-line);
+  font-family:var(--f-display);color:#E8D7A8;font-size:.9375rem}
+.rstep .grow b{display:block;font-size:1rem}
+.rps{display:flex;flex-wrap:wrap;align-items:center;gap:.25rem .5rem;margin:.25rem 0 .125rem;font-size:.875rem}
+.rp{display:inline-flex;align-items:center;gap:.3rem;min-width:0;overflow-wrap:anywhere}
+.rpdrop{width:.625rem;height:1.05rem;flex:0 0 auto}
+.rp.gone{display:inline;color:var(--text-2)}
+.rplus{color:var(--text-2)}
+.rstep .btn{flex:0 0 auto}
+.havecard h3{font-family:var(--f-display);font-size:1.25rem;margin:0 0 .25rem}
+.havesum{margin:0;font-size:.9375rem}
+.havebits{display:flex;flex-wrap:wrap;gap:.375rem;margin:.5rem 0 0}
+.hs{font-size:.8125rem;font-weight:600;padding:.2rem .55rem;border-radius:999px;border:1px solid var(--border);color:var(--text)}
+.hs.low,.hs.out,.hs.wish,.hs.gone{color:#F0C27F;border-color:rgba(224,168,90,.5)}
+.havedet{margin-top:.5rem}
+.havedet>summary{min-height:var(--tap);display:flex;align-items:center;cursor:pointer;font-weight:600;color:#E8D7A8;
+  text-decoration:underline;text-decoration-color:var(--gold-line);text-underline-offset:3px}
+.haverow{align-items:flex-start}
+.haverow .nm{gap:.0625rem}
+.haverow .nm b{overflow-wrap:anywhere}
+.haverow .havest{display:block;text-align:left;font-size:.8125rem;margin-top:.125rem}
+.haverow .havest.low{color:#F0C27F}
+
+/* Empty colour: an outline with words, never a guessed fill. */
+.sw.none{background:repeating-linear-gradient(135deg,transparent 0 4px,var(--border) 4px 5px);border:1px dashed var(--text-2)}
+.estchip.none{background:transparent;border:1.5px dashed var(--text-2);display:grid;place-items:center;text-align:center;padding:.5rem}
+.estchip.none::after{content:none}
+.estchip.none span{font-size:.8125rem;color:var(--text-2)}
+.swatchpair figcaption{font-size:.75rem}
+
+/* Small text: nothing below 12px. */
+nav.tabs button{font-size:.75rem}
+.segbar button{font-size:.75rem}
+.pc-ph .pg{font-size:.75rem}
+.eyebrow{font-size:.75rem}
+.med span{font-size:.75rem}
+.sect h3{font-size:.75rem}
+.grouphead,.pill,.paintrow .br,figcaption{font-size:.75rem}
+
+/* Desktop: paints two to a row; denser lists. */
+@media(min-width:60rem){
+  .paintlist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem}
+  .paintlist .paintrow{margin:0!important}
+}
 </style>
 </head>
 <body>
@@ -3825,7 +3925,7 @@ function syncPill(){
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v032';
+const APP_VERSION = 'v033';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -4419,7 +4519,7 @@ function screenSession(){
       h += `<button class="sstep${done ? ' done' : ''}" data-sesstep="${esc(st.id)}" aria-pressed="${done}">
         <span class="n num" aria-hidden="true">${done ? '&#10003;' : i + 1}</span>
         <span class="tx"><b>${esc(st.technique || 'Step ' + (i + 1))}</b>${sub ? `<small>${esc(sub).replace(/&amp;middot;/g, '&middot;')}</small>` : ''}</span>
-        ${ps.slice(0, 2).map(p => `<span class="sw" style="background:${/^#[0-9a-f]{6}$/i.test(p.hex || '') ? p.hex : 'transparent'}" aria-hidden="true"></span>`).join('')}</button>`;
+        ${ps.slice(0, 2).map(p => swChip(p.hex)).join('')}</button>`;
     });
   } else {
     h += `<p class="small muted ctr">No recipe linked to this unit. You can link one from the unit&rsquo;s page.</p>`;
@@ -4495,6 +4595,11 @@ function sessCancel(){
     delete data.settings.session; save(); state.tab = 'home'; render(); window.scrollTo(0, 0); toast('Session stopped.');
   }, 'Stop', 'Keep painting');
 }
+/* Remember whether the recipe's paint list is open, across redraws. */
+document.addEventListener('toggle', e => {
+  const d = e.target; if (!d || !d.matches || !d.matches('[data-havedet]')) return;
+  state.openHave = d.open ? d.dataset.havedet : null;
+}, true);
 /* The clocks on screen move once a second. Nothing is stored as it ticks. */
 setInterval(() => {
   const s = sessNow(); if (!s || s.pausedAt) return;
@@ -4532,10 +4637,28 @@ function runningTotals(m){
    through the palette in order. */
 const stCol = (i, n) => i === n - 1 ? 7 : Math.min(i, 6);
 /* A unit's own stage bar: one band per stage, as wide as its models. */
-function stageBar(cnt, cls){
-  const total = cnt.reduce((a, b) => a + b, 0) || 1;
-  return `<div class="${cls || 'sbar'}" aria-hidden="true">${cnt.map((k, i) => k ?
+function stageBar(cnt, cls, names){
+  const total = cnt.reduce((a, b) => a + b, 0) || 1, last = cnt.length - 1;
+  /* With names it is announced: how many are finished, and where the rest
+     are right now. Without, it sits beside words that already say so. */
+  const a11y = names ? ` role="progressbar" aria-label="Models finished" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${cnt[last] || 0}"
+    aria-valuetext="${esc(nowWordsPlain(cnt, names))}"` : ' aria-hidden="true"';
+  return `<div class="${cls || 'sbar'}"${a11y}>${cnt.map((k, i) => k ?
     `<span style="flex:${k};background:var(--st${stCol(i, cnt.length)})"></span>` : '').join('')}</div>`;
+}
+/* Two meanings, always labelled. "Now" is where each model is today, so the
+   counts add up to the unit. "Reached" counts every model at that stage or
+   past it, so it only ever grows. v033 made every screen say which. */
+const nowPart = (k, name, isLast) => isLast ? `${k} finished` : `${k} at ${name}`;
+function nowWordsPlain(cnt, names){
+  const last = cnt.length - 1, tot = cnt.reduce((a, b) => a + b, 0);
+  const parts = cnt.map((k, i) => k ? nowPart(k, names[i], i === last) : '').filter(Boolean);
+  return `${cnt[last] || 0} of ${tot} finished. Now: ${parts.join(', ')}.`;
+}
+function nowLegend(m){
+  const L = stagesOf(m), cnt = stageCounts(m), last = cnt.length - 1;
+  return `<p class="nowlab">Where they are now</p><div class="pc-stages">${cnt.map((k, j) => k ?
+    `<span style="--c:var(--st${stCol(j, cnt.length)})"><span class="num">${k}</span> ${j === last ? 'finished' : 'at ' + esc(L[j])}</span>` : '').join('')}</div>`;
 }
 
 /* Terrain is a project, not a miniature, so it is kept out of every
@@ -4612,6 +4735,10 @@ const SPARKLE = 'M 150 16 C 154 34 160 39 178 43 C 160 47 154 52 150 70 C 146 52
 
 /* A small drop, filled or hollow. Decorative: every one of these sits beside
    a word that says the same thing. */
+/* A colour is shown only when one is on record. Otherwise an empty, dashed
+   chip: never a beige stand-in that looks like an estimate. (v033) */
+const validHex = h => /^#[0-9a-f]{6}$/i.test(h || '');
+const swChip = h => validHex(h) ? `<span class="sw" style="background:${h}" aria-hidden="true"></span>` : `<span class="sw none" aria-hidden="true"></span>`;
 function dropSvg(cls, fill){
   return `<svg class="${cls}" viewBox="112 76 78 130" aria-hidden="true"><path d="${DROP}"
     ${fill ? `fill="${fill}"` : 'fill="none" stroke="var(--warm-grey)" stroke-width="9"'}
@@ -4817,7 +4944,6 @@ function heroCard(m, tab, i, n){
   const pct = Math.round(cnt[last] / tot * 100);
   const g = { sys:m.sys||'', fac:m.fac||'' };
   const label = { pinned:'Pinned', bench:'On the bench', next:'Up next' }[tab];
-  const words = cnt.map((k, j) => k ? `<span style="--c:var(--st${stCol(j, cnt.length)})"><span class="num">${k}</span> ${esc(stageDoneWord(L[j]).replace(/^at (.*) or beyond$/, 'at $1'))}</span>` : '').filter(Boolean).join('');
   const since = sinceWords(m.updated);
   const cur = stageIx(m);
   const act = tot > 1 ? `<button class="btn gold" data-act="moveOn" data-id="${esc(m.id)}">Move models on</button>`
@@ -4834,8 +4960,8 @@ function heroCard(m, tab, i, n){
         <p class="eyebrow">${esc(armyLabel(g))}${g.sys ? ' &middot; ' + esc(gameLabel(g.sys)) : ''}</p>
         <div class="pc-row"><h3 class="pc-name user-text">${esc(m.name)}</h3><span class="pc-pct num">${pct}%</span></div>
         <p class="pc-meta"><span class="num">${tot}</span> model${tot > 1 ? 's' : ''} &middot; <span class="num">${cnt[last]}</span> finished${since ? ' &middot; last changed ' + since : ''}</p>
-        <div class="pc-bar">${stageBar(cnt)}<span class="orn o-starS" aria-hidden="true"></span></div>
-        <div class="pc-stages">${words}</div>
+        <div class="pc-bar">${stageBar(cnt, '', L)}<span class="orn o-starS" aria-hidden="true"></span></div>
+        ${nowLegend(m)}
         <div class="pc-btns">${act}<button class="btn ghost" data-open="${esc(m.id)}">Open</button></div>
         ${n > 1 ? `<div class="pc-nav"><button class="iconbtn" data-hero="-1" aria-label="Previous"${i === 0 ? ' disabled' : ''}>&lsaquo;</button>
           <button class="iconbtn" data-hero="1" aria-label="Next"${i === n - 1 ? ' disabled' : ''}>&rsaquo;</button></div>` : ''}
@@ -5007,8 +5133,10 @@ function stageRow(cur, L){
 
 function tile(m){
   const pid = arr(m.photos)[0];
+  /* v033: a quiet empty frame with a faint pot outline; the words below say
+     the rest. No stripes, and no "no photo yet" laid over the name. */
   const img = pid ? photoImg(pid,'ph')
-    : `<div class="ph empty" aria-hidden="true">${dropSvg('phdrop','')}<span>no photo yet</span></div>`;
+    : `<span class="ph none" aria-hidden="true">${dropSvg('phdrop','')}</span>`;
   const n = Number(m.total)||1, d = Number(m.done)||0;
   /* The system and faction used to be a third line here. Over a photograph
      that is too many words, and both are on the entry's own screen anyway. */
@@ -5019,12 +5147,13 @@ function tile(m){
     : '';
   /* A thin bar along the bottom of the photo fills as the model moves
      through its stages, and turns green when it is finished. */
-  const last = data.stages.length - 1;
-  const lv = isFinished(m) ? 100 : Math.round(unitProgress(m) * 100);
-  return `<button class="tile${pid?'':' nophoto'}" data-open="${esc(m.id)}"${selAttr(m)}>${img}${mark}${state.selecting ? '<i class="seltick" aria-hidden="true"></i>' : ''}
-    ${lv ? `<i class="lvl${isFinished(m)?' done':''}" style="width:${lv}%"></i>` : ''}
+  /* Name, stage and progress sit under the photo, on the card, never over
+     it. The bar is the same "where they are now" bar as everywhere else. */
+  return `<button class="tile${pid?'':' nophoto'}" data-open="${esc(m.id)}"${selAttr(m)}><span class="tph">${img}${mark}${state.selecting ? '<i class="seltick" aria-hidden="true"></i>' : ''}</span>
     <span class="meta"><b class="user-text">${esc(m.name)}</b>
-    <span class="small muted">${esc(stageLabel(m))}${n>1?` &middot; <span class="num">${d} of ${n}</span>`:''}</span>
+    <span class="tst">${esc(stageLabel(m))}</span>
+    ${n>1 ? `<span class="tfin" aria-hidden="true"><i class="${d>=n?'done':''}" style="width:${Math.round(d/n*100)}%"></i></span>
+      <span class="tcount"><span class="num">${d}</span> of <span class="num">${n}</span> finished</span>` : ''}
     ${sortNote(m)}
     </span></button>`;
 }
@@ -5217,7 +5346,7 @@ function setupArmy(){
       <option value="">Not set</option></select>
     <label for="suFac">Army</label>
     <select id="suFac">${armyOptions(sysName, s.facName)}</select>
-    <input id="suFacOwn" type="text" placeholder="Your own army" style="margin-top:.5rem" hidden>
+    <input id="suFacOwn" type="text" aria-label="Your own army name" placeholder="Your own army" style="margin-top:.5rem" hidden>
     <label for="suUnit">Add a unit &mdash; type and press return</label>
     <div class="row" style="gap:.5rem">
       <input id="suUnit" class="grow" placeholder="Plague Marines" autocomplete="off">
@@ -5602,7 +5731,7 @@ function screenArmy(){
       (nm !== mu.length ? ` &middot; <span class="num">${nm}</span> models` : ''));
     if (tr) parts.push(`<span class="num">${tr}</span> terrain`);
     let o = `<div class="ehead shelf"><h2>${title}</h2><span class="small muted">${parts.join(' &middot; ')}</span></div>`;
-    if (asTiles){ o += `<div class="grid contact">`; ms.forEach(m => { o += tile(m); }); o += `</div>`; }
+    if (asTiles){ o += `<div class="grid cards">`; ms.forEach(m => { o += tile(m); }); o += `</div>`; }
     else {
       /* Still in the box: drawn as a small stack, which says "pile" faster
          than a heading does, then the list with how long each has waited. */
@@ -5669,7 +5798,7 @@ function dlgBulkMove(){
      <select id="bmSys"><option value="">Not set</option>${sysOpts.map(n => `<option value="${esc(n)}"${n === cur ? ' selected' : ''}>${esc(n)}</option>`).join('')}</select>
      <label for="bmFac">${esc(cap(GROUP_WORDS[cur] || 'army'))}</label>
      <select id="bmFac">${armyOptions(cur, '')}</select>
-     <input id="bmFacOwn" type="text" placeholder="Your own" style="margin-top:.5rem" hidden>
+     <input id="bmFacOwn" type="text" aria-label="Your own army name" placeholder="Your own" style="margin-top:.5rem" hidden>
      <p class="small muted">Photos, recipes and progress go with them.</p>`,
     () => {
       const sName = $('#bmSys').value, fv = $('#bmFac').value;
@@ -5983,7 +6112,9 @@ function screenMini(){
     h += `<div class="card unitprog${fin?' finished':''}">
       <div class="flab" style="margin-top:0"><h3 style="margin:0">Progress</h3>${stageHelp.btn}</div>
       ${stageHelp.panel}
-      ${stageBar(cnt)}
+      ${stageBar(cnt, '', L)}
+      ${nowLegend(m)}
+      <p class="nowlab" style="margin-top:1rem">Reached so far</p>
       <ul class="stair">`;
     rt.forEach(r => {
       /* Only the stages where some models stop, and Finished: models that
@@ -5992,7 +6123,7 @@ function screenMini(){
       if (!cnt[r.i] && r.i !== last) return;
       const togo = n - r.reached;
       h += `<li><i style="background:var(--st${stCol(r.i, L.length)})" aria-hidden="true"></i><b class="num">${r.reached}</b>
-        <span>${esc(stageDoneWord(r.name))}</span>
+        <span>${r.i === last ? 'finished' : 'reached ' + esc(r.name)}</span>
         <em class="${togo ? '' : 'all'}">${togo ? `<span class="num">${togo}</span> to go` : (n > 1 ? 'all ' + n : 'done')}</em></li>`;
     });
     if (cnt[0]) h += `<li class="still"><i style="background:var(--st0)" aria-hidden="true"></i><b class="num">${cnt[0]}</b><span>still to build</span><em></em></li>`;
@@ -6029,8 +6160,8 @@ function screenMini(){
   h += historyCard(m);
   h += `<div class="card"><div class="row spread"><h3 style="margin:0">Photos</h3>
     <button class="btn sm ghost" data-act="addPhotos">Add photo</button></div><div class="photos">`;
-  arr(m.photos).forEach(pid => {
-    h += `<span class="photowrap">${photoImg(pid)}<button data-delphoto="${esc(pid)}" aria-label="Remove photo">&times;</button></span>`;
+  arr(m.photos).forEach((pid, pi) => {
+    h += `<span class="photowrap">${photoImg(pid)}<button data-delphoto="${esc(pid)}" aria-label="Remove photo ${pi + 1} of ${esc(m.name)}">&times;</button></span>`;
   });
   h += `</div>${arr(m.photos).length?'':'<p class="small muted">No photos yet. Photos you add are kept with your account, on every device you sign in on.</p>'}</div>`;
 
@@ -6044,7 +6175,7 @@ function screenMini(){
     h += `<div class="row spread" style="padding:.5rem 0;border-top:1px solid var(--border)">
       <button class="grow" data-openrecipe="${esc(r.id)}" style="background:none;border:0;text-align:left;font:inherit;color:var(--text);cursor:pointer;min-height:var(--tap)">
         <b class="user-text">${esc(r.title)}</b>${l.area?`<span class="small muted"> &mdash; ${esc(l.area)}</span>`:''}</button>
-      <button class="iconbtn" data-unlink="${esc(l.recipeId)}" aria-label="Remove recipe link">&times;</button></div>`;
+      <button class="iconbtn" data-unlink="${esc(l.recipeId)}" aria-label="Detach ${esc(r.title)} from ${esc(m.name)}">&times;</button></div>`;
   });
   h += `</div>`;
 
@@ -6059,10 +6190,10 @@ function screenMini(){
     <select id="eSys"><option value="">Not set</option>
       ${sysOpts.map(n => `<option value="${esc(n)}"${n === curSys ? ' selected' : ''}>${esc(n)}</option>`).join('')}
       <option value="__own">Type my own&hellip;</option></select>
-    <input id="eSysOwn" type="text" placeholder="Your own game" style="margin-top:.5rem" hidden>
+    <input id="eSysOwn" type="text" aria-label="Your own game name" placeholder="Your own game" style="margin-top:.5rem" hidden>
     <label for="eFac">${esc(cap(groupWord(m.sys || '')))}</label>
     <select id="eFac">${armyOptions(curSys, curFac)}</select>
-    <input id="eFacOwn" type="text" placeholder="Your own" style="margin-top:.5rem" hidden>
+    <input id="eFacOwn" type="text" aria-label="Your own army name" placeholder="Your own" style="margin-top:.5rem" hidden>
     <label for="eWf">Painting stages</label>
     <select id="eWf"><option value="std">Standard</option>${workflows().map(w => `<option value="${esc(w.id)}"${wfOf(m) && wfOf(m).id === w.id ? ' selected' : ''}>${esc(w.name)}</option>`).join('')}</select>
     <p class="small muted wfnote"><button class="linkbtn" data-act="editStages">Change the stages in each set</button></p>
@@ -6145,15 +6276,16 @@ function screenPaints(){
      exception, and only those rows carry a mark. */
   h += `<p class="estline">Colours are the maker&rsquo;s estimates until you photograph a swatch.</p>`;
   h += `<p class="small muted"><span class="num">${list.length}</span> of <span class="num">${data.paints.length}</span> shown</p>`;
+  h += `<div class="paintlist">`;
   list.forEach(p => {
     const sw = data.swatches.filter(s => s.paintId === p.id).length;
     h += `<button class="paintrow" data-openpaint="${esc(p.id)}" style="margin-bottom:.5rem">
-      <span class="sw" style="background:${esc(p.hex||'#CFC7BA')}"></span>
+      ${swChip(p.hex)}
       <span class="grow"><span class="nm user-text">${esc(p.name)}</span><br>
         <span class="br">${esc([p.brand,p.range].filter(Boolean).join(' · '))}${p.code?' · '+esc(p.code):''}</span></span>
       ${sw?`<span class="tagmini">${sw} swatch${sw>1?'es':''}</span>`:''}</button>`;
   });
-  return h;
+  return h + `</div>`;
 }
 
 function screenPaintDetail(){
@@ -6167,27 +6299,29 @@ function screenPaintDetail(){
     <p class="muted user-text" style="margin-top:-.25rem">${esc([p.brand,p.range,p.code].filter(Boolean).join(' · '))}</p>`;
 
   h += `<div class="card"><h3>Colour</h3>
-    <p class="small muted">The chip is the maker&rsquo;s estimate. Your swatches are photographs of the paint
+    <p class="small muted">${validHex(p.hex) ? 'The chip is the maker&rsquo;s estimate.' : 'There is no maker&rsquo;s colour for this paint, so nothing is guessed.'} Your swatches are photographs of the paint
       as it actually went on, over a named undercoat.</p>
     <div class="swatchpair">
-      <figure><div class="estchip" style="background:${esc(p.hex||'#CFC7BA')}"></div>
-        <figcaption>Maker&rsquo;s estimate</figcaption></figure>
+      ${validHex(p.hex) ? `<figure><div class="estchip" style="background:${esc(p.hex)}"></div>
+        <figcaption>Maker&rsquo;s estimate</figcaption></figure>`
+        : `<figure><div class="estchip none" role="img" aria-label="No colour on record"><span>No colour on record</span></div>
+        <figcaption>No maker&rsquo;s colour</figcaption></figure>`}
       ${sws.length
         ? `<figure>${photoImg(sws[0].photoId,'realswatch')}<figcaption>Your swatch &mdash; over ${esc(ucName(sws[0].undercoatId) || 'an undercoat')}</figcaption></figure>`
-        : `<figure><div class="estchip" style="background:var(--warm-grey)"></div>
-             <figcaption>No swatch photographed yet</figcaption></figure>`}
+        : `<figure><div class="estchip none" role="img" aria-label="No swatch yet"><span>No swatch yet</span></div>
+             <figcaption>Photograph one to see it as it went on</figcaption></figure>`}
     </div>
     <button class="btn" data-act="newSwatch" style="width:100%">Photograph a swatch</button></div>`;
 
   if (sws.length){
     h += `<div class="card"><h3>Your swatches</h3>`;
-    sws.forEach(s => {
+    sws.forEach((s, si) => {
       h += `<div class="row swrow">
         ${photoImg(s.photoId,'realswatch')}
         <span class="grow"><b>Over ${esc(ucName(s.undercoatId) || 'an undercoat')}</b>
           <span class="small muted" style="display:block">${esc(swatchLine(s))}</span>
           ${s.notes?`<span class="small muted user-text" style="display:block">${esc(s.notes)}</span>`:''}</span>
-        <button class="iconbtn" data-delswatch="${esc(s.id)}" aria-label="Delete swatch">&times;</button></div>`;
+        <button class="iconbtn" data-delswatch="${esc(s.id)}" aria-label="Delete swatch ${si + 1} of ${esc(p.name)}">&times;</button></div>`;
     });
     h += `<p class="small muted" style="margin-top:.75rem">Photographs vary with lighting, camera and screen.
       They show how the paint behaved for you, not a calibrated colour.</p></div>`;
@@ -6199,8 +6333,8 @@ function screenPaintDetail(){
     ${field('pType','Type', `<select id="pType"><option value="">Not set</option>${PAINT_TYPES.map(t =>
       `<option${p.type===t?' selected':''}>${esc(t)}</option>`).join('')}</select>`, 'paintType')}
     <label for="pNotes">Notes</label><textarea id="pNotes" class="user-text">${esc(p.notes||'')}</textarea>
-    <div class="row" style="margin-top:.875rem"><button class="btn" data-act="savePaint">Save changes</button>
-    <button class="btn danger" data-act="delPaint">Delete</button></div></div>`;
+    <div class="row spread wrapm" style="margin-top:.875rem"><button class="btn" data-act="savePaint">Save changes</button>
+    <button class="btn danger" data-act="delPaint">Delete paint</button></div></div>`;
   return h;
 }
 
@@ -6364,16 +6498,28 @@ function recipeHaveCard(r){
   const list = recipePaints(r);
   if (!list.length) return '';
   const have = list.filter(x => x.state === 'have').length;
+  const low = list.filter(x => x.state === 'have' && x.paint && x.paint.stock === 'Running low').length;
+  const n = k => list.filter(x => x.state === k).length;
   const LABEL = { have:null, out:'Out &middot; on your shopping list', wish:'Wishlist', gone:'No longer in your paints' };
-  let h = `<div class="card havecard"><div class="row spread"><h3 style="margin:0">You have <span class="num">${have}</span> of <span class="num">${list.length}</span></h3>
-    <span class="small muted">paints</span></div>`;
+  /* v033: a one-line summary after the steps, the full list folded away.
+     Each row puts its status under the name, so a long status can never
+     squeeze a long paint name on a phone. */
+  const bits = [low && `<span class="hs low"><span class="num">${low}</span> running low</span>`,
+    n('out') && `<span class="hs out"><span class="num">${n('out')}</span> out</span>`,
+    n('wish') && `<span class="hs wish"><span class="num">${n('wish')}</span> on the wishlist</span>`,
+    n('gone') && `<span class="hs gone"><span class="num">${n('gone')}</span> no longer in your paints</span>`].filter(Boolean);
+  let h = `<div class="card havecard"><h3>Paints</h3>
+    <p class="havesum">You have <b class="num">${have}</b> of <b class="num">${list.length}</b> paints${have === list.length && !low ? ' &mdash; everything you need.' : ''}</p>
+    ${bits.length ? `<p class="havebits">${bits.join('')}</p>` : ''}
+    <details class="havedet"${state.openHave === r.id ? ' open' : ''} data-havedet="${esc(r.id)}"><summary>Show all ${list.length} paints</summary>`;
   list.forEach(x => {
     const p = x.paint;
     const sub = p ? [p.brand, p.type || p.range].filter(Boolean).join(' · ') : (x.brand || '');
     h += `<div class="haverow">${p ? dropSvg('havedrop', p.hex && x.state === 'have' ? esc(p.hex) : '') : '<span class="havedrop gone" aria-hidden="true">&ndash;</span>'}
-      <span class="nm"><b class="user-text${p?'':' gonename'}">${esc(x.name || 'A deleted paint')}</b>${sub?`<span class="user-text">${esc(sub)}</span>`:''}</span>
-      <span class="havest ${x.state}">${x.state === 'have' ? esc(p.stock || 'Have it') : LABEL[x.state]}</span></div>`;
+      <span class="nm"><b class="user-text${p?'':' gonename'}">${esc(x.name || 'A deleted paint')}</b>${sub?`<span class="user-text">${esc(sub)}</span>`:''}
+      <span class="havest ${x.state}${x.state === 'have' && p.stock === 'Running low' ? ' low' : ''}">${x.state === 'have' ? esc(p.stock || 'Have it') : LABEL[x.state]}</span></span></div>`;
   });
+  h += `</details>`;
   const add = toAdd(list);
   if (add.length) h += `<button class="linkbtn" data-act="addMissing">Add ${add.length === 1 ? 'the missing one' : 'the ' + add.length + ' missing'} to your shopping list</button>`;
   else if (have < list.length) h += `<p class="small muted" style="margin:.5rem 0 0">The missing ${list.length - have === 1 ? 'one is' : 'ones are'} already on your shopping list.</p>`;
@@ -6400,35 +6546,47 @@ function screenRecipeDetail(){
   if (!r) return `<div class="empty"><p>That recipe no longer exists.</p>
     <button class="btn" data-back="recipes">Back to recipes</button></div>`;
   const used = data.links.filter(l => l.recipeId === r.id);
+  /* v033: reading and editing are separate. Reading shows the steps first,
+     with nothing you could delete by accident; Edit brings out the controls. */
+  const editing = state.editRecipe === r.id;
   let h = backBtn('recipes','Recipes');
-  h += `<h2 class="display user-text" style="font-size:1.625rem">${esc(r.title)}</h2>`;
-  if (r.category) h += `<p class="muted" style="margin-top:-.25rem">${esc(r.category)}</p>`;
-  if (used.length) h += `<p class="small muted">Used on <b>${used.length}</b> model${used.length>1?'s':''}.
-    Editing it changes all of them.</p>`;
-  h += recipeHaveCard(r);
+  h += `<div class="rhead"><div class="grow"><h2 class="display user-text" style="font-size:1.625rem;margin:0">${esc(r.title)}</h2>
+    ${r.category ? `<p class="muted user-text" style="margin:.125rem 0 0">${esc(r.category)}</p>` : ''}</div>
+    ${editing ? '' : `<button class="btn ghost sm" data-act="editRecipe">Edit</button>`}</div>`;
+  if (used.length) h += `<p class="small muted">Used on <b>${used.length}</b> model${used.length>1?'s':''}.${editing ? ' Editing it changes all of them.' : ''}</p>`;
+  if (!editing && r.desc) h += `<p class="user-text rdesc">${esc(r.desc)}</p>`;
 
   h += `<div class="card"><div class="row spread"><h3 style="margin:0">Steps</h3>
-    <button class="btn sm ghost" data-act="addStep">Add step</button></div>`;
-  if (!arr(r.steps).length) h += `<p class="small muted">No steps yet.</p>`;
+    ${editing ? `<button class="btn sm ghost" data-act="addStep">Add step</button>` : ''}</div>`;
+  if (!arr(r.steps).length) h += `<p class="small muted">No steps yet.${editing ? '' : ' Choose Edit to add some.'}</p>`;
+  h += `<ol class="rsteps">`;
   arr(r.steps).forEach((s,i) => {
-    const names = stepPaints(s).map(x => x.paint ? esc(x.paint.name)
-      : `<i>${esc(x.name || 'A deleted paint')}</i> &middot; no longer in your paints`);
-    h += `<div class="row" style="padding:.625rem 0;border-top:1px solid var(--border);align-items:flex-start">
-      <span class="num" style="min-width:1.5rem;color:var(--text-2)">${i+1}</span>
+    const sp = stepPaints(s);
+    const names = sp.map(x => x.paint
+      ? `<span class="rp">${dropSvg('rpdrop', /^#[0-9a-f]{6}$/i.test(x.paint.hex || '') ? esc(x.paint.hex) : '')}<span class="user-text">${esc(x.paint.name)}</span></span>`
+      : `<span class="rp gone"><i class="user-text">${esc(x.name || 'A deleted paint')}</i> <span class="muted">(no longer in your paints)</span></span>`);
+    h += `<li class="rstep"><span class="rn num" aria-hidden="true">${i+1}</span>
       <span class="grow"><b class="user-text">${esc(s.technique||'Step')}</b>
-        ${names.length?`<span class="small" style="display:block">${names.join(' + ')}${s.mix?' · '+esc(s.mix):''}</span>`:''}
+        ${names.length?`<span class="rps">${names.join('<span class="rplus" aria-hidden="true">+</span>')}</span>`:''}
+        ${s.mix?`<span class="small user-text" style="display:block">Mix: ${esc(s.mix)}</span>`:''}
         ${s.notes?`<span class="small muted user-text" style="display:block">${esc(s.notes)}</span>`:''}
         ${s.dry?`<span class="small muted" style="display:block">Leave ${esc(s.dry)}</span>`:''}</span>
-      <button class="iconbtn" data-delstep="${esc(s.id)}" aria-label="Delete step">&times;</button></div>`;
+      ${editing ? `<button class="btn ghost sm danger-text" data-delstep="${esc(s.id)}" aria-label="Delete step ${i+1}, ${esc(s.technique||'Step')}">Delete</button>` : ''}</li>`;
   });
-  h += `</div>`;
+  h += `</ol></div>`;
 
-  h += `<div class="card"><h3>Details</h3>
-    <label for="rTitle">Name</label><input id="rTitle" value="${esc(r.title)}">
-    <label for="rCat">Category</label><input id="rCat" value="${esc(r.category||'')}" placeholder="bone, flesh, metal, cloth">
-    <label for="rDesc">Notes</label><textarea id="rDesc" class="user-text">${esc(r.desc||'')}</textarea>
-    <div class="row" style="margin-top:.875rem"><button class="btn" data-act="saveRecipe">Save changes</button>
-    <button class="btn danger" data-act="delRecipe">Delete</button></div></div>`;
+  h += recipeHaveCard(r);
+
+  if (editing){
+    h += `<div class="card"><h3>Details</h3>
+      <label for="rTitle">Name</label><input id="rTitle" value="${esc(r.title)}">
+      <label for="rCat">Category</label><input id="rCat" value="${esc(r.category||'')}" placeholder="bone, flesh, metal, cloth">
+      <label for="rDesc">Notes</label><textarea id="rDesc" class="user-text">${esc(r.desc||'')}</textarea>
+      <div class="row wrapm" style="margin-top:.875rem"><button class="btn" data-act="saveRecipe">Save changes</button>
+      <button class="btn ghost" data-act="doneRecipe">Done</button></div></div>
+      <div class="card dangerzone"><h3>Delete this recipe</h3><p class="small muted">Removes it from every model it is attached to. This cannot be undone.</p>
+      <button class="btn danger" data-act="delRecipe">Delete recipe</button></div>`;
+  }
   return h;
 }
 
@@ -6442,11 +6600,11 @@ const TITLES = { home:'MiniManager', coll:'Collection', paints:'Paints', recipes
 function headerAction(){
   if (state.setup.step) return '';
   if (state.tab === 'coll' && !state.openMini && !state.openArchive && data.minis.length)
-    return `<button class="btn sm" data-act="addHere">Add</button>`;
+    return `<button class="btn sm ghost" data-act="addHere">Add</button>`;
   if (state.tab === 'paints' && !state.sub && !state.openPaint && data.paints.length)
-    return `<button class="btn sm" data-act="addPaint">Add</button>`;
+    return `<button class="btn sm ghost" data-act="addPaint">Add</button>`;
   if (state.tab === 'recipes' && !state.openRecipe && data.recipes.length)
-    return `<button class="btn sm" data-act="newRecipe">New</button>`;
+    return `<button class="btn sm ghost" data-act="newRecipe">New</button>`;
   return '';
 }
 
@@ -7096,7 +7254,7 @@ function openDialog(title, body, onOk, okLabel, cancelLabel, onCancel){
     ${body}
     <div class="row" style="margin-top:1rem;justify-content:flex-end">
       <button class="btn ghost" data-dlg="cancel">${esc(cancelLabel||'Cancel')}</button>
-      ${onOk ? `<button class="btn" data-dlg="ok">${esc(okLabel||'Save')}</button>` : ''}</div>`;
+      ${onOk ? `<button class="btn${/^(Delete|Replace everything|Stop|Remove|Discard)/.test(okLabel || '') ? ' danger' : ''}" data-dlg="ok">${esc(okLabel||'Save')}</button>` : ''}</div>`;
   const dlg = $('#dlg');
   /* One dialog follows another (Restore asks from inside the menu), and
      opening an already-open dialog throws. */
@@ -7232,7 +7390,7 @@ function chips(id, items, opts){
             aria-pressed="${own ? 'true' : 'false'}">Type my own</button>`}
       </div>
       <div class="ownwrap${own ? ' open' : ''}"><div>
-        <input class="chipown" type="text" placeholder="${esc(o.ownPlaceholder || 'Type it here')}"
+        <input class="chipown" type="text" aria-label="${esc((o.label || 'Your own') + ': type your own')}" placeholder="${esc(o.ownPlaceholder || 'Type it here')}"
           value="${esc(extra.join(', '))}">
       </div></div>
     </div>${h.panel}`;
@@ -7383,7 +7541,7 @@ function dlgAddSystem(){
        }).join('')}
        <option value="__own">Type my own&hellip;</option>
      </select>
-     <input id="sOwn" type="text" placeholder="Your own game" style="margin-top:.5rem" hidden>
+     <input id="sOwn" type="text" aria-label="Your own game name" placeholder="Your own game" style="margin-top:.5rem" hidden>
      <p class="small muted" style="margin:.625rem 0 0">${left
        ? 'Picking one of these brings its army list with it. You can still type your own army whatever you choose.'
        : 'You already have every game system on the built-in list. Choose <b>Type my own</b> for anything else &mdash; the app has never cared which game it is.'}</p>`,
@@ -7428,11 +7586,11 @@ function dlgAddMini(){
          ${sysList.map(n => `<option value="${esc(n)}"${n === lastSys ? ' selected' : ''}>${esc(n)}</option>`).join('')}
          <option value="__own">Type my own&hellip;</option>
        </select>
-       <input id="mSysOwn" type="text" placeholder="Your own game" style="margin-top:.5rem" hidden>
+       <input id="mSysOwn" type="text" aria-label="Your own game name" placeholder="Your own game" style="margin-top:.5rem" hidden>
 
        <label for="mFac">Army or faction</label>
        <select id="mFac">${armyOptions(lastSys, last.fac || '')}</select>
-       <input id="mFacOwn" type="text" placeholder="Your own army" style="margin-top:.5rem" hidden>
+       <input id="mFacOwn" type="text" aria-label="Your own army name" placeholder="Your own army" style="margin-top:.5rem" hidden>
 
        ${chips('mUnit', UNIT_TYPES, { label:'Unit type',
          help:'unitType', ownPlaceholder:'Whatever your game calls it' })}
@@ -7747,7 +7905,7 @@ function dlgNewRecipe(){
       if (!t){ toast(NAME_REQUIRED); return false; }
       const r = { id:uid(), title:t, category:$('#rnCat').value.trim(), tags:'', desc:'',
                   steps:[], visibility:'private', created:Date.now() };
-      data.recipes.push(r); save(); state.tab='recipes'; state.openRecipe=r.id; render(); toast('Recipe created.');
+      data.recipes.push(r); save(); state.tab='recipes'; state.openRecipe=r.id; state.editRecipe=r.id; render(); toast('Recipe created.');
     }, 'Create');
 }
 
@@ -7892,7 +8050,7 @@ document.addEventListener('click', e => {
   const op = t.closest('[data-openpaint]');
   if (op){ state.openPaint = op.dataset.openpaint; state.tab='paints'; state.sub=null; render(); window.scrollTo(0,0); return; }
   const orr = t.closest('[data-openrecipe]');
-  if (orr){ state.openRecipe = orr.dataset.openrecipe; state.tab='recipes'; render(); window.scrollTo(0,0); return; }
+  if (orr){ state.openRecipe = orr.dataset.openrecipe; state.editRecipe = null; state.tab='recipes'; render(); window.scrollTo(0,0); return; }
 
   const act = t.closest('[data-act]');
   if (act){
@@ -7975,6 +8133,8 @@ document.addEventListener('click', e => {
     if (a === 'backArchive'){ navGo('back', () => { state.openArchive = false; state.openGame = null; state.openArmy = null; render(); window.scrollTo(0,0); }); return; }
     if (a === 'dupMini')   return duplicateMini();
     if (a === 'splitMini') return dlgSplit();
+    if (a === 'editRecipe'){ state.editRecipe = state.openRecipe; render(); return; }
+    if (a === 'doneRecipe'){ state.editRecipe = null; render(); return; }
     if (a === 'sessStart'){ const s = sessNow();
       if (s && s.miniId !== act.dataset.id){ state.tab = 'session'; render(); window.scrollTo(0,0); toast('Finish this session before starting another.'); return; }
       if (s){ state.tab = 'session'; state.openMini = null; render(); window.scrollTo(0,0); return; }
@@ -8603,7 +8763,7 @@ function saveRecipeEdits(){
   if (!t){ toast(NAME_REQUIRED); return; }
   const used = data.links.filter(l => l.recipeId === r.id).length;
   const apply = () => { r.title = t; r.category = $('#rCat').value.trim(); r.desc = $('#rDesc').value;
-    save(); render(); toast('Saved.'); };
+    state.editRecipe = null; save(); render(); toast('Saved.'); };
   if (used > 2){
     openDialog('This recipe is on ' + used + ' models',
       `<p>Saving changes it everywhere it is used. If you want to keep the old version, duplicate it first.</p>`,
