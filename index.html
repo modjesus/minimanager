@@ -1203,11 +1203,16 @@ nav.tabs button{font-size:.75rem}
 .sect h3{font-size:.75rem}
 .grouphead,.pill,.paintrow .br,figcaption{font-size:.75rem}
 
-/* Desktop: paints two to a row; denser lists. */
-@media(min-width:60rem){
-  .paintlist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem}
-  .paintlist .paintrow{margin:0!important}
-}
+/* v037: paints as colour tiles, three across on a phone, more on wider screens. */
+.paintlist{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.375rem}
+@media(min-width:42rem){.paintlist{grid-template-columns:repeat(auto-fill,minmax(8.5rem,1fr));gap:.5rem}}
+.paintlist .paintrow{position:relative;margin:0!important;flex-direction:column;align-items:stretch;gap:.375rem;padding:.375rem;min-width:0}
+.paintlist .paintrow .sw{width:100%;height:2.75rem;border-radius:.375rem}
+.paintlist .paintrow .grow{display:block;min-width:0}
+.paintlist .paintrow br{display:none}
+.paintlist .paintrow .nm{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:.8125rem;line-height:1.2;min-height:2.4em}
+.paintlist .paintrow .br{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:.125rem}
+.paintlist .paintrow .tagmini{position:absolute;top:.6rem;right:.6rem;font-size:.75rem;letter-spacing:0;text-transform:none;padding:.05rem .35rem;border-radius:.3rem;background:color-mix(in srgb,var(--bg,#0B1A2E) 80%,transparent);color:var(--text)}
 /* v034 pennants */
 .pennant{display:block;flex:0 0 auto;height:auto;object-fit:contain;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
 .pennant.none{background:color-mix(in srgb,var(--text) 10%,transparent);clip-path:polygon(0 0,100% 0,100% 100%,50% 82%,0 100%)}
@@ -4056,7 +4061,7 @@ function syncPill(){
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v036';
+const APP_VERSION = 'v037';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
