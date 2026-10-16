@@ -1356,6 +1356,9 @@ header.bar.gated{display:none}
 .pchips button[aria-pressed="true"] b{color:var(--ink-navy)}
 .pgh{display:flex;align-items:baseline;gap:.5rem;margin:1.25rem 0 .5rem;font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-ink);font-weight:700}
 .pgh .num{color:var(--text-2);letter-spacing:0}
+/* v039 spark burst: reduced-motion stand-in */
+@keyframes mmGlint{0%{box-shadow:0 0 0 0 rgba(53,207,255,0)}30%{box-shadow:0 0 0 3px rgba(53,207,255,.55)}100%{box-shadow:0 0 0 0 rgba(53,207,255,0)}}
+.mm-glint{animation:mmGlint 600ms ease-out}
 </style>
 </head>
 <body>
@@ -4091,7 +4094,7 @@ function syncPill(){
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v038';
+const APP_VERSION = 'v039';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -4564,6 +4567,91 @@ function setCounts(m, cnt){
    kept per unit; that is years of painting and keeps each record small. */
 const HISTORY_MAX = 100;
 const localISO = d => { const x = d || new Date(); return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0'); };
+/* The spark burst (v039, Joe's settings from the preview: 60 sparks,
+   160px spread, 1.6s, half of them twinkles). Decorative only. */
+const mmBurst = (() => {
+  const DEFAULTS = { count:60, colour:'#35CFFF', highlight:'#E6FBFF', spread:160, duration:1600, twinkle:0.5, maxLive:150 };
+  let canvas = null, ctx = null, parts = [], raf = 0, dpr = 1;
+  const reduced = () => !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  function ensure(){
+    if (canvas) return;
+    canvas = document.createElement('canvas');
+    canvas.setAttribute('aria-hidden', 'true');
+    canvas.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:2147483000';
+    document.body.appendChild(canvas);
+    ctx = canvas.getContext('2d'); size();
+    addEventListener('resize', size);
+  }
+  function size(){ if (!canvas) return; dpr = Math.min(2, devicePixelRatio || 1); canvas.width = innerWidth * dpr; canvas.height = innerHeight * dpr; }
+  function teardown(){ cancelAnimationFrame(raf); raf = 0; removeEventListener('resize', size); if (canvas) canvas.remove(); canvas = ctx = null; parts = []; }
+  function star(x, y, r){
+    ctx.beginPath();
+    ctx.moveTo(x, y - r); ctx.quadraticCurveTo(x, y, x + r, y); ctx.quadraticCurveTo(x, y, x, y + r);
+    ctx.quadraticCurveTo(x, y, x - r, y); ctx.quadraticCurveTo(x, y, x, y - r); ctx.fill();
+  }
+  function frame(t){
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, innerWidth, innerHeight);
+    parts = parts.filter(p => t - p.born < p.life);
+    for (const p of parts){
+      const k = (t - p.born) / p.life;                 // 0 → 1
+      const out = 1 - Math.pow(1 - Math.min(1, k / 0.35), 3); // fast burst, eased, done by 35%
+      const drift = Math.max(0, k - 0.2);               // then a gentle rise
+      const x = p.x0 + p.vx * out + p.sway * Math.sin(k * 6);
+      const y = p.y0 + p.vy * out - p.rise * drift * drift;
+      const a = k < 0.15 ? k / 0.15 : Math.pow(1 - (k - 0.15) / 0.85, 1.6);
+      ctx.globalAlpha = Math.max(0, a) * p.alpha;
+      ctx.fillStyle = p.col;
+      ctx.shadowColor = p.col; ctx.shadowBlur = p.tw ? 6 : 3;
+      if (p.tw){ star(x, y, p.r * (1 + 0.25 * Math.sin(k * 18))); }
+      else { ctx.beginPath(); ctx.arc(x, y, p.r, 0, Math.PI * 2); ctx.fill(); }
+    }
+    ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+    if (parts.length) raf = requestAnimationFrame(frame); else teardown();
+  }
+  function glint(el){ el.classList.remove('mm-glint'); void el.offsetWidth; el.classList.add('mm-glint'); setTimeout(() => el.classList.remove('mm-glint'), 650); }
+  /* el: the button that was pressed, or the rectangle it had when pressed
+     (a dialog's button is gone by the time a save has finished). */
+  return function burst(el, opts){
+    if (!el) return;
+    const o = Object.assign({}, DEFAULTS, opts || {});
+    const live = el.getBoundingClientRect ? el : null;
+    if (reduced()){ if (live && live.isConnected) glint(live); return; }
+    const r = live ? live.getBoundingClientRect() : el;
+    if (!r || (!r.width && !r.height)) return;
+    ensure();
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    const now = performance.now();
+    const room = Math.max(0, o.maxLive - parts.length);
+    const n = Math.min(o.count, room || Math.ceil(o.count / 3)); // still a small acknowledgement when full
+    if (!room) parts.splice(0, n);                                 // drop the oldest instead of stacking
+    for (let i = 0; i < n; i++){
+      const ang = Math.random() * Math.PI * 2;
+      const dist = o.spread * (0.45 + Math.random() * 0.75);
+      const tw = Math.random() < o.twinkle;
+      parts.push({
+        x0: cx + Math.cos(ang) * r.width * 0.25 * Math.random(),
+        y0: cy + Math.sin(ang) * r.height * 0.3 * Math.random(),
+        vx: Math.cos(ang) * dist, vy: Math.sin(ang) * dist * 0.75,
+        rise: 18 + Math.random() * 26, sway: (Math.random() - 0.5) * 6,
+        r: tw ? 2.6 + Math.random() * 1.8 : 0.9 + Math.random() * 1.3,
+        tw, col: Math.random() < 0.22 ? o.highlight : o.colour, alpha: 0.75 + Math.random() * 0.25,
+        born: now + Math.random() * 60, life: o.duration * (0.75 + Math.random() * 0.35)
+      });
+    }
+    if (!raf) raf = requestAnimationFrame(frame);
+  };
+})();
+const BURST_MOVE = { count:60, spread:160, duration:1600, twinkle:0.5 };
+const BURST_FINISH = { count:90, spread:190, duration:1600, twinkle:0.5 };
+/* Sparks from the unit's own Move models on button when it is on screen
+   after the save; otherwise from where the confirm button was. */
+function burstForMove(m, okRect, finished){
+  const b = document.querySelector(`#app [data-act="moveOn"][data-id="${CSS.escape(m.id)}"]`);
+  const r = b && b.getBoundingClientRect();
+  const seen = r && r.bottom > 0 && r.top < innerHeight - 60;
+  mmBurst(seen ? b : okRect, finished ? BURST_FINISH : BURST_MOVE);
+}
+
 function logMove(m, from, to, n, on){
   n = Number(n) || 0;
   if (!m || !n || from === to) return;
@@ -4764,6 +4852,7 @@ function sessFinish(){
     const mins = Math.round(Number($('#sfMins').value));
     if (!(mins >= 1 && mins <= 1440)){ toast('Enter the minutes painted, from 1 to 1440.'); return false; }
     const note = $('#sfNote').value.trim().slice(0, 140);
+    const okEl = $('#dlg [data-dlg="ok"]'), okRect = okEl ? okEl.getBoundingClientRect() : null;
     const log = arr(m.log).slice();
     log.push({ id:uid(), on:localISO(), kind:'session', mins, note, at:Date.now() });
     m.log = log.length > HISTORY_MAX ? log.slice(-HISTORY_MAX) : log;
@@ -4774,6 +4863,7 @@ function sessFinish(){
     m.updated = Date.now();
     delete data.settings.session;
     save(); state.tab = 'home'; render(); window.scrollTo(0, 0);
+    if (k) burstForMove(m, okRect, isDone(m) && !wasDone);
     toast(k && isDone(m) && !wasDone ? `All ${m.total} finished. ${fmtDur(mins)} saved.` : k ? `${fmtDur(mins)} saved. Moved ${k} to ${names[mv.to]}.` : `${fmtDur(mins)} saved to ${m.name}.`);
   }, label(), 'Keep painting');
   const dlg = $('#dlg');
@@ -7727,12 +7817,14 @@ function moveModels(m){
     const c = stageCounts(m), wasDone = isDone(m);
     const k = Math.min(mv.k, c[mv.from]);
     if (!k) return;
+    const okEl = $('#dlg [data-dlg="ok"]'), okRect = okEl ? okEl.getBoundingClientRect() : null;
     const when = $('#mvWhen').value;
     if (when && when > localISO()){ toast('That date is in the future.'); return false; }
     logMove(m, names[mv.from], names[mv.to], k, when);
     c[mv.from] -= k; c[mv.to] += k;
     setCounts(m, c); m.updated = Date.now(); save(); render();
     toast(isDone(m) && !wasDone ? `All ${m.total} finished.` : `Moved ${k} to ${names[mv.to]}.`);
+    if (mv.to > mv.from) burstForMove(m, okRect, isDone(m) && !wasDone);
   }, label());
   const dlg = $('#dlg');
   dlg.classList.add('sheet');
