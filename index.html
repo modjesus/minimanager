@@ -4177,7 +4177,7 @@ function syncPill(){
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v040';
+const APP_VERSION = 'v041';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -4602,7 +4602,10 @@ const wfOf = m => (m && m.wf) ? workflows().find(w => w.id === m.wf && arr(w.sta
 const stagesOf = m => { const w = wfOf(m); return w ? w.stages : data.stages; };
 const wfName = m => { const w = wfOf(m); return w ? w.name : 'Standard'; };
 const stageIx = m => { const L = stagesOf(m); const i = L.indexOf(m.stage); return i < 0 ? 0 : i; };
-const isDone  = m => { const L = stagesOf(m); return m.stage === L[L.length - 1]; };
+/* Finished means every model is at the last stage. v041: read from the
+   counts, not the old single stage field, which some records from before
+   v018 left behind (e.g. "Basing" with 5 of 5 finished). */
+const isDone  = m => { const c = stageCounts(m); return c[c.length - 1] >= (Number(m.total) || 1); };
 
 /* ---------------------------------------------------------------------------
    How many models are at each stage.
@@ -4947,6 +4950,7 @@ function sessFinish(){
     delete data.settings.session;
     save(); state.tab = 'home'; render(); window.scrollTo(0, 0);
     if (k) burstForMove(m, okRect, isDone(m) && !wasDone);
+    if (k && isDone(m) && !wasDone) askUnpin([m]);
     toast(k && isDone(m) && !wasDone ? `All ${m.total} finished. ${fmtDur(mins)} saved.` : k ? `${fmtDur(mins)} saved. Moved ${k} to ${names[mv.to]}.` : `${fmtDur(mins)} saved to ${m.name}.`);
   }, label(), 'Keep painting');
   const dlg = $('#dlg');
@@ -6350,8 +6354,10 @@ function dlgBulkStage(){
     `<p class="small muted" style="margin-top:0">Every model in ${ms.length === 1 ? 'it' : 'them'} moves to the stage you pick.</p>
      <div class="chips" id="bsChips">${L.map(s => `<button class="chip" data-bstage="${esc(s)}" aria-pressed="false">${esc(s)}</button>`).join('')}</div>`,
     () => { if (!pick){ toast('Pick a stage first.'); return false; }
+      const was = new Map(ms.map(m => [m.id, isDone(m)]));
       ms.forEach(m => { logAllTo(m, stageCounts(m), L, pick); setCounts(m, L.map((_, i) => i === L.indexOf(pick) ? (Number(m.total)||1) : 0)); m.updated = Date.now(); });
-      endSelecting(`Moved ${ms.length} to ${pick}.`); }, 'Move');
+      endSelecting(`Moved ${ms.length} to ${pick}.`);
+      askUnpin(ms.filter(m => !was.get(m.id))); }, 'Move');
   $('#bsChips').addEventListener('click', e => { const c = e.target.closest('[data-bstage]'); if (!c) return;
     pick = c.dataset.bstage;
     $$('#bsChips [data-bstage]').forEach(b => b.setAttribute('aria-pressed', String(b === c)));
@@ -6645,8 +6651,8 @@ function screenMini(){
   const m = data.minis.find(x => x.id === state.openMini);
   if (!m) return `<div class="empty"><p>That miniature no longer exists.</p>
     <button class="btn" data-back="coll">Back to collection</button></div>`;
-  const n = Number(m.total)||1, d = Number(m.done)||0, cur = stageIx(m), L = stagesOf(m), last = L.length-1;
-  const fin = cur === last;
+  const n = Number(m.total)||1, d = Number(m.done)||0, L = stagesOf(m), last = L.length-1;
+  const fin = isDone(m), cur = fin ? last : stageIx(m);
 
   let h = backLink('backMini', state.openArchive ? 'Archived' : armyLabel({ sys:m.sys||'', fac:m.fac||'' }));
   if (m.archived) h += `<div class="archnote"><span><b>Archived</b> &middot; ${esc(m.archived.why || '')}${m.archived.on ? ' ' + esc(waitingSince(m.archived.on)) : ''}. Not in your shelves or totals.</span>
@@ -7693,6 +7699,20 @@ function reducedMotion(){
 /* The single place a stage changes, reached from both the big button and the
    ladder. Having two copies of this was how the "finished" flag and the
    celebration could drift apart. */
+/* v041: a pinned unit that has just been finished asks whether to come off
+   the Workbench. Asked after the move is saved, once any open sheet has gone. */
+function askUnpin(ms){
+  ms = ms.filter(m => m && m.pinned && isDone(m)); if (!ms.length) return;
+  const go = () => {
+    const d = $('#dlg'); if (d && d.open){ setTimeout(go, 150); return; }
+    const one = ms.length === 1;
+    openDialog(one ? `${ms[0].name} is finished` : `${ms.length} pinned units are finished`,
+      `<p style="margin-top:0">${one ? 'It is' : 'They are'} pinned to your Workbench. Unpin ${one ? 'it' : 'them'} now?</p>`,
+      () => { ms.forEach(m => { delete m.pinned; m.updated = Date.now(); }); save(); render(); toast(one ? 'Unpinned.' : `Unpinned ${ms.length}.`); },
+      'Unpin', 'Keep pinned');
+  };
+  setTimeout(go, 400);
+}
 function setStage(m, stage){
   const wasFinished = isFinished(m);
   /* Every model in the unit moves to the stage. Moving some of them is the
@@ -7706,6 +7726,7 @@ function setStage(m, stage){
   setCounts(m, cnt);
   m.updated = Date.now(); save();
   advanceStrip(m, !wasFinished && isFinished(m));
+  if (!wasFinished && isFinished(m)) askUnpin([m]);
 }
 
 function advanceStrip(m, justFinished){
@@ -8046,6 +8067,7 @@ function moveModels(m){
     setCounts(m, c); m.updated = Date.now(); save(); render();
     toast(isDone(m) && !wasDone ? `All ${m.total} finished.` : `Moved ${k} to ${names[mv.to]}.`);
     if (mv.to > mv.from) burstForMove(m, okRect, isDone(m) && !wasDone);
+    if (isDone(m) && !wasDone) askUnpin([m]);
   }, label());
   const dlg = $('#dlg');
   dlg.classList.add('sheet');
