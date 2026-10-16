@@ -1,0 +1,11 @@
+MiniManager - Roll the dice: third-party parts
+
+three.js r169 (three.module.min.js, addons/loaders/GLTFLoader.js, addons/utils/BufferGeometryUtils.js)
+  MIT licence, Copyright (c) 2010-2024 three.js authors. Full text: LICENSE-three.txt
+
+Rapier 3D physics, @dimforge/rapier3d-compat 0.12.0 (rapier.es.js)
+  Apache License 2.0, Copyright (c) Dimforge. Full text: LICENSE-rapier.txt
+
+Tray textures (inside tray.glb)
+  Felt, leather and brass maps derived from CC0 scans from Poly Haven (polyhaven.com)
+  and ambientCG (ambientcg.com), with further procedural refinement.

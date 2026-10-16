@@ -1443,6 +1443,13 @@ body.galopen{overflow:hidden}
 .rmeta{display:flex;flex-wrap:wrap;gap:.375rem;margin-top:.35rem}
 .rmeta span{font-size:.75rem;padding:.1rem .45rem;border-radius:.3rem;background:color-mix(in srgb,var(--text) 10%,transparent);color:var(--text-2)}
 </style>
+<script type="importmap">
+{ "imports": {
+  "three": "./dice/three.module.min.js",
+  "three/addons/": "./dice/addons/",
+  "rapier": "./dice/rapier.es.js"
+} }
+</script>
 </head>
 <body>
 
@@ -4177,7 +4184,7 @@ function syncPill(){
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v041';
+const APP_VERSION = 'v042';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -5368,7 +5375,7 @@ function screenHome(){
     <p class="wbtag">Plan. Paint. Track. Belong.</p><span class="orn o-topdiv" aria-hidden="true"></span></div>`;
   if (c.entries !== 0) h += progStrip(c) + `<div class="wbacts">
       <button class="btn" data-act="addMini">${PLUS_SVG}Add a miniature</button>
-      <button class="btn ghost" data-act="pick">${DICE_SVG}Pick for me</button></div>`;
+      <button class="btn ghost" data-act="dice">${DICE_SVG}Roll the dice</button></div>`;
   if (c.entries === 0){
     return h + emptyFrame(`${emptyPen('spare-navy')}<h3>Your bench is clear</h3>
       <p>Add your first miniature and it waits here, ready for the next brushstroke.</p>
@@ -8863,6 +8870,8 @@ document.addEventListener('click', e => {
     if (a === 'backGames'){ navGo('back', () => { state.openGame = null; state.openArmy = null; render(); window.scrollTo(0,0); }); return; }
     if (a === 'backMini'){ navGo('back', () => { state.openMini = null; render(); window.scrollTo(0,0); }); return; }
     if (a === 'backGame'){ navGo('back', () => { state.openArmy = null; render(); window.scrollTo(0,0); }); return; }
+    /* v042: Roll the dice opens its own full-screen layer (dice.js). */
+    if (a === 'dice'){ if ($('#dlg').open) $('#dlg').close(); if (typeof window.openDice === 'function') window.openDice(act); else { state.tab = 'pick'; state.pick.result = null; render(); } return; }
     if (a === 'pick'){ $('#dlg').close(); state.tab = 'pick'; state.openMini = null;
       state.pick.result = null; render(); window.scrollTo(0,0); return; }
     if (a === 'shop'){ $('#dlg').close(); state.tab = 'shop'; state.openMini = null;
@@ -9733,6 +9742,10 @@ $('#moreBtn').addEventListener('click', () => {
        <a href="https://github.com/PauloSalum/paint-equivalents">paint-equivalents</a>, derived from
        <a href="https://github.com/Arcturus5404/miniature-paints">miniature-paints</a>,
        MIT licence, Copyright &copy; 2022 Rick Fleuren.</p>
+     <p class="small muted">Roll the dice uses <a href="https://threejs.org">three.js</a> (MIT licence, Copyright &copy; 2010&ndash;2024
+       three.js authors) and <a href="https://rapier.rs">Rapier</a> physics (Apache License 2.0, Copyright &copy; Dimforge). The tray&rsquo;s
+       felt, leather and brass textures are derived from CC0 scans from <a href="https://polyhaven.com">Poly Haven</a> and
+       <a href="https://ambientcg.com">ambientCG</a>. Full licence texts are in the app&rsquo;s dice folder.</p>
      <p class="small muted">Permission is hereby granted, free of charge, to any person obtaining a copy of this
        software and associated documentation files (the &ldquo;Software&rdquo;), to deal in the Software without
        restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute,
@@ -9853,6 +9866,597 @@ if ('serviceWorker' in navigator){
     navigator.serviceWorker.register('sw.js').catch(err => console.warn('sw', err.message));
   });
 }
+
+</script>
+<script>
+/* ===========================================================================
+   Roll the dice (v042).
+
+   A full-screen layer over the app, opened from the Workbench. It chooses one
+   unfinished unit from the live collection. The 3D tray, the die and the
+   physics are only fetched the first time the layer opens, from ./dice/, and
+   the service worker keeps them for offline use after that.
+
+   It sits outside #app on purpose: render() rebuilds #app on every change,
+   and that would throw away the 3D canvas mid-roll.
+
+   The only thing it ever changes in the collection is the pin, when the
+   person presses "Accept the challenge".
+   =========================================================================== */
+(function(){
+'use strict';
+const q = s => document.querySelector(s);
+const RM = () => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } };
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+const NEXT = { Unbuilt:'build the unit', Built:'prime the unit', Primed:'lay down the basecoats', Basecoat:'add the shading',
+  Shading:'pick out the highlights', Highlights:'finish the bases', Basing:'final details, then mark it finished' };
+const PNOTE = { surprise:'Any unfinished unit, equal chance.', finish:'Units at least half done.',
+  backlog:'Unbuilt and unprimed units, oldest first in the odds.', challenge:'Units with 5 or more models still to paint.' };
+const HINT = "Tap to roll, or hold to keep shaking and let go when you're ready.";
+
+/* ---------------- the pool, read fresh from the collection each time -------- */
+let UNITS = [];
+const F = { preset:'surprise', game:'', army:'', off:new Set(), photo:false };   /* off: stages left out */
+let screen = 'set', chosen = null, lastId = null, rollToken = 0;
+
+function unitOf(m){
+  const counts = stageCounts(m), names = stagesOf(m), last = counts.length - 1, total = Number(m.total) || 1;
+  let cur = names[last];
+  for (let i = 0; i < last; i++) if (counts[i] > 0){ cur = names[i]; break; }
+  const curIx = names.indexOf(cur);
+  const progress = last ? counts.reduce((a, k, i) => a + k * i, 0) / (total * last) : 1;
+  const when = m.acquired ? Date.parse(m.acquired) : (Number(m.created) || Date.now());
+  let pen = m.fac ? pennantFor('fac', m.fac) : '';
+  if (!pen || pen === 'spare-navy') pen = m.sys ? pennantFor('sys', m.sys) : (pen || 'spare-navy');
+  return { id:m.id, name:m.name || 'Unnamed unit', game:sysName(m.sys) || 'No game system', army:facName(m.fac),
+    names, cur, curIx, next:names[curIx + 1] || '', total, left:total - counts[last], progress,
+    age:Math.max(1, (Date.now() - (isNaN(when) ? Date.now() : when)) / 864e5),
+    photo:arr(m.photos)[0] || '', pen, label:stageLabel(m) };
+}
+function readPool(){
+  UNITS = liveMinis().filter(m => !isDone(m)).map(unitOf);
+  /* the stage chips: every stage an unfinished unit can be at, in workflow order */
+  const all = [];
+  [arr(data.stages)].concat(UNITS.map(u => u.names)).forEach(L => L.slice(0, -1).forEach(s => { if (!all.includes(s)) all.push(s); }));
+  return all;
+}
+const RULES = {
+  surprise: { test:() => true,              weight:() => 1 },
+  finish:   { test:u => u.progress >= 0.5,  weight:u => u.progress },
+  backlog:  { test:u => u.curIx <= 1,       weight:u => u.age },
+  challenge:{ test:u => u.left >= 5,        weight:u => u.left },
+};
+const filtered = () => UNITS.filter(u => (!F.game || u.game === F.game) && (!F.army || u.army === F.army) && !F.off.has(u.cur) && (!F.photo || !!u.photo));
+const eligible = () => filtered().filter(RULES[F.preset].test);
+function choose(list){
+  const r = RULES[F.preset], pool = list.length > 1 ? list.filter(u => u.id !== lastId) : list;
+  const ws = pool.map(u => Math.max(1e-6, r.weight(u))); let t = Math.random() * ws.reduce((a, b) => a + b, 0);
+  for (let i = 0; i < pool.length; i++){ t -= ws[i]; if (t <= 0) return pool[i]; }
+  return pool[pool.length - 1];
+}
+
+/* ---------------- the layer ------------------------------------------------ */
+const CSS = `
+body.diceopen{overflow:hidden}
+#dice{position:fixed;inset:0;z-index:60;overflow-y:auto;overscroll-behavior:contain;color-scheme:dark;
+  --dz-bg:#081524;--dz-panel:#0B1A2E;--dz-surface:#112640;--dz-line:#24405F;--dz-soft:#1B3350;
+  --dz-text:#EEF2F7;--dz-text2:#A9B6C6;--dz-gold:#D3B676;--dz-gold2:#B8964F;--dz-ink:#D9BE80;
+  background:var(--dz-bg);color:var(--dz-text);font-family:var(--f-body);font-size:15px;line-height:1.5;
+  padding:max(10px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
+#dice[hidden]{display:none}
+#dice *{box-sizing:border-box}
+#dice .dzp{max-width:28rem;margin:0 auto;display:grid;gap:10px}
+#dice .dzp>*{min-width:0;margin:0}
+#dice .dzhead{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:8px}
+#dice .dzhead svg.dzmark{width:28px;height:auto}
+#dice .dzhead h1{font-family:var(--f-display);font-weight:500;font-size:1.3125rem;margin:0;color:var(--dz-text);overflow-wrap:anywhere}
+#dice .dzi{width:44px;height:44px;display:grid;place-items:center;border:0;background:none;color:var(--dz-ink);border-radius:10px;cursor:pointer;padding:0}
+#dice .dzi:hover{background:var(--dz-surface)}
+#dice .dzi svg{width:22px;height:22px}
+#dice h2{font-family:var(--f-display);font-weight:600;font-size:clamp(1.5rem,6.6vw,2rem);line-height:1.1;margin:0;text-align:center;text-wrap:balance;color:var(--dz-text);overflow-wrap:anywhere}
+#dice h2:focus{outline:none}
+#dice .dzsub{color:var(--dz-text2);text-align:center;margin-top:-6px}
+#dice .dzkick{color:var(--dz-gold);text-align:center;font-size:.8125rem;letter-spacing:.16em;font-weight:600;margin-bottom:-6px}
+#dice .dzstage{position:relative;width:100%;height:clamp(190px,min(36svh,74vw),330px);border-radius:12px;overflow:hidden;
+  background:radial-gradient(110% 90% at 50% 40%,#10233D 0%,#0A1729 70%)}
+#dice .dzstage canvas,#dice .dzstage .dzstill{position:absolute;inset:0;width:100%;height:100%;display:block}
+#dice .dzstill{object-fit:contain;transition:opacity .4s}
+#dice .dzstill.gone{opacity:0}
+#dice .dzload{position:absolute;left:0;right:0;bottom:6px;margin:0;text-align:center;font-size:.75rem;color:var(--dz-text2)}
+@keyframes dzchoose{0%,100%{opacity:.55}50%{opacity:1}}
+#dice .dzstage.choosing .dzstill{animation:dzchoose 1s ease-in-out infinite}
+#dice .dzpre{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#dice .dzpb{min-height:48px;display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;border:1px solid var(--dz-line);background:none;
+  color:var(--dz-text);font:inherit;font-size:.875rem;line-height:1.25;text-align:left;cursor:pointer;overflow-wrap:anywhere;margin:0}
+#dice .dzpb svg{width:20px;height:20px;flex:none;color:var(--dz-ink)}
+#dice .dzpb[aria-pressed="true"]{background:linear-gradient(180deg,#D8BC7E,#B8964F);color:#0B1A2E;border-color:transparent;font-weight:600}
+#dice .dzpb[aria-pressed="true"] svg{color:#0B1A2E}
+#dice button:focus-visible,#dice summary:focus-visible,#dice select:focus-visible{outline:2px solid var(--dz-gold);outline-offset:2px}
+#dice .dznote{color:var(--dz-text2);font-size:.8125rem;text-align:center;margin-top:-4px}
+#dice details{border-top:1px solid var(--dz-soft);border-bottom:1px solid var(--dz-soft)}
+#dice summary{list-style:none;display:flex;align-items:center;gap:10px;min-height:44px;cursor:pointer;color:var(--dz-text)}
+#dice summary::-webkit-details-marker{display:none}
+#dice summary svg{width:20px;height:20px;color:var(--dz-ink)}
+#dice summary .dzchev{margin-left:auto;transition:transform .2s}
+#dice details[open] summary .dzchev{transform:rotate(90deg)}
+#dice .dzf{display:grid;gap:12px;padding:4px 0 14px}
+#dice .dzf>*{min-width:0}
+#dice .dzf label{display:grid;gap:4px;font-size:.8125rem;font-weight:400;color:var(--dz-text2);margin:0}
+#dice select{font:inherit;color:var(--dz-text);background:var(--dz-surface);border:1px solid var(--dz-line);border-radius:10px;padding:10px 12px;min-height:44px;width:100%;max-width:100%}
+#dice fieldset{border:0;margin:0;padding:0;min-width:0}
+#dice legend{font-size:.8125rem;color:var(--dz-text2);margin-bottom:6px;padding:0}
+#dice .dzchips{display:flex;flex-wrap:wrap;gap:6px}
+#dice .dzchip{position:relative;display:inline-block;margin:0}
+#dice .dzchip input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+#dice .dzchip span{display:inline-flex;align-items:center;min-height:36px;padding:6px 12px;border-radius:999px;border:1px solid var(--dz-line);font-size:.8125rem;color:var(--dz-text2)}
+#dice .dzchip input:checked+span{border-color:var(--dz-gold2);color:var(--dz-ink);background:color-mix(in srgb,var(--dz-gold) 12%,transparent)}
+#dice .dzchip input:focus-visible+span{outline:2px solid var(--dz-gold);outline-offset:2px}
+#dice label.dzcheck{display:flex;align-items:center;gap:10px;min-height:44px;font-size:.875rem;color:var(--dz-text)}
+#dice .dzcheck input{width:20px;height:20px;accent-color:var(--dz-gold2);margin:0}
+#dice .dzcount{text-align:center;color:var(--dz-text2);font-size:.875rem}
+#dice .dzcount b{color:var(--dz-text);font-weight:600}
+#dice .dzbtn{display:block;width:100%;min-height:54px;border-radius:12px;font-family:var(--f-display);font-size:1.3125rem;font-weight:500;cursor:pointer;border:1px solid transparent;margin:0;padding:6px 12px}
+#dice .dzbtn.gold{background:linear-gradient(180deg,#DCC285,#B8964F);color:#0B1A2E}
+#dice .dzbtn.outline{background:none;border-color:var(--dz-gold2);color:var(--dz-ink)}
+#dice .dzbtn:disabled{opacity:.45;cursor:not-allowed}
+#dice .dzhold{touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+#dice .dzhint{text-align:center;color:var(--dz-text2);font-size:.8125rem;margin-top:-4px}
+#dice .dzlink{background:none;border:0;color:var(--dz-text);text-decoration:underline;text-underline-offset:3px;font:inherit;font-size:.9375rem;cursor:pointer;min-height:44px;padding:0 8px;justify-self:center}
+#dice .dzstatus{text-align:center;color:var(--dz-text)}
+#dice .dzshare{border-top:1px solid var(--dz-soft);padding-top:4px;display:grid;justify-items:center}
+#dice .dzshare .dzlink{display:inline-flex;align-items:center;gap:10px;text-decoration:none}
+#dice .dzshare svg{width:20px;height:20px;color:var(--dz-text2)}
+#dice .dzsharemsg{margin:0;font-size:.8125rem;color:var(--dz-text2)}
+#dice .dzphoto{position:relative;border-radius:12px;overflow:hidden;background:var(--dz-surface);aspect-ratio:4/3;max-height:40svh;width:100%}
+#dice .dzphoto img.ph{width:100%;height:100%;object-fit:cover;display:block}
+#dice .dzphoto .ribbon{position:absolute;top:0;right:12px;width:44px;height:auto;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}
+#dice .dzphoto .nophoto{position:absolute;inset:0;display:grid;place-items:center;align-content:center;gap:10px;color:var(--dz-text2);font-size:.875rem}
+#dice .dzphoto .nophoto img{width:72px;height:auto}
+#dice .dzmeta{text-align:center;color:var(--dz-text);font-size:.9375rem;margin-top:-2px;overflow-wrap:anywhere}
+#dice .dznext{display:flex;align-items:center;justify-content:center;gap:10px;border-top:1px solid var(--dz-soft);padding-top:12px;font-size:1rem}
+#dice .dznext svg{width:20px;height:20px;color:var(--dz-ink);flex:none}
+#dice .dzpin{text-align:center;color:var(--dz-text2);font-size:.8125rem;margin-top:-6px}
+#dice [hidden]{display:none!important}
+#dice .dzsr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (max-height:740px){ #dice .dzsub{display:none} #dice .dzp{gap:8px} }
+@media (prefers-reduced-motion: reduce){ #dice .dzstill{transition:none} #dice .dzstage.choosing .dzstill{animation:none} }
+`;
+const STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2l1.8 8.2L22 12l-8.2 1.8L12 22l-1.8-8.2L2 12l8.2-1.8z"/></svg>';
+const HTML = `
+<div class="dzp" id="dzPanel" data-screen="set">
+  <div class="dzhead">
+    <span id="dzMark"></span>
+    <h1 id="dzTitle">Roll the dice</h1>
+    <button type="button" class="dzi" id="dzSound" aria-pressed="false" aria-label="Dice sound"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path class="son" d="M16.5 8.5a5 5 0 0 1 0 7" hidden/><path class="soff" d="M17 9l5 6M22 9l-5 6"/></svg></button>
+    <button type="button" class="dzi" id="dzClose" aria-label="Close Roll the dice"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+
+  <h2 id="dzHSet" data-for="set" tabindex="-1">What will you paint next?</h2>
+  <p class="dzsub" data-for="set">Let the dice choose from your collection.</p>
+  <h2 id="dzHRoll" data-for="roll" tabindex="-1" hidden>A new project awaits.</h2>
+  <p class="dzkick" data-for="reveal" hidden>THE GUILD HAS CHOSEN</p>
+  <h2 id="dzHReveal" class="user-text" data-for="reveal" tabindex="-1" hidden></h2>
+
+  <div class="dzstage" id="dzStage" data-for="set roll" aria-hidden="true">
+    <img class="dzstill" id="dzStill" src="dice/still.webp" alt="">
+    <p class="dzload" id="dzLoad"></p>
+  </div>
+
+  <div class="dzpre" role="group" aria-label="How to choose" data-for="set">
+    <button type="button" class="dzpb" data-preset="surprise" aria-pressed="true">${STAR}Surprise me</button>
+    <button type="button" class="dzpb" data-preset="finish" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="13" r="8"/><circle cx="11" cy="13" r="4"/><path d="M11 13l9-9M16 4h4v4" stroke-linecap="round"/></svg>Finish something</button>
+    <button type="button" class="dzpb" data-preset="backlog" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="4" width="16" height="7" rx="2"/><rect x="4" y="13" width="16" height="7" rx="2"/></svg>Rescue the backlog</button>
+    <button type="button" class="dzpb" data-preset="challenge" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M5 19L19 5M5 5l14 14M4 20l2-2M18 6l2-2M4 4l2 2M18 18l2 2"/></svg>Set a challenge</button>
+  </div>
+  <p class="dznote" id="dzNote" data-for="set" aria-live="polite"></p>
+
+  <details id="dzCustom" data-for="set">
+    <summary><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>Customise your roll<svg class="dzchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></summary>
+    <div class="dzf">
+      <label>Game system<select id="dzGame"></select></label>
+      <label>Army or faction<select id="dzArmy"></select></label>
+      <fieldset><legend>Stages to include</legend><div class="dzchips" id="dzStages"></div></fieldset>
+      <label class="dzcheck"><input type="checkbox" id="dzPhotoOnly"> Only units with a photo</label>
+    </div>
+  </details>
+
+  <p class="dzcount" id="dzCount" data-for="set" aria-live="polite"></p>
+  <button type="button" class="dzbtn gold dzhold" id="dzRoll" data-for="set" aria-describedby="dzHint">Roll the dice</button>
+  <p class="dzhint" id="dzHint" data-for="set">${HINT}</p>
+
+  <p class="dzstatus" id="dzStatus" data-for="roll" hidden></p>
+  <button type="button" class="dzlink" id="dzSkip" data-for="roll" hidden>Skip animation</button>
+
+  <figure class="dzphoto" id="dzPhoto" data-for="reveal" hidden></figure>
+  <p class="dzmeta user-text" id="dzMeta" data-for="reveal" hidden></p>
+  <p class="dznext" id="dzNext" data-for="reveal" hidden></p>
+  <button type="button" class="dzbtn gold" id="dzAccept" data-for="reveal" aria-describedby="dzPinNote" hidden>Accept the challenge</button>
+  <p class="dzpin" id="dzPinNote" data-for="reveal" hidden>Pins it to the top of your Workbench.</p>
+  <button type="button" class="dzbtn outline dzhold" id="dzAgain" data-for="reveal" hidden>Roll again</button>
+  <button type="button" class="dzlink" id="dzAdjust" data-for="reveal" hidden>Adjust the pool</button>
+  <div class="dzshare" data-for="reveal" hidden><button type="button" class="dzlink" id="dzShare"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>Share challenge</button><p class="dzsharemsg" id="dzShareMsg" aria-live="polite"></p></div>
+
+  <p class="dzsr" id="dzLive" aria-live="assertive"></p>
+</div>`;
+
+let root = null, opener = null, built = false;
+function build(){
+  if (built) return; built = true;
+  const st = document.createElement('style'); st.id = 'diceCss'; st.textContent = CSS; document.head.append(st);
+  root = document.createElement('div'); root.id = 'dice'; root.hidden = true;
+  root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'true'); root.setAttribute('aria-labelledby', 'dzTitle');
+  root.innerHTML = HTML; document.body.append(root);
+  /* the Guild mark from the app's own header, without its ids so nothing is duplicated */
+  const mk = document.querySelector('header.bar svg.mark');
+  if (mk){ const c = mk.cloneNode(true); c.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'));
+    c.removeAttribute('role'); c.removeAttribute('aria-label'); c.setAttribute('aria-hidden', 'true'); c.setAttribute('class', 'dzmark'); q('#dzMark').replaceWith(c); }
+  else q('#dzMark').remove();
+  wire();
+}
+
+function show(s, focusEl){
+  screen = s; q('#dzPanel').dataset.screen = s;
+  root.querySelectorAll('[data-for]').forEach(el => { el.hidden = !el.dataset.for.split(' ').includes(s); });
+  if (focusEl) requestAnimationFrame(() => focusEl.focus({ preventScroll:true }));
+}
+function updateCount(){
+  const n = eligible().length, sys = F.game || 'All systems';
+  q('#dzCount').innerHTML = n ? `<b>${n}</b> eligible project${n === 1 ? '' : 's'} · ${esc(sys)}`
+    : (UNITS.length ? 'No projects match. Try another choice or open <b>Customise your roll</b>.' : 'Everything is finished. Add a new unit to roll for it.');
+  q('#dzRoll').disabled = !n;
+  q('#dzNote').textContent = PNOTE[F.preset];
+}
+function buildFilters(){
+  const stages = readPool();
+  const games = [...new Set(UNITS.map(u => u.game))].sort();
+  if (!games.includes(F.game)) F.game = '';
+  q('#dzGame').innerHTML = '<option value="">All systems</option>' + games.map(g => `<option${g === F.game ? ' selected' : ''}>${esc(g)}</option>`).join('');
+  fillArmies();
+  q('#dzStages').innerHTML = stages.map(s => `<label class="dzchip"><input type="checkbox" value="${esc(s)}"${F.off.has(s) ? '' : ' checked'}><span>${esc(s)}</span></label>`).join('');
+  q('#dzPhotoOnly').checked = F.photo;
+  root.querySelectorAll('[data-preset]').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.preset === F.preset)));
+}
+function fillArmies(){
+  const armies = [...new Set(UNITS.filter(u => !F.game || u.game === F.game).map(u => u.army).filter(Boolean))].sort();
+  if (!armies.includes(F.army)) F.army = '';
+  q('#dzArmy').innerHTML = '<option value="">All armies</option>' + armies.map(a => `<option${a === F.army ? ' selected' : ''}>${esc(a)}</option>`).join('');
+}
+const announce = t => { const l = q('#dzLive'); l.textContent = ''; setTimeout(() => { l.textContent = t; }, 30); };
+
+/* ---------------- opening and closing -------------------------------------- */
+function open(from){
+  build();
+  opener = from || document.activeElement;
+  rollToken++; holding = false; chosen = null;
+  buildFilters(); updateCount();
+  q('#dzHint').textContent = HINT;
+  root.hidden = false; root.scrollTop = 0; document.body.classList.add('diceopen');
+  show('set', q('#dzHSet'));
+  tray3d ? tray3d.rest() : setTimeout(() => { if (!root.hidden) load3d(); }, 60);
+}
+function close(){
+  if (!root || root.hidden) return;
+  rollToken++; holding = false; clearTimeout(holdCap);
+  q('#dzStage').classList.remove('choosing'); tray3d?.skip();
+  root.hidden = true; document.body.classList.remove('diceopen');
+  const o = opener; opener = null;
+  if (o && document.contains(o)) o.focus(); else { const b = document.querySelector('#app [data-act="dice"]'); if (b) b.focus(); }
+}
+window.openDice = open; window.closeDice = close;
+
+/* ---------------- rolling -------------------------------------------------- */
+/* A tap rolls. Holding shakes the die in the air above the tray, on the same
+   screen, until the button is let go; then it drops in and tumbles. */
+let holding = false, holdT0 = 0, holdPool = null, holdToken = 0, holdCap = 0;
+function begin(){
+  if (screen === 'roll' || holding) return false;           /* never two rolls at once */
+  const snapshot = eligible();                              /* the pool is frozen at this moment */
+  if (!snapshot.length) return false;
+  holdPool = snapshot; holdToken = ++rollToken; holding = true; holdT0 = performance.now();
+  if (screen !== 'set') show('roll', q('#dzHRoll'));         /* from the reveal, bring the tray back */
+  q('#dzStatus').textContent = 'Shaking the dice… let go to roll.';
+  q('#dzHint').textContent = 'Shaking… let go to roll.'; announce('Shaking the dice. Let go to roll.');
+  /* on a short phone the tray can be above the fold: bring it into view without moving the button away */
+  const sg = q('#dzStage'), r = sg.getBoundingClientRect();
+  if (r.top < 0) root.scrollBy({ top:r.top - 8, behavior:RM() ? 'auto' : 'smooth' });
+  const token = holdToken, cancelled = () => token !== rollToken;
+  if (tray3d && !RM()) tray3d.shake(cancelled); else sg.classList.add('choosing');
+  clearTimeout(holdCap); holdCap = setTimeout(release, 20000);   /* a forgotten hold still rolls */
+  return true;
+}
+async function release(){
+  if (!holding) return; holding = false; clearTimeout(holdCap);
+  const token = holdToken, snapshot = holdPool;
+  if (token !== rollToken) return;
+  chosen = choose(snapshot); lastId = chosen.id;             /* chosen as you let go; the face it lands on is for show */
+  q('#dzStatus').textContent = `Rolling from ${snapshot.length} project${snapshot.length === 1 ? '' : 's'}…`;
+  show('roll', q('#dzHRoll')); announce(q('#dzStatus').textContent); q('#dzHint').textContent = HINT;
+  const minShake = (tray3d && !RM()) ? 1500 : 0, sofar = performance.now() - holdT0;
+  if (sofar < minShake) await sleep(minShake - sofar);
+  const held = performance.now() - holdT0;
+  if (token !== rollToken || screen !== 'roll') return;
+  const finish = () => { if (token === rollToken && screen === 'roll') reveal(); };
+  const hard = setTimeout(finish, 7000);                    /* safety net: always reveal */
+  try {
+    if (tray3d && !RM()) await tray3d.release(held, () => token !== rollToken || screen !== 'roll');
+    else { q('#dzStage').classList.add('choosing'); await sleep(RM() ? 600 : 1500); }
+  } catch (e) { console.warn(e); }
+  q('#dzStage').classList.remove('choosing');
+  clearTimeout(hard); finish();
+}
+async function roll(){ if (begin()) await release(); }
+function holdable(btn){
+  const up = () => { window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up); if (holding) release(); };
+  btn.addEventListener('pointerdown', e => { if (e.button !== 0) return; e.preventDefault(); if (begin()){ window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up); } });
+  btn.addEventListener('contextmenu', e => e.preventDefault());
+  btn.addEventListener('keydown', e => { if (e.key !== ' ' && e.key !== 'Enter') return; e.preventDefault(); if (!e.repeat) begin(); });
+  btn.addEventListener('keyup', e => { if (e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); if (holding) release(); } });
+  btn.addEventListener('click', () => { if (screen !== 'roll' && !holding) roll(); });   /* screen readers and other clicks */
+}
+
+let photoUrl = null;
+function reveal(){
+  const u = chosen; if (!u) return;
+  q('#dzStage').classList.remove('choosing');
+  q('#dzHReveal').textContent = u.name;
+  const pen = pennantSrc(u.pen), ph = q('#dzPhoto'); ph.textContent = '';
+  const noPhoto = () => { const d = document.createElement('div'); d.className = 'nophoto';
+    if (pen){ const p = new Image(); p.src = pen; p.alt = ''; d.append(p); }
+    const t = document.createElement('span'); t.textContent = u.photo ? 'Photo not available' : 'No photo yet'; d.append(t); ph.append(d); };
+  if (u.photo){
+    const im = new Image(); im.className = 'ph'; im.alt = `Photo of ${u.name}`; ph.append(im);
+    if (pen){ const r = new Image(); r.className = 'ribbon'; r.src = pen; r.alt = ''; ph.append(r); }
+    const pid = u.photo;
+    if (urlCache.has(pid)) im.src = urlCache.get(pid);
+    else getPhoto(pid).then(rec => (rec && rec.blob) ? rec.blob : (typeof pullPhoto === 'function' ? pullPhoto(pid) : null)).then(blob => {
+      if (chosen !== u) return;
+      if (!blob){ ph.textContent = ''; noPhoto(); return; }
+      const url = URL.createObjectURL(blob); urlCache.set(pid, url); im.src = url;
+    }).catch(() => { if (chosen === u){ ph.textContent = ''; noPhoto(); } });
+  } else noPhoto();
+  const n = u.total;
+  q('#dzMeta').textContent = [u.army || u.game, `${n} model${n === 1 ? '' : 's'}`, u.label].join(' · ');
+  const step = NEXT[u.cur] || (u.next ? `get them to ${u.next}` : 'pick it up again');
+  q('#dzNext').innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M14 4l6 6-8 8H6v-6z"/><path d="M4 20l2-2"/></svg><span>Next step: ${esc(step)}.</span>`;
+  const m = data.minis.find(x => x.id === u.id);
+  q('#dzPinNote').textContent = m && m.pinned ? 'Already pinned to your Workbench.' : 'Pins it to the top of your Workbench.';
+  q('#dzShareMsg').textContent = '';
+  show('reveal', q('#dzHReveal')); announce(`The Guild has chosen ${u.name}. ${q('#dzMeta').textContent}.`);
+}
+
+function accept(){
+  const u = chosen; if (!u) return;
+  const m = data.minis.find(x => x.id === u.id);
+  if (!m){ toast('That unit is no longer in your collection.'); close(); return; }
+  if (!m.pinned){ m.pinned = Date.now(); m.updated = Date.now(); save(); }
+  opener = null; close();
+  state.tab = 'home'; state.openMini = null; render(); window.scrollTo(0, 0);
+  toast(`${m.name} is your next project. Pinned to the top of your Workbench.`);
+  const b = document.querySelector('#app [data-act="dice"]'); if (b) b.focus();
+}
+
+function wire(){
+  root.querySelectorAll('[data-preset]').forEach(b => b.addEventListener('click', () => {
+    F.preset = b.dataset.preset; root.querySelectorAll('[data-preset]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); updateCount(); }));
+  q('#dzGame').addEventListener('change', e => { F.game = e.target.value; fillArmies(); updateCount(); });
+  q('#dzArmy').addEventListener('change', e => { F.army = e.target.value; updateCount(); });
+  q('#dzStages').addEventListener('change', e => { if (e.target.checked) F.off.delete(e.target.value); else F.off.add(e.target.value); updateCount(); });
+  q('#dzPhotoOnly').addEventListener('change', e => { F.photo = e.target.checked; updateCount(); });
+  holdable(q('#dzRoll')); holdable(q('#dzAgain'));
+  q('#dzSkip').addEventListener('click', () => { if (screen !== 'roll') return;
+    if (holding){ holding = false; clearTimeout(holdCap); chosen = choose(holdPool); lastId = chosen.id; }
+    rollToken++; tray3d?.skip(); reveal(); });
+  q('#dzAccept').addEventListener('click', accept);
+  q('#dzAdjust').addEventListener('click', () => { tray3d?.rest(); show('set'); const d = q('#dzCustom'); d.open = true; requestAnimationFrame(() => d.querySelector('summary').focus()); });
+  q('#dzShare').addEventListener('click', async () => {
+    const msg = q('#dzShareMsg'), text = `The Guild has chosen ${chosen.name} as my next painting project.`;
+    try {
+      if (navigator.share){ await navigator.share({ title:'Roll the dice', text }); msg.textContent = ''; return; }
+      await navigator.clipboard.writeText(text); msg.textContent = 'Copied. Paste it wherever you like.';
+    } catch (e) { if (e && e.name === 'AbortError') return; msg.textContent = 'Sharing is not available on this device.'; }
+  });
+  q('#dzClose').addEventListener('click', close);
+  q('#dzSound').addEventListener('click', () => { soundOn = !soundOn; const b = q('#dzSound'); b.setAttribute('aria-pressed', String(soundOn));
+    b.querySelector('.son').hidden = !soundOn; b.querySelector('.soff').hidden = soundOn; if (soundOn) audio(); });
+  /* listened for on the whole page while open, so Escape works wherever focus happens to be */
+  document.addEventListener('keydown', e => {
+    if (root.hidden) return;
+    if (e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); if (screen === 'roll') q('#dzSkip').click(); else close(); return; }
+    if (e.key === 'Tab'){                                       /* keep the keyboard inside the layer */
+      const f = [...root.querySelectorAll('button,select,input,summary,[tabindex="0"]')].filter(x => !x.disabled && x.offsetParent !== null);
+      if (!f.length) return;
+      const a = f[0], z = f[f.length - 1];
+      if (e.shiftKey && (document.activeElement === a || !root.contains(document.activeElement))){ e.preventDefault(); z.focus(); }
+      else if (!e.shiftKey && document.activeElement === z){ e.preventDefault(); a.focus(); }
+    }
+  }, true);
+}
+
+/* ---------------- sound: off by default ------------------------------------ */
+let soundOn = false, actx = null;
+function audio(){ if (!actx) try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} return actx; }
+function clack(strength){
+  if (!soundOn) return; const a = audio(); if (!a) return;
+  const len = 0.05, buf = a.createBuffer(1, Math.floor(a.sampleRate * len), a.sampleRate), d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 6);
+  const s = a.createBufferSource(); s.buffer = buf; const f = a.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1800 + Math.random() * 1600; f.Q.value = 1.4;
+  const g = a.createGain(); g.gain.value = Math.min(0.5, 0.08 + strength * 0.5); s.connect(f).connect(g).connect(a.destination); s.start();
+}
+
+/* ---------------- the 3D tray, fetched the first time ---------------------- */
+let tray3d = null, loading3d = null;
+function load3d(){
+  if (!loading3d) loading3d = start3d().catch(e => { console.warn('3D tray unavailable', e); loading3d = null;
+    const l = q('#dzLoad'); if (l) l.textContent = navigator.onLine === false ? 'Showing a still picture. The 3D tray needs a connection the first time.' : 'Showing a still picture of the tray.'; });
+  return loading3d;
+}
+async function start3d(){
+  const L = t => { q('#dzLoad').textContent = t; };
+  if (RM()){ L(''); return; }                                  /* reduced motion: keep the still picture */
+  const probe = document.createElement('canvas');
+  if (!(probe.getContext('webgl2') || probe.getContext('webgl'))){ L(''); return; }
+  L('Loading 3D…');
+  const [THREE, { GLTFLoader }] = await Promise.all([import('three'), import('three/addons/loaders/GLTFLoader.js')]);
+  L('Loading physics…');
+  const RAPIER = (await import('rapier')).default;
+  L('Starting physics…');
+  await RAPIER.init();
+  L('Loading the tray…');
+  const stage = q('#dzStage');
+  const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true, powerPreference:'low-power' });
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, matchMedia('(max-width: 600px)').matches ? 1.5 : 2));
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.NeutralToneMapping; renderer.toneMappingExposure = 0.7;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.VSMShadowMap;
+  const scene = new THREE.Scene();
+  const B = (x, y, z) => new THREE.Vector3(x, z, -y);            /* Blender Z-up to three Y-up */
+
+  /* reflections: the Blender softboxes rebuilt as glowing panels, blurred into an environment */
+  { const env = new THREE.Scene(); env.background = new THREE.Color(0.030, 0.034, 0.042);
+    const panel = (w, h, pos, at, s) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color:new THREE.Color(1, .95, .88).multiplyScalar(s), side:THREE.DoubleSide })); m.position.copy(pos); m.lookAt(at); env.add(m); };
+    panel(0.9, 0.7, B(0, 0.05, 0.40), B(0, 0, 0), 1.0); panel(1.0, 0.35, B(0, -0.42, 0.22), B(0, 0, 0.02), 3.0);
+    panel(1.2, 0.25, B(0, -0.45, 0.02), B(0, 0, 0.03), 1.3); panel(0.30, 0.30, B(0, 0.02, 0.50), B(0, 0, 0.01), 6.0);
+    panel(0.40, 0.04, B(-0.32, 0.30, 0.20), B(0, 0, 0.03), 3.0); panel(0.80, 0.80, B(0.05, -0.30, 0.30), B(0, 0.06, 0.02), 1.4);
+    scene.environment = new THREE.PMREMGenerator(renderer).fromScene(env, 0.02).texture; }
+  const key = new THREE.DirectionalLight(0xFFF2E0, 2.4); key.position.copy(B(0, 0.02, 0.50)); key.castShadow = true; key.shadow.mapSize.set(1024, 1024);
+  Object.assign(key.shadow.camera, { left:-0.1, right:0.1, top:0.1, bottom:-0.1, near:0.2, far:0.7 }); key.shadow.radius = 8; key.shadow.blurSamples = 16; key.shadow.bias = -0.0002; key.shadow.normalBias = 0.0004;
+  scene.add(key, key.target);
+  const graze = new THREE.DirectionalLight(0xFFF5E6, 0.9); graze.position.copy(B(-0.20, 0.26, 0.17)); scene.add(graze);
+  const fill = new THREE.DirectionalLight(0xF2F2FF, 0.7); fill.position.copy(B(0.05, -0.30, 0.30)); scene.add(fill);
+  scene.add(new THREE.HemisphereLight(0xC9D2E4, 0x1A1C22, 0.35));
+
+  const loader = new GLTFLoader();
+  const [t, d] = await Promise.all([loader.loadAsync('dice/tray.glb'), loader.loadAsync('dice/die.glb')]);
+  t.scene.traverse(o => { if (o.isMesh){ o.receiveShadow = true; o.castShadow = true;
+    /* the brass roughness map also feeds metalness in glTF; keep the brass fully metallic */
+    if (o.material && o.material.name === 'MM_Brass'){ o.material.metalnessMap = null; o.material.metalness = 1; o.material.needsUpdate = true; } } });
+  scene.add(t.scene);
+  const die = new THREE.Group(); const dieMesh = d.scene.getObjectByName('MM_Die') || d.scene.children[0];
+  dieMesh.position.set(0, 0, 0); dieMesh.quaternion.identity(); dieMesh.traverse(o => { if (o.isMesh){ o.castShadow = true; o.receiveShadow = true; } });
+  die.add(dieMesh); scene.add(die);
+  const cv = document.createElement('canvas'); cv.width = cv.height = 128; { const c = cv.getContext('2d'), g = c.createRadialGradient(64, 64, 0, 64, 64, 64);
+    g.addColorStop(0, 'rgba(0,0,0,.7)'); g.addColorStop(.5, 'rgba(0,0,0,.35)'); g.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = g; c.fillRect(0, 0, 128, 128); }
+  const blob = new THREE.Mesh(new THREE.PlaneGeometry(0.036, 0.036), new THREE.MeshBasicMaterial({ map:new THREE.CanvasTexture(cv), transparent:true, depthWrite:false }));
+  blob.rotation.x = -Math.PI / 2; blob.renderOrder = 2; scene.add(blob);
+  /* the concept's blue motion arcs: a soft glow that follows the die and fades with its speed */
+  const gc = document.createElement('canvas'); gc.width = gc.height = 256; { const c = gc.getContext('2d'); c.translate(128, 128); c.lineCap = 'round';
+    for (const [r, a0, a1, w] of [[96, -2.4, -0.9, 5], [104, 0.5, 1.9, 4], [86, 2.3, 3.2, 3]]){
+      c.shadowColor = '#35CFFF'; c.shadowBlur = 18; c.strokeStyle = 'rgba(160,232,255,.95)'; c.lineWidth = w; c.beginPath(); c.arc(0, 0, r, a0, a1); c.stroke(); } }
+  const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map:new THREE.CanvasTexture(gc), color:0x9fe6ff, transparent:true, opacity:0, blending:THREE.AdditiveBlending, depthWrite:false, depthTest:false }));
+  glow.scale.setScalar(0.07); glow.renderOrder = 3; scene.add(glow);
+
+  /* camera: the concept's steep front view. The whole tray always fits, whatever shape the stage is. */
+  const camera = new THREE.PerspectiveCamera(35, 1, 0.005, 5);
+  const HF = 2 * Math.atan(18 / 46), REF = 900 / 743;
+  const vfovFor = a => 2 * Math.atan(Math.tan(HF / 2) / a);
+  function frame(){ const w = stage.clientWidth, h = stage.clientHeight; if (!w || !h) return;
+    renderer.setSize(w, h, false); camera.aspect = w / h;
+    camera.fov = THREE.MathUtils.radToDeg(Math.max(vfovFor(camera.aspect), vfovFor(REF)));
+    camera.position.copy(B(0, -0.140, 0.222)); camera.lookAt(B(0, 0.004, 0.010)); camera.updateProjectionMatrix(); }
+
+  /* physics, real scale (metres): felt floor 6 mm up, padded walls 70.3 mm from the centre, die 29.5 mm */
+  const FLOOR = 0.006, APO = 0.0703, HALF = 0.01475, ROUND = 0.0012;   /* collider corners sharper than the visual bevel so it lands on a face */
+  const world = new RAPIER.World({ x:0, y:-9.81, z:0 }); world.timestep = 1 / 120;
+  world.createCollider(RAPIER.ColliderDesc.cuboid(0.2, 0.01, 0.2).setTranslation(0, FLOOR - 0.01, 0).setFriction(0.95).setRestitution(0.25));
+  world.createCollider(RAPIER.ColliderDesc.cuboid(0.2, 0.01, 0.2).setTranslation(0, 0.25, 0));
+  const side = 2 * APO * Math.tan(Math.PI / 8);
+  for (let k = 0; k < 8; k++){ const a = k * Math.PI / 4, c = Math.cos(a), s = Math.sin(a);
+    const qq = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), a);
+    world.createCollider(RAPIER.ColliderDesc.cuboid(0.01, 0.13, side / 2 + 0.01).setTranslation(c * (APO + 0.01), 0.12, -s * (APO + 0.01))
+      .setRotation({ x:qq.x, y:qq.y, z:qq.z, w:qq.w }).setFriction(0.5).setRestitution(0.45)); }
+  const body = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setCcdEnabled(true).setLinearDamping(0.05).setAngularDamping(0.6).setCanSleep(true));
+  world.createCollider(RAPIER.ColliderDesc.roundCuboid(HALF - ROUND, HALF - ROUND, HALF - ROUND, ROUND).setDensity(1200).setFriction(0.45).setRestitution(0.35)
+    .setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS), body);
+  const events = new RAPIER.EventQueue(true);
+
+  const REST = { p:B(0.004, -0.010, FLOOR + HALF), q:new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0.49, 0)) };
+  function place(p, qr, speed = 0){ die.position.copy(p); die.quaternion.copy(qr); blob.position.set(p.x, FLOOR + 0.0004, p.z);
+    glow.position.copy(p); glow.material.opacity = Math.min(0.85, Math.max(0, (speed - 0.08) * 1.6)); glow.material.rotation += speed * 0.25;
+    const hgt = Math.max(0, p.y - FLOOR - HALF); blob.material.opacity = Math.max(0, 0.9 - hgt / 0.11); blob.scale.setScalar(1 + hgt * 14); }
+  const draw = () => renderer.render(scene, camera);
+  function rest(){ body.setBodyType(RAPIER.RigidBodyType.Dynamic, true); body.setTranslation(REST.p, true); body.setRotation(REST.q, true); body.setLinvel({ x:0, y:0, z:0 }, true); body.setAngvel({ x:0, y:0, z:0 }, true); body.sleep(); place(REST.p, REST.q); draw(); }
+
+  frame(); rest();
+  stage.prepend(renderer.domElement); q('#dzStill').classList.add('gone'); L('');
+  new ResizeObserver(() => { frame(); draw(); }).observe(stage);
+
+  /* One animation loop, only while something moves.
+     'shake': the die is held in the air above the tray and shaken by hand.
+     'settle': it is let go, drops in and tumbles under real physics until it lands on a face. */
+  let mode = 'idle', skipping = false, isCancelled = () => false, settleT0 = 0, lastClack = 0, still = 0, acc = 0, last = 0, done = null;
+  let restAt = 0, shakeT0 = 0, ph = [], prevT = 0;
+  const prevP = new THREE.Vector3(), vel = new THREE.Vector3();
+  const r = (a, b) => a + Math.random() * (b - a);
+  const HOVER = new THREE.Vector3(0, 0.082, 0.012);
+  const qa = new THREE.Quaternion(), ea = new THREE.Euler();
+  function shakePose(tt){
+    const p = HOVER.clone();
+    p.x += 0.011 * Math.sin(tt * 2 * Math.PI * 5.2 + ph[0]) + 0.004 * Math.sin(tt * 2 * Math.PI * 11.7 + ph[1]) + 0.006 * Math.sin(tt * 1.3 + ph[6]);
+    p.y += 0.007 * Math.sin(tt * 2 * Math.PI * 6.1 + ph[2]) + 0.003 * Math.sin(tt * 2 * Math.PI * 13.3 + ph[3]);
+    p.z += 0.009 * Math.sin(tt * 2 * Math.PI * 4.6 + ph[4]) + 0.004 * Math.sin(tt * 1.1 + ph[7]);
+    ea.set(tt * 9 + 0.9 * Math.sin(tt * 2 * Math.PI * 5.2 + ph[5]), tt * 6.5 + ph[1], tt * 7.5 + 0.8 * Math.sin(tt * 2 * Math.PI * 4.6 + ph[3]));
+    qa.setFromEuler(ea);
+    return { p, q:qa.clone() };
+  }
+  function tick(now){
+    if (mode === 'idle') return;
+    if (isCancelled() || skipping || root.hidden){ mode = 'idle'; body.setBodyType(RAPIER.RigidBodyType.Dynamic, true); if (done) done(); done = null; return; }
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    if (mode === 'shake'){
+      const tt = (now - shakeT0) / 1000, { p, q: qr } = shakePose(tt);
+      if (prevT) vel.copy(p).sub(prevP).divideScalar(Math.max(1e-3, (now - prevT) / 1000)); prevP.copy(p); prevT = now;
+      body.setNextKinematicTranslation(p); body.setNextKinematicRotation(qr); world.step(events);
+      place(p, qr, 0.9); draw();
+      if (soundOn && now - lastClack > r(70, 130)){ lastClack = now; clack(0.25); }
+      requestAnimationFrame(tick); return;
+    }
+    acc += dt;
+    while (acc >= world.timestep){ world.step(events); acc -= world.timestep;
+      events.drainCollisionEvents((h1, h2, started) => { if (!started) return; const lv = body.linvel(), sp = Math.hypot(lv.x, lv.y, lv.z);
+        if (sp > 0.06 && now - lastClack > 40){ lastClack = now; clack(Math.min(1, sp / 1.2)); } }); }
+    const lv = body.linvel(), av = body.angvel(), p = body.translation(), rq = body.rotation();
+    place(new THREE.Vector3(p.x, p.y, p.z), new THREE.Quaternion(rq.x, rq.y, rq.z, rq.w), Math.hypot(lv.x, lv.y, lv.z));
+    draw();
+    still = (Math.hypot(lv.x, lv.y, lv.z) < 0.008 && Math.hypot(av.x, av.y, av.z) < 0.25) ? still + 1 : 0;
+    const tt = now - settleT0;
+    if (!restAt && (body.isSleeping() || still > 10)) restAt = now;          /* landed: hold a moment so the face can be seen */
+    if ((restAt && now - restAt > 700) || tt > 4800){ mode = 'idle'; place(new THREE.Vector3(p.x, p.y, p.z), new THREE.Quaternion(rq.x, rq.y, rq.z, rq.w), 0); draw(); if (done) done(); done = null; return; }
+    requestAnimationFrame(tick);
+  }
+  function go(){ last = performance.now(); acc = 0; requestAnimationFrame(tick); }
+  function shake(cancelled){
+    skipping = false; isCancelled = cancelled; ph = Array.from({ length:8 }, () => r(0, 6.3));
+    body.setBodyType(RAPIER.RigidBodyType.KinematicPositionBased, true);
+    shakeT0 = performance.now(); prevT = 0; vel.set(0, 0, 0);
+    const { p, q: qr } = shakePose(0); body.setTranslation(p, true); body.setRotation(qr, true);
+    const was = mode; mode = 'shake'; if (was === 'idle') go();
+  }
+  function release(heldMs, cancelled){
+    isCancelled = cancelled; skipping = false;
+    if (mode !== 'shake') shake(cancelled);
+    const { p, q: qr } = shakePose((performance.now() - shakeT0) / 1000);
+    body.setBodyType(RAPIER.RigidBodyType.Dynamic, true); body.setTranslation(p, true); body.setRotation(qr, true);
+    /* as in a real drop: mostly straight down with a little drift and spin, a bounce or two, then it tips onto a face */
+    const s = 1 + Math.min(1, heldMs / 2000) * 0.25, a = r(0, 6.3);
+    const out = new THREE.Vector3(Math.cos(a), 0, Math.sin(a)).multiplyScalar(r(0.12, 0.26) * s);
+    body.setLinvel({ x:out.x + vel.x * 0.1, y:r(-0.45, -0.25), z:out.z + vel.z * 0.1 }, true);
+    const axis = new THREE.Vector3(r(-1, 1), r(-0.3, 0.3), r(-1, 1)).normalize().multiplyScalar(r(9, 15) * s);
+    body.setAngvel(axis, true); body.wakeUp();
+    mode = 'settle'; settleT0 = performance.now(); still = 0; restAt = 0;
+    return new Promise(res => { done = res; });
+  }
+  /* skip: stop now and set the die down flat where it is */
+  function skip(){ skipping = true; body.setBodyType(RAPIER.RigidBodyType.Dynamic, true); if (mode !== 'idle'){ mode = 'idle'; if (done) done(); done = null; }
+    const p = body.translation(), yaw = Math.random() * 6.3;
+    const pp = new THREE.Vector3(Math.max(-0.045, Math.min(0.045, p.x)), FLOOR + HALF, Math.max(-0.045, Math.min(0.045, p.z)));
+    const qq = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, yaw, 0)); body.setTranslation(pp, true); body.setRotation(qq, true);
+    body.setLinvel({ x:0, y:0, z:0 }, true); body.setAngvel({ x:0, y:0, z:0 }, true); place(pp, qq); draw(); }
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && root && !root.hidden) draw(); });
+  tray3d = { shake, release, skip, rest:() => { if (screen !== 'roll' && !holding){ mode = 'idle'; rest(); } } };
+  window.__tray3d = true;
+}
+})();
 
 </script>
 </body>
