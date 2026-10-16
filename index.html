@@ -1359,6 +1359,89 @@ header.bar.gated{display:none}
 /* v039 spark burst: reduced-motion stand-in */
 @keyframes mmGlint{0%{box-shadow:0 0 0 0 rgba(53,207,255,0)}30%{box-shadow:0 0 0 3px rgba(53,207,255,.55)}100%{box-shadow:0 0 0 0 rgba(53,207,255,0)}}
 .mm-glint{animation:mmGlint 600ms ease-out}
+/* v040 unit page, gallery, recipes */
+.uhero{position:relative;margin:.5rem -1rem 0}
+.uhrail{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
+.uhrail::-webkit-scrollbar{display:none}
+.uhshot{flex:0 0 100%;scroll-snap-align:center;padding:0;border:0;background:#060E1A;cursor:zoom-in;display:block}
+.uhshot img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover}
+.uhero.fin .uhshot img{aspect-ratio:4/5;max-height:72vh}
+@media(min-width:42rem){.uhero{margin:.5rem 0 0;border-radius:14px;overflow:hidden}.uhero.fin .uhshot img,.uhshot img{aspect-ratio:auto;height:min(60vh,34rem);object-fit:contain}}
+.uhero .cn{position:absolute;width:3.375rem;height:2.95rem;z-index:3}
+.uhero .cn.tl{left:.25rem;top:-.4rem}.uhero .cn.tr{right:.25rem;top:-.4rem}
+.uhcnt{position:absolute;right:.75rem;top:.75rem;background:rgba(5,12,24,.78);color:#fff;font-size:.75rem;font-weight:600;padding:.15rem .55rem;border-radius:999px;pointer-events:none}
+.uhdots{position:absolute;left:0;right:0;bottom:.75rem;display:flex;justify-content:center;gap:.375rem;pointer-events:none}
+.uhdots i{width:.5rem;height:.5rem;border-radius:50%;background:rgba(255,255,255,.45)}
+.uhdots i.on{background:#fff}
+.utitle{display:flex;align-items:flex-start;gap:.75rem;margin:1rem 0 .25rem}
+.utitle img{width:1.75rem;height:auto;flex:0 0 auto;margin-top:.15rem;filter:drop-shadow(0 2px 2px rgba(0,0,0,.4))}
+.utitle > div{min-width:0}
+.utitle h2{font-size:1.875rem;line-height:1.1;margin:0;overflow-wrap:anywhere}
+.utitle p{margin:.25rem 0 0;font-size:.875rem}
+.useal{display:flex;align-items:center;gap:.875rem;margin:1rem 0;padding:.875rem 1rem;border-radius:14px;border:1px solid color-mix(in srgb,var(--gold) 45%,transparent);background:color-mix(in srgb,var(--gold) 9%,transparent)}
+.useal svg{width:2.5rem;height:2.5rem;color:var(--gold-ink);flex:0 0 auto}
+.useal b{display:block;font-family:var(--f-display);font-size:1.5rem;font-weight:600;color:var(--gold-ink);line-height:1.1}
+.useal div > span{display:block;font-size:.8125rem;color:var(--text-2)}
+.utools{display:flex;flex-wrap:wrap;gap:.5rem;margin:.75rem 0}
+.uthumbs{display:flex;flex-wrap:wrap;gap:.5rem;margin:1rem 0}
+.uthumb{flex:0 0 auto;width:min(4.25rem,18vw);height:min(4.25rem,18vw);border-radius:10px;overflow:hidden;padding:0;border:1px solid var(--border);background:var(--surface);cursor:pointer}
+.uthumb img{width:100%;height:100%;object-fit:cover;display:block}
+.uthumb.add{display:flex;align-items:center;justify-content:center;gap:.5rem;border-style:dashed;color:var(--text-2);font:inherit;font-size:1.5rem}
+.uthumb.add:only-child{flex:1 1 0;min-width:0;width:auto;height:auto;min-height:3.25rem;padding:.5rem}
+.uthumb.add b{font-size:.9375rem;font-weight:600;color:var(--text)}
+.urecs{margin:1rem 0}
+.ueyebrow{margin:0;font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-ink);font-weight:700}
+.urec{display:flex;align-items:center;gap:.5rem;margin-top:.5rem;border-radius:12px;background:var(--surface);padding:.375rem .375rem .375rem .625rem}
+.urec > button.grow{display:flex;align-items:center;gap:.75rem;background:none;border:0;padding:.25rem 0;font:inherit;color:var(--text);text-align:left;cursor:pointer;min-height:var(--tap);min-width:0}
+.urec b{display:block;font-size:.9375rem}.urec small{display:block;font-size:.8125rem}
+.ustrip{display:flex;width:4.5rem;height:1.5rem;border-radius:6px;overflow:hidden;flex:0 0 auto}
+.ustrip i,.rstrip i,.rpal i{flex:1;display:block}
+.ustrip i.none,.rstrip i.none,.rpal i.none{background:repeating-linear-gradient(135deg,transparent 0 4px,var(--border) 4px 5px)}
+.ufold{border-top:1px solid var(--border)}
+.ufold:last-of-type{border-bottom:1px solid var(--border)}
+.ufold > summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:.875rem 0;cursor:pointer;min-height:var(--tap)}
+.ufold > summary::-webkit-details-marker{display:none}
+.ufold > summary::after{content:"";width:.5rem;height:.5rem;border-right:1.5px solid var(--text-2);border-bottom:1.5px solid var(--text-2);transform:rotate(-45deg);flex:0 0 auto;transition:transform .15s}
+.ufold[open] > summary::after{transform:rotate(45deg)}
+.ufold > summary span{min-width:0}
+.ufold > summary b{display:block;font-size:.9375rem}
+.ufold > summary small{display:block;color:var(--text-2);font-size:.8125rem;margin-top:.15rem;overflow-wrap:anywhere}
+.ufbody{padding-bottom:1rem}
+.ufbody > .card:first-child{margin-top:0}
+body.galopen{overflow:hidden}
+.gal{position:fixed;inset:0;z-index:4000;background:#02060C;color:#F4F1EA;display:grid;grid-template-rows:auto minmax(0,1fr) auto;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+.galtop{display:flex;justify-content:space-between;align-items:center;gap:.75rem;padding:.75rem 1rem;font-size:.875rem}
+.galtop > span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.galbtn{width:2.75rem;height:2.75rem;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:#fff;font:inherit;font-size:1.5rem;line-height:1;display:grid;place-items:center;cursor:pointer;flex:0 0 auto}
+.galbtn:focus-visible,.gal button:focus-visible{outline:3px solid #35CFFF;outline-offset:2px}
+.galmid{position:relative;display:grid;place-items:center;min-height:0;overflow:hidden}
+.galimg{max-width:100%;max-height:100%;object-fit:contain}
+.galnav{position:absolute;top:50%;transform:translateY(-50%)}
+.galnav.l{left:.75rem}.galnav.r{right:.75rem}
+.galbot{display:grid;gap:.75rem;padding:.75rem 1rem 1rem}
+.galstrip{display:flex;gap:.5rem;justify-content:center;overflow-x:auto}
+.galstrip button{flex:0 0 3.25rem;width:3.25rem;height:3.25rem;padding:0;border:2px solid transparent;border-radius:8px;overflow:hidden;background:#111;opacity:.55;cursor:pointer}
+.galstrip button[aria-current="true"]{opacity:1;border-color:#E2C98C}
+.galstrip img{width:100%;height:100%;object-fit:cover;display:block}
+.galacts{display:flex;justify-content:center;flex-wrap:wrap;gap:.5rem 1.5rem;font-size:.875rem}
+.galacts .linkbtn,.galacts .small{color:#E2E9F2}
+.rcards{display:grid;gap:.75rem;margin-top:.5rem}
+@media(min-width:42rem){.rcards{grid-template-columns:repeat(auto-fill,minmax(16rem,1fr))}}
+.rcard{display:block;width:100%;padding:0;border-radius:14px;overflow:hidden;background:var(--surface);border:1px solid color-mix(in srgb,var(--gold) 25%,transparent);color:var(--text);font:inherit;text-align:left;cursor:pointer}
+.rstrip{display:flex;height:2.25rem}
+.rin{display:block;padding:.75rem .875rem .875rem}
+.rin b{display:block;font-family:var(--f-display);font-weight:600;font-size:1.375rem;line-height:1.15}
+.rin .small{display:block;margin-top:.3rem}
+.rpal{display:flex;height:2.75rem;border-radius:12px;overflow:hidden;margin:.75rem 0}
+.rused{display:flex;align-items:center;gap:.5rem;font-size:.8125rem;color:var(--text-2);margin:.5rem 0 .75rem}
+.rface{width:2rem;height:2rem;border-radius:50%;overflow:hidden;border:2px solid var(--bg);flex:0 0 auto;margin-left:-.6rem;background:var(--surface)}
+.rface:first-child{margin-left:0}
+.rface img{width:100%;height:100%;object-fit:cover;display:block}
+.rsteps.tl{position:relative}
+.rsteps.tl::before{content:"";position:absolute;left:calc(1rem - 1px);top:1.5rem;bottom:1.5rem;width:2px;background:color-mix(in srgb,var(--gold) 35%,transparent)}
+.rsteps.tl .rn{position:relative;z-index:1;width:2rem;height:2rem;border:2px solid var(--gold-ink);background:var(--bg);font-size:.8125rem}
+.rmeta{display:flex;flex-wrap:wrap;gap:.375rem;margin-top:.35rem}
+.rmeta span{font-size:.75rem;padding:.1rem .45rem;border-radius:.3rem;background:color-mix(in srgb,var(--text) 10%,transparent);color:var(--text-2)}
 </style>
 </head>
 <body>
@@ -4094,7 +4177,7 @@ function syncPill(){
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v039';
+const APP_VERSION = 'v040';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -5070,6 +5153,8 @@ const state = {
   openArmy:null, aStage:'',
   /* v038: the Workbench shelf's filters, and the paint type shown. */
   benchF:{ sys:'', fac:'', stage:'' }, pGroup:'',
+  /* v040: recipe category shown, which unit-page sections are open, the gallery. */
+  rCat:'', ufold:{}, gal:null,
   /* Getting started. step 0 means it is not running. */
   setup:{ step:0, only:'', sysPick:[], sysName:'', facName:'', units:[],
           brand:'', range:'', pq:'', picked:{}, added:null },
@@ -6566,9 +6651,14 @@ function screenMini(){
   let h = backLink('backMini', state.openArchive ? 'Archived' : armyLabel({ sys:m.sys||'', fac:m.fac||'' }));
   if (m.archived) h += `<div class="archnote"><span><b>Archived</b> &middot; ${esc(m.archived.why || '')}${m.archived.on ? ' ' + esc(waitingSince(m.archived.on)) : ''}. Not in your shelves or totals.</span>
     <button class="btn sm" data-act="restoreMini">Bring it back</button></div>`;
-  h += `<h2 class="display user-text" style="font-size:1.625rem">${esc(m.name)}</h2>`;
+  /* v040: the photographs lead. A finished unit opens on them, framed; the
+     working parts of the page fold away underneath. */
+  const photos = arr(m.photos);
+  if (photos.length) h += unitHero(m, photos, fin);
   const sub = [sysName(m.sys), facName(m.fac)].filter(Boolean).join(' · ');
-  if (sub) h += `<p class="muted user-text" style="margin-top:-.25rem">${esc(sub)}</p>`;
+  const pen = m.fac ? pennantSrc(pennantFor('fac', m.fac)) : '';
+  h += `<div class="utitle">${pen ? `<img src="${pen}" alt="" aria-hidden="true">` : ''}<div><h2 class="display user-text">${esc(m.name)}</h2>
+    ${sub ? `<p class="muted user-text">${esc(sub)}${n > 1 ? ` &middot; <span class="num">${n}</span> models` : ''}</p>` : ''}</div></div>`;
 
   /* "Waiting since", not "neglected for". The hobby makes its own jokes about
      the pile of shame; the app only has to tell the truth. */
@@ -6577,16 +6667,17 @@ function screenMini(){
   if (m.price != null && m.price !== '') facts.push(esc(money(m.price)));
   if (m.unit) facts.push(esc(m.unit));
   if (m.base) facts.push(esc(m.base));
-  if (facts.length) h += `<p class="small muted" style="margin-top:.25rem">${facts.join(' &middot; ')}</p>`;
-  if (!m.archived) h += `<button class="pinbtn" data-act="togglePin" aria-pressed="${m.pinned ? 'true' : 'false'}">
+  let tools = '';
+  if (!m.archived) tools += `<button class="pinbtn" data-act="togglePin" aria-pressed="${m.pinned ? 'true' : 'false'}">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6l-1 6 4 4H6l4-4-1-6Z M12 13v8" fill="${m.pinned ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
       ${m.pinned ? 'Pinned to Workbench' : 'Pin to Workbench'}</button>`;
   if (!m.archived){ const s = sessNow();
-    h += s && s.miniId === m.id ? `<button class="pinbtn" data-act="sessOpen">${PAUSE_SVG} Painting now &middot; open the session</button>`
+    tools += s && s.miniId === m.id ? `<button class="pinbtn" data-act="sessOpen">${PAUSE_SVG} Painting now &middot; open the session</button>`
       : `<button class="pinbtn" data-act="sessStart" data-id="${esc(m.id)}">${PLAY_SVG} Start painting</button>`; }
 
   const stageHelp = helpBlock('stages');
   const prog = last ? cur / last : 1;
+  const h0 = h; h = '';
   if (n > 1){
     /* A unit: one bar for where all its models are, then running totals,
        the way a painter would say it. Moving some or all of them on is one
@@ -6639,25 +6730,25 @@ function screenMini(){
   h += `<div class="finmark${fin?' on':''}"><i>&#10003;</i> Finished</div>`;
   h += `</div>`;
   }
+  const pc = h; h = h0;
 
-  h += historyCard(m);
-  h += `<div class="card"><div class="row spread"><h3 style="margin:0">Photos</h3>
-    <button class="btn sm ghost" data-act="addPhotos">Add photo</button></div><div class="photos">`;
-  arr(m.photos).forEach((pid, pi) => {
-    h += `<span class="photowrap">${photoImg(pid)}<button data-delphoto="${esc(pid)}" aria-label="Remove photo ${pi + 1} of ${esc(m.name)}">&times;</button></span>`;
-  });
-  h += `</div>${arr(m.photos).length?'':'<p class="small muted">No photos yet. Photos you add are kept with your account, on every device you sign in on.</p>'}</div>`;
+  if (fin && !m.archived) h += finishedSeal(m, n);
+  if (!fin) h += (tools ? `<div class="utools">${tools}</div>` : '') + pc;
+
+  /* Photos: a strip to jump between them, and one more tile to add another. */
+  h += `<div class="uthumbs" role="group" aria-label="Photos">${photos.map((pid, i) =>
+    `<button class="uthumb" data-gal="${i}" aria-label="Open photo ${i + 1} of ${photos.length}">${photoImg(pid)}</button>`).join('')}
+    <button class="uthumb add" data-act="addPhotos" aria-label="Add a photo of ${esc(m.name)}"><span aria-hidden="true">+</span>${photos.length ? '' : '<b>Add a photo</b>'}</button></div>`;
 
   const linked = data.links.filter(l => l.miniId === m.id);
-  h += `<div class="card"><div class="row spread"><h3 style="margin:0">Recipes</h3>
+  h += `<div class="urecs"><div class="row spread"><h3 class="ueyebrow">Painted with</h3>
     <button class="btn sm ghost" data-act="linkRecipe">Attach</button></div>`;
   if (!linked.length) h += `<p class="small muted">No recipes attached yet.</p>`;
   linked.forEach(l => {
     const r = data.recipes.find(x => x.id === l.recipeId);
     if (!r) return;
-    h += `<div class="row spread" style="padding:.5rem 0;border-top:1px solid var(--border)">
-      <button class="grow" data-openrecipe="${esc(r.id)}" style="background:none;border:0;text-align:left;font:inherit;color:var(--text);cursor:pointer;min-height:var(--tap)">
-        <b class="user-text">${esc(r.title)}</b>${l.area?`<span class="small muted"> &mdash; ${esc(l.area)}</span>`:''}</button>
+    h += `<div class="urec"><button class="grow" data-openrecipe="${esc(r.id)}">${recipeStrip(r, 'ustrip')}
+        <span><b class="user-text">${esc(r.title)}</b><small class="muted">${l.area ? esc(l.area) + ' &middot; ' : ''}${arr(r.steps).length} step${arr(r.steps).length === 1 ? '' : 's'}</small></span></button>
       <button class="iconbtn" data-unlink="${esc(l.recipeId)}" aria-label="Detach ${esc(r.title)} from ${esc(m.name)}">&times;</button></div>`;
   });
   h += `</div>`;
@@ -6667,7 +6758,9 @@ function screenMini(){
   const curSys = sysName(m.sys), curFac = facName(m.fac);
   const sysOpts = systemNames();
   if (curSys && sysOpts.indexOf(curSys) === -1) sysOpts.push(curSys);
-  h += `<div class="card"><h3>Details</h3>
+  const tagList = String(m.tags || '').split(',').map(x => x.trim()).filter(Boolean);
+  const dsum = facts.concat(tagList.map(esc)).join(' &middot; ') || 'Name, game, army, stages, notes';
+  h += uFold('details', 'Details', dsum, `<div class="card"><h3 class="sr-only">Details</h3>
     <label for="eName">Name</label><input id="eName" value="${esc(m.name)}">
     <label for="eSys">Game system</label>
     <select id="eSys"><option value="">Not set</option>
@@ -6695,7 +6788,11 @@ function screenMini(){
     ${chips('eTags', CHIPS.tag, { label:'Tags', value:m.tags || '', multi:true,
       ownPlaceholder:'Your own tags, separated by commas' })}
     <label for="eNotes">Notes</label><textarea id="eNotes" class="user-text">${esc(m.notes||'')}</textarea>
-    <div class="row" style="margin-top:.875rem"><button class="btn" data-act="saveMini">Save changes</button></div></div>
+    <div class="row" style="margin-top:.875rem"><button class="btn" data-act="saveMini">Save changes</button></div></div>`);
+  const lastLog = arr(m.log).slice(-1)[0];
+  h += fin ? uFold('progress', 'Progress and history', 'Finished &middot; move some back if you need to', pc + historyCard(m))
+    : !historyCard(m) ? '' : uFold('history', 'History', lastLog ? esc(lastLog.kind === 'session' ? fmtDur(lastLog.mins) + ' painting' : (lastLog.n || '') + ' moved to ' + (lastLog.to || '')) + (lastLog.on ? ', ' + esc(shortDate(lastLog.on)) : '') : 'Every move, with its date', historyCard(m));
+  h += uFold('more', 'More', fin ? 'Pin, remind, duplicate, archive, delete' : 'Remind, duplicate, split, archive, delete', `${fin && tools ? `<div class="utools">${tools}</div>` : ''}
     <div class="unitmore">
       <button class="linkbtn" data-act="remindMini">Remind me</button>
       <button class="linkbtn" data-act="dupMini">Duplicate</button>
@@ -6703,9 +6800,120 @@ function screenMini(){
       ${splitParent(m) ? `<button class="linkbtn" data-act="joinMini">Put these back into ${esc(splitParent(m).name)}</button>` : ''}
       ${m.archived ? '' : '<button class="linkbtn" data-act="archMini">Archive</button>'}
       <button class="linkbtn danger-link" data-act="delMini">Delete for good</button>
-    </div>`;
+    </div>`);
   return h;
 }
+/* v040 unit page pieces ------------------------------------------------- */
+const shortDate = iso => { const d = new Date(String(iso).length <= 10 ? iso + 'T12:00:00' : iso); return isNaN(d) ? '' : d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }); };
+function uFold(k, title, summary, body){
+  const open = !!(state.ufold && state.ufold[k]);
+  return `<details class="ufold" data-fold="${k}"${open ? ' open' : ''}><summary><span><b>${title}</b><small>${summary}</small></span></summary><div class="ufbody">${body}</div></details>`;
+}
+function unitHero(m, photos, fin){
+  return `<div class="uhero${fin ? ' fin' : ''}">${fin ? '<span class="orn o-cornerL cn tl" aria-hidden="true"></span><span class="orn o-cornerR cn tr" aria-hidden="true"></span>' : ''}
+    <div class="uhrail" data-uhrail>${photos.map((pid, i) => `<button class="uhshot" data-gal="${i}" aria-label="Open photo ${i + 1} of ${photos.length} full screen">${photoImg(pid)}</button>`).join('')}</div>
+    ${photos.length > 1 ? `<span class="uhcnt num" aria-hidden="true"><span data-uhn>1</span> / ${photos.length}</span><span class="uhdots" aria-hidden="true">${photos.map((_, i) => `<i${i ? '' : ' class="on"'}></i>`).join('')}</span>` : ''}
+  </div>`;
+}
+function finishedSeal(m, n){
+  const L = stagesOf(m), lastName = L[L.length - 1];
+  const e = arr(m.log).filter(x => x.kind !== 'session' && x.to === lastName).slice(-1)[0];
+  const bits = [];
+  if (e && e.on) bits.push(esc(shortDate(e.on)));
+  if (paintedMins(m)) bits.push(esc(fmtDur(paintedMins(m))) + ' painted');
+  bits.push(`<span class="num">${n}</span> model${n === 1 ? '' : 's'}`);
+  return `<div class="useal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${MED_ICON.laurel}</svg>
+    <div><b>Finished</b><span>${bits.join(' &middot; ')}</span></div></div>`;
+}
+/* The colours of a recipe, in step order: the first paint of each step that
+   has a colour on record. Nothing is shown for a paint without one. */
+const lum = hex => { const v = parseInt(String(hex).slice(1), 16); return ((v >> 16 & 255) * .299 + (v >> 8 & 255) * .587 + (v & 255) * .114) / 255; };
+function recipeStrip(r, cls){
+  const cols = arr(r.steps).map(s => { const x = stepPaints(s).find(y => y.paint && validHex(y.paint.hex)); return x ? x.paint.hex : ''; }).filter(Boolean);
+  return `<span class="${cls}" aria-hidden="true">${cols.length ? cols.map(c => `<i style="background:${c}"></i>`).join('') : '<i class="none"></i>'}</span>`;
+}
+
+/* --- the photo gallery (v040) ----------------------------------------------
+   Full screen, one photo at a time. Swipe, the arrows or the arrow keys move
+   along; Escape or the cross closes it and puts you back where you were. */
+let galBack = null;
+function openGallery(i, from){
+  const m = data.minis.find(x => x.id === state.openMini); if (!m || !arr(m.photos).length) return;
+  galBack = from || document.activeElement;
+  state.gal = { id:m.id, i:Math.max(0, Math.min(arr(m.photos).length - 1, i || 0)) };
+  drawGallery(true);
+}
+function closeGallery(){
+  const g = document.getElementById('gal'); if (g) g.remove();
+  state.gal = null; document.body.classList.remove('galopen');
+  const back = galBack && galBack.isConnected ? galBack : document.querySelector('#app .uhshot');
+  if (back) back.focus();
+  galBack = null;
+}
+function drawGallery(first){
+  const g0 = document.getElementById('gal'); if (g0) g0.remove();
+  if (!state.gal) return;
+  const m = data.minis.find(x => x.id === state.gal.id), ps = arr(m && m.photos);
+  if (!m || !ps.length){ closeGallery(); return; }
+  const i = state.gal.i = Math.min(state.gal.i, ps.length - 1), n = ps.length;
+  const g = document.createElement('div');
+  g.id = 'gal'; g.className = 'gal'; g.setAttribute('role', 'dialog'); g.setAttribute('aria-modal', 'true');
+  g.setAttribute('aria-label', 'Photos of ' + m.name);
+  g.innerHTML = `<div class="galtop"><span class="user-text"><b>${esc(m.name)}</b> &middot; <span class="num">${i + 1}</span> of <span class="num">${n}</span></span>
+      <button class="galbtn" data-galx aria-label="Close photos">&times;</button></div>
+    <div class="galmid">${photoImg(ps[i], 'galimg')}
+      ${n > 1 ? `<button class="galbtn galnav l" data-galgo="-1" aria-label="Previous photo">&lsaquo;</button><button class="galbtn galnav r" data-galgo="1" aria-label="Next photo">&rsaquo;</button>` : ''}</div>
+    <div class="galbot">${n > 1 ? `<div class="galstrip">${ps.map((pid, j) => `<button data-galto="${j}" aria-label="Photo ${j + 1}"${j === i ? ' aria-current="true"' : ''}>${photoImg(pid)}</button>`).join('')}</div>` : ''}
+      <div class="galacts">${i ? `<button class="linkbtn" data-galcover>Make cover photo</button>` : `<span class="small">Cover photo</span>`}
+        <button class="linkbtn" data-galadd>Add photo</button><button class="linkbtn" data-galdel>Remove</button></div></div>`;
+  document.body.appendChild(g); document.body.classList.add('galopen');
+  hydratePhotos();
+  const ia = g.querySelector('.galimg'); if (ia) ia.setAttribute('alt', 'Photo ' + (i + 1) + ' of ' + m.name);
+  if (first) g.querySelector('[data-galx]').focus();
+  else { const k = g.querySelector('[data-galgo="1"]') || g.querySelector('[data-galx]'); if (k) k.focus(); }
+}
+function galGo(d){ if (!state.gal) return; const m = data.minis.find(x => x.id === state.gal.id); const n = arr(m && m.photos).length; if (n < 2) return;
+  state.gal.i = (state.gal.i + d + n) % n; drawGallery(); }
+document.addEventListener('click', e => {
+  const t = e.target;
+  const og = t.closest('[data-gal]'); if (og){ openGallery(+og.dataset.gal, og); return; }
+  const g = t.closest('#gal'); if (!g) return;
+  if (t.closest('[data-galx]')) return closeGallery();
+  const go = t.closest('[data-galgo]'); if (go) return galGo(+go.dataset.galgo);
+  const to = t.closest('[data-galto]'); if (to){ state.gal.i = +to.dataset.galto; return drawGallery(); }
+  const m = data.minis.find(x => x.id === state.gal.id); if (!m) return closeGallery();
+  if (t.closest('[data-galcover]')){ const ps = arr(m.photos).slice(), pid = ps.splice(state.gal.i, 1)[0]; m.photos = [pid].concat(ps); m.updated = Date.now();
+    save(); state.gal.i = 0; render(); drawGallery(); toast('Cover photo changed.'); return; }
+  if (t.closest('[data-galadd]')){ closeGallery(); $('#photoIn').click(); return; }
+  if (t.closest('[data-galdel]')){ const pid = arr(m.photos)[state.gal.i], k = state.gal.i;
+    closeGallery();
+    openDialog('Remove this photo?', `<p style="margin-top:0">Photo ${k + 1} of ${esc(m.name)} will be deleted from this phone and from your account.</p>`, () => { removePhoto(pid); toast('Photo removed.'); }, 'Remove photo', 'Keep it');
+    return; }
+});
+document.addEventListener('keydown', e => {
+  if (!state.gal) return;
+  if (e.key === 'Escape'){ e.preventDefault(); closeGallery(); }
+  else if (e.key === 'ArrowRight'){ e.preventDefault(); galGo(1); }
+  else if (e.key === 'ArrowLeft'){ e.preventDefault(); galGo(-1); }
+  else if (e.key === 'Tab'){ const f = [...document.querySelectorAll('#gal button')]; if (!f.length) return;
+    const a = f.indexOf(document.activeElement);
+    if (e.shiftKey && a <= 0){ e.preventDefault(); f[f.length - 1].focus(); } else if (!e.shiftKey && a === f.length - 1){ e.preventDefault(); f[0].focus(); } }
+});
+let galSwipe = null;
+document.addEventListener('touchstart', e => { galSwipe = e.target.closest('#gal .galmid') ? { x:e.touches[0].clientX, y:e.touches[0].clientY } : null; }, { passive:true });
+document.addEventListener('touchend', e => { if (!galSwipe) return; const dx = e.changedTouches[0].clientX - galSwipe.x, dy = e.changedTouches[0].clientY - galSwipe.y; galSwipe = null;
+  if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) galGo(dx < 0 ? 1 : -1); }, { passive:true });
+/* The hero's counter and dots follow the photo you have swiped to. */
+document.addEventListener('scroll', e => {
+  const r = e.target && e.target.closest && e.target.closest('[data-uhrail]'); if (!r) return;
+  const i = Math.round(r.scrollLeft / Math.max(1, r.clientWidth));
+  const hero = r.parentElement, c = hero.querySelector('[data-uhn]'); if (c) c.textContent = i + 1;
+  hero.querySelectorAll('.uhdots i').forEach((d, j) => d.classList.toggle('on', j === i));
+}, true);
+document.addEventListener('toggle', e => {
+  const d = e.target; if (!d || !d.matches || !d.matches('details.ufold')) return;
+  state.ufold = state.ufold || {}; state.ufold[d.dataset.fold] = d.open;
+}, true);
 
 /* ===========================================================================
    Paints
@@ -6961,13 +7169,19 @@ function screenRecipes(){
     return h + emptyPlain(`<h3>Your recipe book is empty</h3>
       <p>A recipe is the steps you paint in order, like Aged Bone then Oxidised Copper. Write it once and use it on as many models as you like.</p>
       <div class="gxacts"><button class="btn" data-act="newRecipe">Write your first recipe</button></div>`);
-  data.recipes.forEach(r => {
+  /* v040: each recipe shows its colours; categories along the top. */
+  const cats = [...new Set(data.recipes.map(r => String(r.category || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  if (state.rCat && cats.indexOf(state.rCat) === -1) state.rCat = '';
+  if (cats.length) h += `<div class="pchips" role="group" aria-label="Recipe category"><button type="button" data-act="rCat" data-c="" aria-pressed="${!state.rCat}">All <b class="num">${data.recipes.length}</b></button>${cats.map(c =>
+    `<button type="button" data-act="rCat" data-c="${esc(c)}" aria-pressed="${state.rCat === c}"><span class="user-text">${esc(cap(c))}</span> <b class="num">${data.recipes.filter(r => String(r.category || '').trim() === c).length}</b></button>`).join('')}</div>`;
+  h += `<div class="rcards">`;
+  data.recipes.filter(r => !state.rCat || String(r.category || '').trim() === state.rCat).forEach(r => {
     const used = data.links.filter(l => l.recipeId === r.id).length;
-    h += `<button class="card" data-openrecipe="${esc(r.id)}" style="width:100%;text-align:left;cursor:pointer;display:block">
-      <b class="user-text">${esc(r.title)}</b>
-      <span class="small muted" style="display:block">${arr(r.steps).length} step${arr(r.steps).length===1?'':'s'}${r.category?' · '+esc(r.category):''}${used?` · on ${used} model${used>1?'s':''}`:''}</span></button>`;
+    h += `<button class="rcard" data-openrecipe="${esc(r.id)}">${recipeStrip(r, 'rstrip')}
+      <span class="rin"><b class="user-text">${esc(r.title)}</b>
+      <span class="small muted">${r.category ? `<span class="user-text">${esc(cap(r.category))}</span> &middot; ` : ''}${arr(r.steps).length} step${arr(r.steps).length===1?'':'s'}${used?` &middot; on ${used} model${used>1?'s':''}`:''}</span></span></button>`;
   });
-  return h;
+  return h + `</div>`;
 }
 
 /* --- which of a recipe's paints you own (v024) ----------------------------
@@ -7057,24 +7271,31 @@ function screenRecipeDetail(){
   h += `<div class="rhead"><div class="grow"><h2 class="display user-text" style="font-size:1.625rem;margin:0">${esc(r.title)}</h2>
     ${r.category ? `<p class="muted user-text" style="margin:.125rem 0 0">${esc(r.category)}</p>` : ''}</div>
     ${editing ? '' : `<button class="btn ghost sm" data-act="editRecipe">Edit</button>`}</div>`;
-  if (used.length) h += `<p class="small muted">Used on <b>${used.length}</b> model${used.length>1?'s':''}.${editing ? ' Editing it changes all of them.' : ''}</p>`;
   if (!editing && r.desc) h += `<p class="user-text rdesc">${esc(r.desc)}</p>`;
+  if (!editing) h += recipeStrip(r, 'rpal');
+  if (used.length){
+    const ms = used.map(l => data.minis.find(m => m.id === l.miniId)).filter(Boolean);
+    const faces = ms.filter(m => arr(m.photos).length).slice(0, 3).map(m => `<span class="rface">${photoImg(arr(m.photos)[0])}</span>`).join('');
+    const names = ms.slice(0, 2).map(m => `<span class="user-text">${esc(m.name)}</span>`).join(' and ') + (ms.length > 2 ? ` and <span class="num">${ms.length - 2}</span> more` : '');
+    h += `<p class="rused">${faces}<span>Used on ${editing ? `<b>${used.length}</b> unit${used.length>1?'s':''}. Editing it changes all of them.` : names}</span></p>`;
+  }
 
   h += `<div class="card"><div class="row spread"><h3 style="margin:0">Steps</h3>
     ${editing ? `<button class="btn sm ghost" data-act="addStep">Add step</button>` : ''}</div>`;
   if (!arr(r.steps).length) h += `<p class="small muted">No steps yet.${editing ? '' : ' Choose Edit to add some.'}</p>`;
-  h += `<ol class="rsteps">`;
+  h += `<ol class="rsteps${editing ? '' : ' tl'}">`;
   arr(r.steps).forEach((s,i) => {
+    const firstHex = (stepPaints(s).find(y => y.paint && validHex(y.paint.hex)) || {}).paint;
     const sp = stepPaints(s);
     const names = sp.map(x => x.paint
       ? `<span class="rp">${dropSvg('rpdrop', /^#[0-9a-f]{6}$/i.test(x.paint.hex || '') ? esc(x.paint.hex) : '', paintFinish(x.paint))}<span class="user-text">${esc(x.paint.name)}</span></span>`
       : `<span class="rp gone"><i class="user-text">${esc(x.name || 'A deleted paint')}</i> <span class="muted">(no longer in your paints)</span></span>`);
-    h += `<li class="rstep"><span class="rn num" aria-hidden="true">${i+1}</span>
+    const dot = !editing && firstHex ? ` style="background:${firstHex.hex};color:${lum(firstHex.hex) > .55 ? '#0B1A2E' : '#F4F1EA'}"` : '';
+    h += `<li class="rstep"><span class="rn num" aria-hidden="true"${dot}>${i+1}</span>
       <span class="grow"><b class="user-text">${esc(s.technique||'Step')}</b>
         ${names.length?`<span class="rps">${names.join('<span class="rplus" aria-hidden="true">+</span>')}</span>`:''}
-        ${s.mix?`<span class="small user-text" style="display:block">Mix: ${esc(s.mix)}</span>`:''}
         ${s.notes?`<span class="small muted user-text" style="display:block">${esc(s.notes)}</span>`:''}
-        ${s.dry?`<span class="small muted" style="display:block">Leave ${esc(s.dry)}</span>`:''}</span>
+        ${s.mix || s.dry ? `<span class="rmeta">${s.mix ? `<span class="user-text">Mix: ${esc(s.mix)}</span>` : ''}${s.dry ? `<span>Leave ${esc(s.dry)}</span>` : ''}</span>` : ''}</span>
       ${editing ? `<button class="btn ghost sm danger-text" data-delstep="${esc(s.id)}" aria-label="Delete step ${i+1}, ${esc(s.technique||'Step')}">Delete</button>` : ''}</li>`;
   });
   h += `</ol></div>`;
@@ -8724,6 +8945,7 @@ document.addEventListener('click', e => {
     if (a === 'clearPaintFilters'){ state.pq=''; state.pStock=''; state.pGroup=''; render(); return; }
     if (a === 'benchClear'){ state.benchF = { sys:'', fac:'', stage:'' }; render(); return; }
     if (a === 'pGroup'){ state.pGroup = act.dataset.g || ''; render(); return; }
+    if (a === 'rCat'){ state.rCat = act.dataset.c || ''; render(); return; }
   }
 
   const og = t.closest('[data-opengame]');
