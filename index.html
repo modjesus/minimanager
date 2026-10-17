@@ -1637,6 +1637,24 @@ body.sheetopen{overflow:hidden}
 .rusedd li button span{min-width:0;overflow-wrap:anywhere}
 .rmeta>span{display:inline-flex;align-items:baseline;gap:.25rem;flex-direction:row}
 .rmeta>span b{display:inline!important;font-size:inherit!important;margin:0!important}
+/* painting-mode ticks (v045) */
+.rsteps.tl .rtick{position:relative;z-index:1;flex:0 0 auto;width:var(--tap);height:var(--tap);margin:-.375rem -.375rem 0 -.375rem;border:2px solid var(--gold-ink);border-radius:50%;background:var(--bg);color:var(--text);display:grid;place-items:center;font:600 .875rem var(--f-body);cursor:pointer;padding:0}
+.rsteps.tl .rtick:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.rsteps.tl .rtick svg{width:1.125rem;height:1.125rem;color:var(--ink-navy)}
+.rsteps.tl .rtick[aria-pressed="true"]{background:var(--success);border-color:var(--success)}
+.rstep.rdone .grow>b{color:var(--text-2);text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--text-2) 60%,transparent)}
+.rstep.rnext .rtick{box-shadow:0 0 0 3px color-mix(in srgb,var(--gold) 45%,transparent)}
+.rnexttag{display:inline-block;margin-left:.5rem;padding:0 .4rem;border-radius:4px;background:var(--gold);color:var(--ink-navy);font:700 .75rem/1.5 var(--f-body);letter-spacing:.04em;vertical-align:.1em}
+.rprog{font-size:.875rem;color:var(--text-2)}
+.rprog b{color:var(--text)}
+.rtickfoot{display:flex;flex-wrap:wrap;align-items:center;gap:.25rem .75rem;margin:.75rem 0 0}
+.rtickfoot .linkbtn{min-height:var(--tap)}
+.sessmode{display:flex;align-items:center;gap:.5rem;margin:1rem 0 0;padding:.5rem .625rem;border:1px solid var(--gold-line);border-radius:12px;background:var(--surface)}
+.sessmode .grow{flex:1;min-width:0;text-align:center;line-height:1.25}
+.sessmode .grow small{display:block;color:var(--text-2);font-size:.75rem}
+.sessmode .linkbtn{min-height:var(--tap)}
+.sessdone{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem .75rem;margin:1rem 0 0;padding:.625rem;border-radius:12px;background:color-mix(in srgb,var(--success) 14%,transparent);border:1px solid color-mix(in srgb,var(--success) 50%,transparent)}
+.sessdone svg{width:1.125rem;height:1.125rem;color:var(--fin)}
 </style>
 <script type="importmap">
 { "imports": {
@@ -4763,7 +4781,7 @@ function updateSelBar(){
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v044';
+const APP_VERSION = 'v045';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -5457,18 +5475,28 @@ function screenSession(){
   if (cur){
     if (RS.length > 1) h += `<div class="chips" role="group" aria-label="Which recipe">${RS.map(x =>
       `<button class="chip" data-sessrec="${esc(x.r.id)}" aria-pressed="${x === cur}">${x.area ? esc(x.area) + ' &middot; ' : ''}${esc(x.r.title || 'Recipe')}</button>`).join('')}</div>`;
-    const ticks = arr(s.ticks);
+    const key = tickKey(s, cur.r.id), ticks = ticksAt(key), n = Number(m.total) || 1, steps = arr(cur.r.steps);
+    const allDone = steps.length && steps.every(st => ticks.indexOf(st.id) !== -1);
+    if (n > 1) h += `<div class="sessmode">${s.mode === 'single'
+      ? `<button class="iconbtn" data-sessmodel="-1" aria-label="Previous model"${(s.model || 1) <= 1 ? ' disabled' : ''}>&lsaquo;</button>
+         <span class="grow"><b>Model <span class="num">${s.model || 1}</span> of <span class="num">${n}</span></b><small>${ticks.length} of ${steps.length} steps done</small></span>
+         <button class="iconbtn" data-sessmodel="1" aria-label="Next model"${(s.model || 1) >= n ? ' disabled' : ''}>&rsaquo;</button>`
+      : `<span class="grow"><b>The whole batch</b><small><span class="num">${n}</span> models together</small></span>`}
+      <button class="linkbtn" data-act="sessHow">Change</button></div>`;
     h += `<div class="sect"><h3>${cur.area ? esc(cur.area) + ' &middot; ' : ''}<span class="user-text">${esc(cur.r.title || 'Recipe')}</span></h3>
       <button class="linkbtn" data-openrecipe="${esc(cur.r.id)}">Open recipe</button></div>`;
     arr(cur.r.steps).forEach((st, i) => {
       const done = ticks.indexOf(st.id) !== -1;
       const ps = arr(st.paintIds).map(id => arr(data.paints).find(p => p.id === id)).filter(Boolean);
-      const sub = [ps.map(p => p.name).join(' + '), st.dry, st.notes].filter(Boolean).join(' &middot; ');
+      const sub = [ps.map(p => p.name).join(' + '), stepInstr(st), isDuration(st.dry) ? 'Dry ' + st.dry : ''].filter(Boolean).join(' &middot; ');
       h += `<button class="sstep${done ? ' done' : ''}" data-sesstep="${esc(st.id)}" aria-pressed="${done}">
         <span class="n num" aria-hidden="true">${done ? '&#10003;' : i + 1}</span>
         <span class="tx"><b>${esc(st.technique || 'Step ' + (i + 1))}</b>${sub ? `<small>${esc(sub).replace(/&amp;middot;/g, '&middot;')}</small>` : ''}</span>
         ${ps.slice(0, 2).map(p => swChip(p.hex, p)).join('')}</button>`;
     });
+    if (allDone) h += `<p class="sessdone">${TICK_SVG}<span>${s.mode === 'single' ? `Model ${s.model || 1} is done.` : 'Every step is ticked.'}</span>
+      ${s.mode === 'single' && (s.model || 1) < n ? `<button class="btn ghost sm" data-sessmodel="1">Next model</button>` : ''}<button class="linkbtn" data-act="sessClear">Clear ticks</button></p>`;
+    else if (ticks.length) h += `<p class="ctr" style="margin:.5rem 0 0"><button class="linkbtn" data-act="sessClear">Clear ticks</button></p>`;
   } else {
     h += `<p class="small muted ctr">No recipe linked to this unit. You can link one from the unit&rsquo;s page.</p>`;
   }
@@ -5476,11 +5504,41 @@ function screenSession(){
     <p class="ctr" style="margin-top:.75rem"><button class="linkbtn" data-act="sessCancel">Stop without saving</button></p>`;
   return h;
 }
-function sessStart(id){
+function sessStart(id, how){
   const m = data.minis.find(x => x.id === id); if (!m) return;
-  const R = unitRecipes(m)[0];
-  data.settings.session = { miniId:m.id, start:Date.now(), pausedMs:0, pausedAt:0, recipeId: R ? R.r.id : '', ticks:[] };
+  const R = unitRecipes(m)[0], n = Number(m.total) || 1;
+  if (!how && R && n > 1) return dlgSessHow(m, R.r.id);
+  const h = how || {};
+  data.settings.session = { miniId:m.id, start:Date.now(), pausedMs:0, pausedAt:0, recipeId: R ? R.r.id : '',
+    mode: h.mode === 'single' ? 'single' : 'batch', model: h.mode === 'single' ? Math.min(n, Math.max(1, h.model || 1)) : 0 };
   save(); state.tab = 'session'; state.openMini = null; render(); window.scrollTo(0, 0);
+}
+/* The first model of the unit whose steps are not all ticked on this recipe. */
+function nextModel(m, rid){
+  const r = data.recipes.find(x => x.id === rid), n = Number(m.total) || 1, ids = arr(r && r.steps).map(x => x.id);
+  for (let i = 1; i <= n; i++){ const t = ticksAt(`${m.id}|${rid}|m${i}`); if (!ids.every(id => t.indexOf(id) !== -1)) return i; }
+  return 1;
+}
+function dlgSessHow(m, rid, fromSession){
+  const n = Number(m.total) || 1, cur = sessNow();
+  const pick = { mode: cur && cur.mode === 'single' ? 'single' : (cur ? 'batch' : ''), model: cur && cur.model ? cur.model : nextModel(m, rid) };
+  const body = () => `<p style="margin-top:0" class="user-text"><b>${esc(m.name)}</b> &middot; <span class="num">${n}</span> models</p>
+    <div class="segq" role="radiogroup" aria-label="How you are painting them">
+      <button type="button" role="radio" data-shmode="batch" aria-checked="${pick.mode === 'batch'}">The whole batch</button>
+      <button type="button" role="radio" data-shmode="single" aria-checked="${pick.mode === 'single'}">One model at a time</button></div>
+    <div id="shModel"${pick.mode === 'single' ? '' : ' hidden'}><label for="shN">Which model</label>
+      <select id="shN">${Array.from({ length:n }, (_, i) => `<option value="${i + 1}"${i + 1 === pick.model ? ' selected' : ''}>Model ${i + 1} of ${n}</option>`).join('')}</select>
+      <p class="small muted" style="margin:.25rem 0 0">Each model keeps its own ticks until you clear them.</p></div>
+    <p class="small muted" style="margin:.75rem 0 0">Ticking steps never changes the unit&rsquo;s stages.</p>`;
+  openDialog(fromSession ? 'Change how you are painting' : 'How are you painting these?', body(), () => {
+    if (!pick.mode){ toast('Choose the whole batch or one model at a time.'); return false; }
+    const model = Number(($('#shN') || {}).value) || 1;
+    if (fromSession){ const s = sessNow(); if (s){ s.mode = pick.mode; s.model = pick.mode === 'single' ? model : 0; save(); render(); announce(pick.mode === 'single' ? `Painting model ${model} of ${n}.` : 'Painting the whole batch.'); } return; }
+    sessStart(m.id, { mode:pick.mode, model });
+  }, fromSession ? 'Save' : 'Start painting');
+  const dl = $('#dlg');
+  dl.querySelectorAll('[data-shmode]').forEach(b => b.addEventListener('click', () => { pick.mode = b.dataset.shmode;
+    dl.querySelectorAll('[data-shmode]').forEach(x => x.setAttribute('aria-checked', String(x === b))); $('#shModel').hidden = pick.mode !== 'single'; }));
 }
 function sessStartFree(){
   data.settings.session = { miniId:'', start:Date.now(), pausedMs:0, pausedAt:0, recipeId:'', ticks:[] };
@@ -7519,6 +7577,14 @@ document.addEventListener('click', e => {
   const t = e.target;
   const og = t.closest('[data-gal]'); if (og){ openGallery(+og.dataset.gal, og); return; }
   const rm = t.closest('[data-rmode]'); if (rm){ state.recipeMode = rm.dataset.rmode; render(); const b = document.querySelector(`[data-rmode="${state.recipeMode}"]`); if (b) b.focus(); return; }
+  const rt = t.closest('[data-rtick]'); if (rt){ const r = data.recipes.find(x => x.id === state.openRecipe); if (!r) return;
+    const src = recTickSrc(r), id = rt.dataset.rtick, on = src.list.indexOf(id) === -1;
+    src.set(on ? src.list.concat(id) : src.list.filter(x => x !== id)); save(); render();
+    const st = arr(r.steps), n = st.filter(x => recTickSrc(r).list.indexOf(x.id) !== -1).length;
+    const b = document.querySelector(`[data-rtick="${CSS.escape(id)}"]`); if (b) b.focus();
+    announce(`${on ? 'Done' : 'Not done'}: ${(st.find(x => x.id === id) || {}).technique || 'step'}. ${n} of ${st.length} steps done.`); return; }
+  if (t.closest('[data-act="rtickClear"]')){ const r = data.recipes.find(x => x.id === state.openRecipe); if (!r) return;
+    recTickSrc(r).set([]); save(); render(); announce('Ticks cleared.'); const b = document.querySelector('[data-rtick]'); if (b) b.focus(); return; }
   const rl = t.closest('[data-relink]'); if (rl){ dlgRelink(rl.dataset.relink, +rl.dataset.k); return; }
   const orf = t.closest('[data-recref]'); if (orf){ openGallery(+orf.dataset.recref, orf, 'recipe', state.openRecipe); return; }
   if (t.closest('[data-act="recRefAdd"]')){ refInput().click(); return; }
@@ -7927,6 +7993,22 @@ function recipeNeeds(r){
   return out;
 }
 const gonePaintName = x => x.name || 'Unknown paint';
+/* v045: ticks while painting from a recipe. If a painting session is running
+   on this recipe, the ticks are the session's own, so both screens agree.
+   Otherwise they are kept with the recipe until cleared. */
+/* v045: ticks are kept until cleared, under a key: the recipe on its own; a
+   unit's batch on that recipe; or one model of that unit, when a session is
+   painting one model at a time. */
+function tickKey(sess, rid){
+  if (sess && sess.miniId && sess.recipeId === rid) return sess.mode === 'single' ? `${sess.miniId}|${rid}|m${sess.model || 1}` : `${sess.miniId}|${rid}`;
+  return rid;
+}
+const ticksAt = k => arr((data.settings.rticks || {})[k]);
+function setTicksAt(k, v){ data.settings.rticks = Object.assign({}, data.settings.rticks); if (v.length) data.settings.rticks[k] = v; else delete data.settings.rticks[k]; }
+function recTickSrc(r){
+  const s = sessNow(), on = !!(s && s.miniId && s.recipeId === r.id), k = tickKey(on ? s : null, r.id);
+  return { list:ticksAt(k), session:on ? s : null, set:v => setTicksAt(k, v) };
+}
 function refInput(){
   let el = document.getElementById('refIn');
   if (!el){ el = document.createElement('input'); el.type = 'file'; el.accept = 'image/*'; el.multiple = true; el.hidden = true; el.id = 'refIn'; document.body.append(el);
@@ -7978,7 +8060,11 @@ function screenRecipeDetail(){
       <div class="rsumin">${needs.length ? needList : ''}${refGrid}${usedList}</div></details>`;
   }
 
+  const tk = recTickSrc(r), stepIds = arr(r.steps).map(x => x.id);
+  const doneN = stepIds.filter(id => tk.list.indexOf(id) !== -1).length;
+  const nextId = stepIds.find(id => tk.list.indexOf(id) === -1);
   h += `<div class="card${painting ? ' rpaint' : ''}"><div class="row spread"><h3 style="margin:0">Steps</h3>
+    ${painting && stepIds.length ? `<span class="rprog" aria-live="polite"><b class="num">${doneN}</b> of <b class="num">${stepIds.length}</b> done</span>` : ''}
     ${editing ? `<button class="btn sm ghost" data-act="addStep">Add step</button>` : ''}</div>`;
   if (!arr(r.steps).length) h += `<p class="small muted">No steps yet.${editing ? '' : ' Choose Edit to add some.'}</p>`;
   h += `<ol class="rsteps${editing ? '' : ' tl'}">`;
@@ -7992,8 +8078,12 @@ function screenRecipeDetail(){
     const dot = !editing && firstHex ? ` style="background:${firstHex.hex};color:${lum(firstHex.hex) > .55 ? '#0B1A2E' : '#F4F1EA'}"` : '';
     const instr = stepInstr(s), dry = isDuration(s.dry) ? s.dry : '';
     const relink = o => `<button class="linkbtn" data-relink="${esc(s.id)}" data-k="${o.k}">Relink<span class="sr-only"> ${esc(gonePaintName(o.x))}</span></button>`;
-    h += `<li class="rstep"><span class="rn num" aria-hidden="true"${dot}>${i+1}</span>
-      <span class="grow"><b class="user-text"><span class="sr-only">Step ${i + 1}: </span>${esc(s.technique||'Step')}</b>
+    const done = painting && tk.list.indexOf(s.id) !== -1, isNext = painting && !done && s.id === nextId;
+    const lead = painting ? `<button class="rtick" data-rtick="${esc(s.id)}" aria-pressed="${done}"
+        aria-label="Step ${i + 1}, ${esc(s.technique || 'Step')}: ${done ? 'done' : 'not done'}"${done ? '' : dot}>${done ? TICK_SVG : `<span class="num">${i + 1}</span>`}</button>`
+      : `<span class="rn num" aria-hidden="true"${dot}>${i+1}</span>`;
+    h += `<li class="rstep${done ? ' rdone' : ''}${isNext ? ' rnext' : ''}">${lead}
+      <span class="grow"><b class="user-text"><span class="sr-only">Step ${i + 1}: </span>${esc(s.technique||'Step')}</b>${painting && s.id === nextId ? '<span class="rnexttag">Next</span>' : ''}
         ${names.length?`<span class="rps">${names.join('<span class="rplus" aria-hidden="true">+</span>')}</span>`:''}
         ${instr ? `<span class="rins user-text">${esc(instr)}</span>` : ''}
         ${s.mix || dry ? `<span class="rmeta">${s.mix ? `<span class="user-text"><b>Mix</b> ${esc(s.mix)}</span>` : ''}${dry ? `<span class="user-text"><b>Dry</b> ${esc(dry)}</span>` : ''}</span>` : ''}
@@ -8002,7 +8092,10 @@ function screenRecipeDetail(){
           : gone.map(o => `<span class="rgone"><span>${o.x.name ? `<span class="user-text">${esc(o.x.name)}</span> is no longer in your paints. The recipe keeps its name so you know what to use.` : 'A paint here is no longer in your paints, and its name was not kept.'}</span>${relink(o)}</span>`).join('')) : ''}</span>
       ${editing ? `<button class="btn ghost sm danger-text" data-delstep="${esc(s.id)}" aria-label="Delete step ${i+1}, ${esc(s.technique||'Step')}">Delete</button>` : ''}</li>`;
   });
-  h += `</ol></div>`;
+  h += `</ol>`;
+  if (painting && stepIds.length) h += `<p class="rtickfoot small muted">${tk.session ? `Ticks are shared with your painting session for <span class="user-text">${esc((data.minis.find(m => m.id === tk.session.miniId) || {}).name || '')}</span>${tk.session.mode === 'single' ? `, model <span class="num">${tk.session.model || 1}</span> of <span class="num">${Number((data.minis.find(m => m.id === tk.session.miniId) || {}).total) || 1}</span>` : ', the whole batch'}.` : 'Ticks stay with this recipe until you clear them.'}
+    ${doneN ? `<button class="linkbtn" data-act="rtickClear">Clear ticks</button>` : ''}</p>`;
+  h += `</div>`;
 
   if (!painting) h += recipeHaveCard(r);
 
@@ -9591,10 +9684,16 @@ document.addEventListener('click', e => {
   const bt = t.closest('[data-bench]');
   if (bt && !bt.disabled){ state.benchTab = bt.dataset.bench; state.benchPicked = true; state.heroIdx = 0; render(); return; }
   const sst = t.closest('[data-sesstep]');
-  if (sst){ const s = sessNow(); if (!s) return; const id = sst.dataset.sesstep, tk = arr(s.ticks);
-    s.ticks = tk.indexOf(id) === -1 ? tk.concat(id) : tk.filter(x => x !== id); save(); render(); return; }
+  if (sst){ const s = sessNow(); if (!s) return; const id = sst.dataset.sesstep, k = tickKey(s, s.recipeId), tk = ticksAt(k), on = tk.indexOf(id) === -1;
+    setTicksAt(k, on ? tk.concat(id) : tk.filter(x => x !== id)); save(); render();
+    const b = document.querySelector(`[data-sesstep="${CSS.escape(id)}"]`); if (b) b.focus();
+    const r = data.recipes.find(x => x.id === s.recipeId); announce(`${on ? 'Done' : 'Not done'}. ${ticksAt(k).length} of ${arr(r && r.steps).length} steps done.`); return; }
+  const smd = t.closest('[data-sessmodel]');
+  if (smd && !smd.disabled){ const s = sessNow(); if (!s) return; const m = data.minis.find(x => x.id === s.miniId), n = Number(m && m.total) || 1;
+    s.model = Math.min(n, Math.max(1, (s.model || 1) + Number(smd.dataset.sessmodel))); save(); render(); announce(`Model ${s.model} of ${n}.`);
+    const f = document.querySelector('.sessmode .grow'); if (f){ f.setAttribute('tabindex', '-1'); f.focus(); } return; }
   const srec = t.closest('[data-sessrec]');
-  if (srec){ const s = sessNow(); if (!s) return; s.recipeId = srec.dataset.sessrec; s.ticks = []; save(); render(); return; }
+  if (srec){ const s = sessNow(); if (!s) return; s.recipeId = srec.dataset.sessrec; save(); render(); return; }
   const hs = t.closest('[data-hero]');
   if (hs && !hs.disabled){ state.heroIdx = (state.heroIdx || 0) + Number(hs.dataset.hero); render(); return; }
   const go = t.closest('[data-tab-go]');
@@ -9710,6 +9809,8 @@ document.addEventListener('click', e => {
       if (s && s.miniId !== act.dataset.id){ state.tab = 'session'; render(); window.scrollTo(0,0); toast('Finish this session before starting another.'); return; }
       if (s){ state.tab = 'session'; state.openMini = null; render(); window.scrollTo(0,0); return; }
       sessStart(act.dataset.id); return; }
+    if (a === 'sessHow'){ const s = sessNow(); const m = s && data.minis.find(x => x.id === s.miniId); if (m) dlgSessHow(m, s.recipeId, true); return; }
+    if (a === 'sessClear'){ const s = sessNow(); if (!s) return; setTicksAt(tickKey(s, s.recipeId), []); save(); render(); announce('Ticks cleared.'); return; }
     if (a === 'sessOpen'){ state.tab = 'session'; state.openMini = null; render(); window.scrollTo(0,0); return; }
     if (a === 'sessPause') return sessPause();
     if (a === 'sessFinish') return sessFinish();
