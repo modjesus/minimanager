@@ -1442,6 +1442,201 @@ body.galopen{overflow:hidden}
 .rsteps.tl .rn{position:relative;z-index:1;width:2rem;height:2rem;border:2px solid var(--gold-ink);background:var(--bg);font-size:.8125rem}
 .rmeta{display:flex;flex-wrap:wrap;gap:.375rem;margin-top:.35rem}
 .rmeta span{font-size:.75rem;padding:.1rem .45rem;border-radius:.3rem;background:color-mix(in srgb,var(--text) 10%,transparent);color:var(--text-2)}
+
+/* ===== v044 ===== */
+.homebtn{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;min-width:var(--tap);min-height:var(--tap);margin:-.375rem -.375rem -.375rem -.5rem;padding:0 .375rem;border:0;border-radius:10px;background:none;cursor:pointer}
+.homebtn:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+header.bar.wrapt h1{flex:1 1 100%;order:3;white-space:normal;overflow:visible;line-height:1.1}
+/* Workbench head and summary, compact */
+.wbhead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:.125rem .75rem;margin:1rem 0 0}
+.wbhead .wbtitle{font-weight:400;font-size:min(1.75rem,9vw)}
+.wbhead .greet{margin:0;font-size:.8125rem;color:var(--text-2)}
+.wbprog{gap:.25rem;margin:.625rem 0 0;padding:.5rem .75rem}
+.wbprog .bar{height:.375rem}
+.wbacts{grid-template-columns:repeat(auto-fit,minmax(min(100%,9.5rem),1fr));margin:.625rem 0 .25rem}
+.wbacts .btn{min-height:2.875rem}
+#app .segbar{margin:.625rem 0 .875rem}
+/* the featured project */
+.pc-ph{height:12.5rem!important;aspect-ratio:auto!important;max-height:none!important;background:var(--deep)}
+.pc-ph img.ph{object-fit:contain!important}
+.pc-ph.fill img.ph{object-fit:cover!important}
+.pc-ph.empty{height:5.5rem!important}
+.pc-row{position:relative;align-items:flex-start}
+.pc-name{flex:1;min-width:0}
+.pc-name.long{font-size:1.25rem;line-height:1.2;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.pc-more{flex:none;width:var(--tap);height:var(--tap);margin:-.375rem -.375rem 0 0;border:0;border-radius:10px;background:none;color:var(--text-2);display:grid;place-items:center;cursor:pointer}
+.pc-more[aria-expanded="true"]{background:var(--raised);color:var(--text)}
+.pc-more:focus-visible,.pc-menu button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.pc-menu{position:absolute;right:0;top:100%;z-index:25;min-width:13.5rem;max-width:calc(100vw - 3rem);padding:.375rem;border:1px solid var(--gold-line);border-radius:12px;background:var(--raised);box-shadow:0 12px 30px rgba(0,0,0,.45)}
+.pc-menu button{display:flex;align-items:center;gap:.625rem;width:100%;min-height:var(--tap);padding:.25rem .75rem;border:0;border-radius:8px;background:none;color:var(--text);font:inherit;font-size:.9375rem;text-align:left;cursor:pointer}
+.pc-menu button:hover{background:var(--surface)}
+.pc-menu svg{width:1.125rem;height:1.125rem;color:var(--gold-ink);flex:none}
+.pc-prog{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:.375rem .75rem;margin:.5rem 0 0}
+.pc-prog .pc-pct{font-size:1.75rem;line-height:1;color:var(--text)}
+.pc-prog .pc-pct small{display:block;font-family:var(--f-body);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-2);margin-top:.2rem}
+.pc-prog .pc-bar{margin:0;padding:0}
+.pc-prog .nowlab{grid-column:1/-1;margin:.25rem 0 0}
+.stchips{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:.375rem;margin-top:.125rem}
+.stchip{display:inline-flex;align-items:center;gap:.375rem;min-height:1.75rem;padding:.125rem .625rem;border-radius:999px;font-size:.8125rem;border:1px solid var(--border);color:var(--text)}
+.stchip.fin{border-color:color-mix(in srgb,var(--success) 70%,transparent);background:color-mix(in srgb,var(--success) 16%,transparent)}
+.stchip.fin svg{width:.875rem;height:.875rem;color:var(--fin)}
+.stchip .dot{width:.5rem;height:.5rem;border-radius:50%;background:var(--c)}
+.inboxrem{display:flex;align-items:center;gap:.75rem;width:100%;margin:.875rem 0 0;padding:.5rem .75rem;min-height:3.25rem;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text);font:inherit;text-align:left;cursor:pointer}
+.inboxrem .ic{width:2.25rem;height:2.25rem;border-radius:8px;display:grid;place-items:center;background:var(--raised);color:var(--gold-ink);flex:none}
+.inboxrem .ic svg{width:1.25rem;height:1.25rem}
+.inboxrem .tx{flex:1;min-width:0;line-height:1.3}
+.inboxrem .tx small{display:block;color:var(--text-2);font-size:.75rem}
+.inboxrem .go{color:var(--gold-ink);font-weight:600;font-size:.875rem}
+.inboxrem:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+/* framing */
+.segq{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,7rem),1fr));gap:3px;padding:3px;border:1px solid var(--border);border-radius:12px;background:var(--deep)}
+.segq button{min-height:var(--tap);border:0;border-radius:9px;background:none;color:var(--text);font:inherit;font-size:.9375rem;display:flex;align-items:center;justify-content:center;gap:.375rem;cursor:pointer}
+.segq button[aria-checked="true"]{background:var(--raised);box-shadow:inset 0 0 0 1.5px var(--gold);font-weight:600}
+.segq.gold button[aria-checked="true"]{background:linear-gradient(180deg,#D3B676,#B8964F);color:var(--ink-navy);box-shadow:none}
+.segq button svg{width:1.125rem;height:1.125rem;flex:none}
+.segq button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.frbox{position:relative;width:100%;margin-top:.75rem;border-radius:4px;overflow:hidden;background:var(--deep);border:1px solid var(--gold-line);touch-action:none}
+.frbox img.ph{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.frbox.fill img.ph{object-fit:cover;cursor:grab}
+.frbox:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+
+/* photos to sort */
+.inbbar{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin:.75rem 0}
+.inbbar .grow{flex:1 1 12rem;margin:0;font-size:.875rem;color:var(--text-2)}
+.inbbar .btn,.inbsel .btn{min-height:var(--tap);gap:.375rem;white-space:nowrap}
+.inbbar .btn svg{width:1rem;height:1rem;flex:none}
+.inbsel{position:sticky;top:calc(var(--hdr,4.25rem) + 2px);z-index:15;display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin:.75rem 0;padding:.375rem .5rem .375rem .75rem;border:1px solid var(--gold-line);border-radius:12px;background:var(--surface)}
+.inbsel b{flex:1 1 auto}
+.inbgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(6.25rem,1fr));gap:.375rem;margin:0;padding:0;list-style:none}
+.inbgrid.selecting{padding-bottom:5rem}
+.inbph{position:relative;display:block;width:100%;aspect-ratio:1;border-radius:8px;border:0;padding:0;overflow:hidden;cursor:pointer;background:var(--deep)}
+.inbph img.ph{width:100%;height:100%;object-fit:cover;display:block;transition:transform .12s ease-out}
+.inbph:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.inbtick{position:absolute;top:.375rem;right:.375rem;width:1.75rem;height:1.75rem;border-radius:50%;border:2px solid #fff;background:rgba(0,0,0,.35);display:grid;place-items:center;box-shadow:0 1px 4px rgba(0,0,0,.5)}
+.inbtick svg{width:1rem;height:1rem;color:var(--ink-navy);opacity:0}
+.inbph[aria-pressed="true"] .inbtick{background:var(--gold);border-color:var(--gold)}
+.inbph[aria-pressed="true"] .inbtick svg{opacity:1}
+.inbph[aria-pressed="true"]::after{content:"";position:absolute;inset:0;border:3px solid var(--gold);border-radius:8px;pointer-events:none}
+.inbph[aria-pressed="true"] img.ph{transform:scale(.92);border-radius:6px}
+.inbsticky{position:fixed;left:0;right:0;bottom:calc(var(--navh,4.75rem) + env(safe-area-inset-bottom,0px));z-index:18;padding:.625rem 1rem;background:linear-gradient(180deg,transparent,var(--bg) 35%)}
+.inbsticky .btn{display:flex;width:100%;max-width:34rem;margin:0 auto;min-height:3rem;justify-content:center}
+.inbempty{display:grid;justify-items:start;gap:.5rem;margin:1rem 0;padding:1rem;border:1px dashed var(--border);border-radius:12px}
+.inbempty .ic{width:2.5rem;height:2.5rem;color:var(--gold-ink)}
+.inbempty .ic svg,.inbempty .btn svg{width:100%;height:100%}
+.inbempty .btn svg{width:1.125rem;height:1.125rem;margin-right:.375rem}
+.inbempty p{margin:0}
+.inbneedh{margin:1.5rem 0 .5rem;font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-ink)}
+.inbneed{list-style:none;margin:0;padding:0;display:grid;gap:.375rem}
+.inbneed button{display:flex;align-items:center;gap:.625rem;width:100%;min-height:3rem;padding:.375rem .75rem;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text);font:inherit;text-align:left;cursor:pointer}
+.inbneed .dot,.needsnote .dot,.needsline .dot{width:.5rem;height:.5rem;border-radius:50%;background:var(--warning);flex:none}
+.inbneed .nm{flex:1;min-width:0}.inbneed small{display:block;color:var(--text-2);font-size:.75rem}
+.inbneed .go{color:var(--gold-ink);font-weight:600;font-size:.875rem}
+.needsnote{display:flex;gap:.5rem;align-items:baseline;margin:.75rem 0 0;padding:.5rem .75rem;border:1px solid color-mix(in srgb,var(--warning) 45%,transparent);border-radius:10px;font-size:.875rem}
+.needsline{display:flex;flex-wrap:wrap;align-items:center;gap:.375rem;font-size:.8125rem;color:var(--text-2)}
+/* the filing sheet */
+body.sheetopen{overflow:hidden}
+.fsheetbg{position:fixed;inset:0;z-index:70;background:rgba(3,10,20,.72);display:flex;align-items:flex-end;justify-content:center}
+.fsheet{width:100%;max-width:34rem;max-height:calc(100dvh - .5rem);overflow:auto;overscroll-behavior:contain;background:var(--surface);border-radius:18px 18px 0 0;border-top:1px solid var(--gold-line);padding:.5rem 1rem 0}
+.fgrab{width:2.5rem;height:4px;border-radius:2px;background:var(--border);margin:0 auto .5rem}
+.fhead{display:flex;flex-wrap:wrap;gap:.75rem;align-items:center}
+.fthumb{position:relative;width:min(4.5rem,20vw);height:min(4.5rem,20vw);border-radius:10px;overflow:hidden;flex:none;background:var(--deep)}
+.fthumb img.ph{width:100%;height:100%;object-fit:cover}
+.fcount{position:absolute;right:3px;bottom:3px;min-width:1.375rem;padding:0 .25rem;border-radius:999px;background:var(--gold);color:var(--ink-navy);font:700 .75rem/1.375rem var(--f-body);text-align:center}
+.ftitle{flex:1 1 9rem;min-width:0}
+.ftitle h2{font-family:var(--f-display);font-weight:400;font-size:1.375rem;margin:.125rem 0 0}
+.fclose{margin-left:auto;align-self:flex-start;font-size:1.5rem;border:0;background:none}
+.flbl{display:block;margin:1rem 0 .375rem;font-size:.8125rem;font-weight:600;color:var(--text-2)}
+.flbl small{font-weight:400}
+.fnote{margin:.375rem 0 0}
+.fsearch{position:relative}
+.fsearch svg{position:absolute;left:.75rem;top:50%;width:1.125rem;height:1.125rem;transform:translateY(-50%);color:var(--text-2);pointer-events:none}
+.fsearch input{padding-left:2.5rem}
+.fopts{list-style:none;margin:.375rem 0 0;padding:0;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.fopts li+li{border-top:1px solid var(--border)}
+.fopts button{display:flex;align-items:center;gap:.75rem;width:100%;min-height:3rem;padding:.375rem .75rem;border:0;background:none;color:var(--text);font:inherit;text-align:left;cursor:pointer}
+.fopts .rad{width:1.25rem;height:1.25rem;border-radius:50%;border:2px solid var(--text-2);flex:none;display:grid;place-items:center}
+.fopts [aria-checked="true"]{background:color-mix(in srgb,var(--gold) 12%,transparent)}
+.fopts [aria-checked="true"] .rad{border-color:var(--gold)}
+.fopts [aria-checked="true"] .rad::after{content:"";width:.625rem;height:.625rem;border-radius:50%;background:var(--gold)}
+.fopts .th{width:2.25rem;height:2.25rem;border-radius:6px;flex:none;overflow:hidden;background:var(--deep);display:grid;place-items:center}
+.fopts .th img{width:100%;height:100%;object-fit:cover}
+.fopts .th .rpdrop{width:.875rem;height:1.375rem}
+.fopts .nm{flex:1;min-width:0}
+.fopts .meta{display:block;font-size:.75rem;color:var(--text-2)}
+.fopts button:focus-visible,.fnew:focus-visible,.fback:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+.fnone{margin:.5rem 0 0;padding:.75rem;border:1px dashed var(--border);border-radius:12px;font-size:.875rem;color:var(--text-2);text-align:center}
+.fnew{display:flex;align-items:center;gap:.75rem;width:100%;min-height:3rem;margin:.5rem 0 0;padding:.375rem .75rem;border:1.5px dashed var(--gold-line);border-radius:12px;background:none;color:var(--gold-ink);font:inherit;font-weight:600;text-align:left;cursor:pointer}
+.fnew svg{width:1.25rem;height:1.25rem;flex:none}
+.fback{display:inline-flex;align-items:center;gap:.25rem;min-height:var(--tap);margin:.5rem 0 0;padding:0;border:0;background:none;color:var(--gold-ink);font:inherit;font-weight:600;cursor:pointer}
+.fnewh{margin:.25rem 0 0;font-size:1rem}
+.ferrline{margin:.375rem 0 0;color:var(--danger-ink,var(--danger));font-size:.875rem}
+.fmore{margin:1rem 0 0}
+.ffoot{position:sticky;bottom:0;margin:1rem -1rem 0;padding:.75rem 1rem calc(.75rem + env(safe-area-inset-bottom,0px));background:var(--surface);border-top:1px solid var(--border)}
+.ffoot.flow{position:static}
+.facts{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem .75rem}
+.facts .btn{flex:1 1 10rem;min-height:3rem}
+.facts .linkbtn{min-height:var(--tap);padding:0 .25rem}
+.fconf{margin:0 0 .5rem;font-size:.875rem;line-height:1.4}
+.fconf small{display:block;color:var(--text-2);font-size:.75rem;margin-top:.125rem}
+.fok{display:flex;gap:.5rem;align-items:center;margin:1rem 0 0;font-size:.875rem}
+.fok svg{width:1.125rem;height:1.125rem;color:var(--fin);flex:none}
+.ferr{margin:.75rem 0 0;padding:.75rem;border:1px solid color-mix(in srgb,var(--danger) 55%,transparent);border-radius:12px;background:var(--danger-bg);color:var(--danger-ink);font-size:.875rem}
+.ferr ul{margin:.375rem 0;padding-left:1.1rem}.ferr p{margin:0}
+
+/* recipe reading (v044) */
+.rhead .grow{flex:1 1 12rem;min-width:0}
+.rhead{flex-wrap:wrap}
+.rtitle{font-size:1.625rem;margin:0;overflow-wrap:break-word}
+.rtitle.sm{font-size:1.375rem}
+.rcat{display:inline-block;margin:.375rem 0 0;padding:.125rem .5rem;border:1px solid var(--border);border-radius:999px;font-size:.75rem;color:var(--text-2)}
+.rmode{display:grid;grid-template-columns:1fr 1fr;gap:3px;padding:3px;margin:.75rem 0;border:1px solid var(--border);border-radius:12px;background:var(--deep)}
+.rmode button{min-height:var(--tap);border:0;border-radius:9px;background:none;color:var(--text-2);font:inherit;font-size:.875rem;font-weight:600;cursor:pointer}
+.rmode button[aria-selected="true"]{background:var(--raised);color:var(--text);box-shadow:inset 0 0 0 1.5px var(--gold)}
+.rmode button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.rsec{margin:1rem 0 0}
+.rsec h3{margin:0 0 .5rem;font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-ink)}
+.rneeds{display:flex;flex-wrap:wrap;gap:.375rem;margin:0;padding:0;list-style:none}
+.rneeds li{display:inline-flex;align-items:center;gap:.375rem;min-height:2rem;padding:.125rem .625rem .125rem .375rem;border:1px solid var(--border);border-radius:999px;font-size:.8125rem}
+.rneeds .rpdrop{width:.75rem;height:1.25rem}
+.rneeds li.gone{border-style:dashed;color:var(--text-2);padding-left:.625rem}
+.rtag{display:inline-flex;align-items:center;margin-left:.25rem;padding:0 .375rem;border:1px solid var(--border);border-radius:4px;font-size:.75rem;font-weight:600}
+.rrefs{display:grid;grid-template-columns:repeat(auto-fill,minmax(4.5rem,1fr));gap:.5rem}
+.rrefs button{aspect-ratio:1;border-radius:10px;border:1px solid var(--border);padding:0;overflow:hidden;background:var(--deep);cursor:pointer}
+.rrefs button img.ph{width:100%;height:100%;object-fit:cover;display:block}
+.rrefs button.add{display:grid;place-items:center;align-content:center;gap:.125rem;border:1px dashed var(--gold-line);color:var(--gold-ink);font:inherit;font-size:.75rem}
+.rrefs button.add svg{width:1.25rem;height:1.25rem}
+.rrefs button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.rusedd,.rsum{border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+.rusedd summary,.rsum summary{display:flex;align-items:center;gap:.625rem;min-height:2.875rem;padding:0 .75rem;cursor:pointer;list-style:none}
+.rusedd summary::-webkit-details-marker,.rsum summary::-webkit-details-marker{display:none}
+.rusedd .rused{margin:0;font-size:.9375rem;color:var(--text)}
+.rusedd .faces{display:flex}
+.rusedd .faces span{width:1.75rem;height:1.75rem;border-radius:50%;overflow:hidden;border:2px solid var(--surface);margin-left:-.5rem;background:var(--deep)}
+.rusedd .faces span:first-child{margin-left:0}
+.rusedd .faces img{width:100%;height:100%;object-fit:cover}
+.rusedd .chev,.rsum .chev{margin-left:auto;transition:transform .2s;color:var(--text-2);flex:none}
+.rusedd[open] .chev,.rsum[open] .chev{transform:rotate(90deg)}
+.rusedd ul{margin:0;padding:0 .75rem .5rem;list-style:none}
+.rusedd li button{display:flex;align-items:center;justify-content:space-between;gap:.5rem;width:100%;min-height:var(--tap);border:0;border-top:1px solid var(--border);background:none;color:var(--text);font:inherit;text-align:left;cursor:pointer}
+.rsum{margin:0 0 .75rem}
+.rsum summary{font-size:.875rem;color:var(--text-2)}
+.rsum summary b{color:var(--text)}
+.rsumin{display:grid;gap:.75rem;padding:0 .75rem .75rem}
+.rins{display:block;margin-top:.125rem;font-size:.875rem;color:var(--text-2)}
+.rmeta b{font-weight:600;margin-right:.25rem;color:var(--text-2)}
+.rgone{display:flex;flex-wrap:wrap;align-items:center;gap:.125rem .5rem;margin:.375rem 0 0;padding:.375rem .625rem;border:1px dashed var(--border);border-radius:8px;font-size:.8125rem;color:var(--text-2)}
+.rgone.sm{display:inline-flex;padding:.125rem .5rem;border-radius:6px}
+.rgone .linkbtn{min-height:2.25rem;font-weight:600}
+.rpaint .rstep b{font-size:1.0625rem}
+.rpaint .rps,.rpaint .rins{font-size:.9375rem}
+.rusedd summary .rused{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
+.rusedd summary,.rsum summary{flex-wrap:nowrap}
+.rsum summary>span{flex:1;min-width:0}
+.rsumin>*{min-width:0}
+.rneeds li{max-width:100%;flex-wrap:wrap;overflow-wrap:anywhere}
+.rusedd li button span{min-width:0;overflow-wrap:anywhere}
+.rmeta>span{display:inline-flex;align-items:baseline;gap:.25rem;flex-direction:row}
+.rmeta>span b{display:inline!important;font-size:inherit!important;margin:0!important}
 </style>
 <script type="importmap">
 { "imports": {
@@ -1454,7 +1649,7 @@ body.galopen{overflow:hidden}
 <body>
 
 <header class="bar">
-  <svg class="mark" viewBox="0 0 580 605" role="img" aria-label="MiniManager"><path id="forest-upper-left" fill="#063225" d="M294,105c-8,27-22,55-53,88-22,22-42,43-60,62h-60c12-39,44-69,88-96,37-22,66-39,85-54Z"/>
+  <button type="button" class="homebtn" data-act="goHome" aria-label="MiniManager. Go to your Workbench"><svg class="mark" viewBox="0 0 580 605" aria-hidden="true" focusable="false"><path id="forest-upper-left" fill="#063225" d="M294,105c-8,27-22,55-53,88-22,22-42,43-60,62h-60c12-39,44-69,88-96,37-22,66-39,85-54Z"/>
     <path id="forest-upper-right" fill="#063225" d="M302,105c19,15,48,32,85,54,44,27,76,57,88,96h-60c-18-19-38-40-60-62-31-33-45-61-53-88Z"/>
     <path id="forest-side-left" fill="#083c2b" d="M113,289c14,3,23,17,23,31v140c-7,9-15,20-23,29v-200Z"/>
     <path id="forest-side-right" fill="#083c2b" d="M483,289c-14,3-23,17-23,31v140c7,9,15,20,23,29v-200Z"/>
@@ -1468,7 +1663,7 @@ body.galopen{overflow:hidden}
     <path id="four-point-star" fill="#f9c557" d="M298,463c5,18,12,27,33,33-20,5-28,13-33,34-5-21-14-29-34-34,21-6,28-15,34-33Z"/>
     <path id="left-rim-detail" fill="#f9c557" d="M73,546c8-8,18-12,29-12h142l9,12H73Z"/>
     <path id="right-rim-detail" fill="#f9c557" d="M343,546l9-12h142c11,0,21,4,29,12h-180Z"/>
-    <path id="single-base-rim" fill="#f9c557" d="M30,594l13-22c4-7,9-11,17-11h476c8,0,13,4,17,11l13,22H30Z"/></svg>
+    <path id="single-base-rim" fill="#f9c557" d="M30,594l13-22c4-7,9-11,17-11h476c8,0,13,4,17,11l13,22H30Z"/></svg></button>
   <h1 id="screenTitle">MiniManager</h1>
   <span id="syncslot"></span>
   <span id="actslot"></span>
@@ -4037,8 +4232,11 @@ async function pushPhotos(){
   if (!syncState.on || !syncState.user) return;
   const { F, storage } = fb;
   const uid = syncState.user.uid;
+  /* v044: photos waiting to be sorted, and recipe reference images, too */
   const wanted = arr(data.swatches).map(s => s.photoId)
     .concat(arr(data.minis).flatMap(m => arr(m.photos)))
+    .concat(arr((data.settings || {}).inbox).map(x => x && x.id))
+    .concat(arr(data.recipes).flatMap(r => arr(r.photos)))
     .filter(Boolean);
 
   for (const pid of wanted){
@@ -4174,6 +4372,387 @@ function syncPill(){
 
 </script>
 <script>
+/* ===========================================================================
+   Photos to sort (v044).
+
+   Take or upload lots of photos now, decide what they are later. Each photo
+   waits in data.settings.inbox (a short list of photo ids, so it syncs with
+   the settings and needs no new kind of record) until it is filed to a
+   miniature, a paint or a recipe.
+
+   Filing only ever adds a photo. It never changes a model's stage, finished
+   count or progress, whatever the photo is labelled as.
+   =========================================================================== */
+
+const inboxList = () => arr((data.settings || {}).inbox).filter(x => x && x.id);
+function setInbox(list){ data.settings.inbox = list; }
+/* Things added from a photo without their details yet. */
+function needsDetails(){
+  return liveMinis().filter(m => m.needs || m.stageUnset).map(m => ({ kind:'mini', id:m.id, name:m.name,
+      why: m.stageUnset ? 'stage not set' : 'details to fill in' }))
+    .concat(arr(data.swatches).filter(s => s.needs).map(s => { const p = paintOf(s.paintId);
+      return { kind:'swatch', id:s.id, paintId:s.paintId, name:p ? p.name + ' swatch' : 'Paint swatch', why:'undercoat and notes' }; }));
+}
+
+/* --- adding photos ---------------------------------------------------------- */
+function inboxInputs(){
+  if (document.getElementById('inbPick')) return;
+  document.body.insertAdjacentHTML('beforeend',
+    `<input id="inbPick" type="file" accept="image/*" multiple hidden><input id="inbCam" type="file" accept="image/*" capture="environment" hidden>`);
+  $('#inbPick').addEventListener('change', e => inboxAdd(e.target.files, false));
+  $('#inbCam').addEventListener('change', e => inboxAdd(e.target.files, true));
+}
+async function inboxAdd(fileList, fromCamera){
+  const files = Array.from(fileList || []);
+  $('#inbPick').value = ''; $('#inbCam').value = '';
+  if (!files.length) return;
+  const added = []; let failed = 0;
+  for (const f of files){
+    try {
+      const blob = await deadline(Promise.resolve(f.slice()), 45000, 'Reading ' + f.name);
+      const id = uid(); await putPhoto(id, blob); added.push({ id, at:Date.now() });
+    } catch (err){ failed++; console.warn('inbox photo failed', f && f.name, err.message); }
+  }
+  if (added.length){ setInbox(inboxList().concat(added)); save(); }
+  const msg = added.length && !failed ? `${added.length === 1 ? 'Photo' : added.length + ' photos'} added to Photos to sort.`
+    : added.length ? `${added.length} added, ${failed} could not be read.`
+    : 'That photo could not be read. If it is in iCloud, open it in Photos first so it downloads.';
+  toast(msg); announce(msg);
+  if (fromCamera && added.length === 1){ fileOpen([added[0].id], false); return; }
+  if (state.tab !== 'inbox'){ state.tab = 'inbox'; state.inboxSel = null; state.openMini = null; window.scrollTo(0, 0); }
+  render();
+}
+
+/* --- the screen ------------------------------------------------------------- */
+const CAM_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>';
+function screenInbox(){
+  inboxInputs();
+  const list = inboxList(), sel = state.inboxSel, n = list.length;
+  let h = `${backBtn('home','Workbench')}<h2 class="display" style="font-size:1.625rem;margin:.25rem 0 0" tabindex="-1" id="inbTitle">Photos to sort</h2>`;
+  if (sel){
+    for (const id of [...sel]) if (!list.some(x => x.id === id)) sel.delete(id);
+    h += `<div class="inbsel" role="group" aria-label="Selection"><b><span class="num">${sel.size}</span> selected</b>
+      <button class="btn ghost sm" data-act="inbAll">${sel.size === n ? 'Select none' : 'Select all'}</button>
+      <button class="btn ghost sm" data-act="inbDel"${sel.size ? '' : ' disabled'}>Delete</button>
+      <button class="btn ghost sm" data-act="inbCancel">Cancel</button></div>`;
+  } else if (n){
+    h += `<div class="inbbar"><p class="grow"><span class="num">${n}</span> photo${n === 1 ? '' : 's'} waiting. Tap one to file it.</p>
+      <button class="btn ghost sm" data-act="inbPick">${PLUS_SVG}Add photos</button>
+      <button class="btn ghost sm" data-act="inbSelect">Select</button></div>`;
+  }
+  if (!n){
+    h += `<div class="inbempty"><span class="ic">${CAM_SVG}</span><p><b>Nothing to sort.</b> Take photos as you go, or add a batch from your phone, and file them here when you have a minute.</p>
+      <div class="row wrapm"><button class="btn" data-act="inbCam">${CAM_SVG}Take a photo</button><button class="btn ghost" data-act="inbPick">Add photos</button></div></div>`;
+  } else {
+    h += `<ul class="inbgrid${sel ? ' selecting' : ''}" aria-label="Photos to sort">` + list.map((x, i) => {
+      const on = sel && sel.has(x.id);
+      return `<li><button class="inbph" data-inb="${esc(x.id)}" ${sel ? `aria-pressed="${on}"` : ''}
+        aria-label="Photo ${i + 1} of ${n}, added ${esc(sinceWords(x.at) || 'earlier')}${sel ? '' : '. File it'}">${photoImg(x.id, 'ph')}${sel ? `<span class="inbtick" aria-hidden="true">${TICK_SVG}</span>` : ''}</button></li>`;
+    }).join('') + `</ul>`;
+  }
+  const need = needsDetails();
+  if (need.length) h += `<h3 class="inbneedh">Needs details <span class="num">${need.length}</span></h3><ul class="inbneed">${need.map(x =>
+    `<li><button ${x.kind === 'mini' ? `data-open="${esc(x.id)}"` : `data-openpaint="${esc(x.paintId)}"`}><span class="dot" aria-hidden="true"></span><span class="nm"><span class="user-text">${esc(x.name)}</span><small>${esc(x.why)}</small></span><span class="go">Finish</span></button></li>`).join('')}</ul>`;
+  if (sel) h += `<div class="inbsticky"><button class="btn" data-act="inbFile"${sel.size ? '' : ' disabled'}>File ${sel.size} photo${sel.size === 1 ? '' : 's'}</button></div>`;
+  return h;
+}
+
+/* --- the filing sheet ------------------------------------------------------- */
+/* Everything typed or chosen lives here, so nothing is lost when the sheet is
+   redrawn: the keyboard opening, a validation message, or a retry. */
+let FS = null;
+function fileOpen(pids, batch){
+  FS = { pids:pids.slice(), batch:!!batch, i:0, to:'', kind:'', q:'', pick:'', view:'search', name:'', total:'1', stage:'',
+         more:false, createdId:null, failed:null, done:[], back:document.activeElement };
+  drawSheet(true);
+}
+function fileClose(msg){
+  const el = document.getElementById('fileSheet'); if (el) el.remove();
+  document.body.classList.remove('sheetopen');
+  /* after a batch, leave selecting; anything that failed stays selected */
+  if (FS && FS.batch && state.inboxSel) state.inboxSel = FS.failed && FS.failed.length ? new Set(FS.failed.map(f => f.pid)) : (FS.done.length ? null : state.inboxSel);
+  const back = FS && FS.back; FS = null;
+  if (state.tab === 'inbox') render();
+  if (msg) announce(msg);
+  if (state.tab !== 'inbox') render();
+  const t = back && back.isConnected ? back : document.querySelector('#app [data-inb]') || document.getElementById('inbTitle');
+  if (t) t.focus();
+}
+const DEST = { mini:['Miniature','mini'], paint:['Paint','pot'], recipe:['Recipe','brush'] };
+const destIcon = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${MED_ICON[{ mini:'laurel', paint:'pot', recipe:'brush' }[k]]}</svg>`;
+function fileMatches(){
+  const q = FS.q.trim().toLowerCase(); if (!q) return [];
+  const has = s => String(s || '').toLowerCase().includes(q);
+  if (FS.to === 'mini') return liveMinis().filter(m => has(m.name)).slice(0, 6).map(m => ({ id:m.id, name:m.name, meta:[facName(m.fac) || sysName(m.sys) || 'No army', m.stageUnset ? 'Stage not set' : stageLabel(m)].join(' · '), pid:arr(m.photos)[0] }));
+  if (FS.to === 'paint') return arr(data.paints).filter(p => has(p.name) || has(p.brand)).slice(0, 6).map(p => ({ id:p.id, name:p.name, meta:[p.brand, p.range].filter(Boolean).join(' · '), hex:p.hex, paint:p }));
+  return arr(data.recipes).filter(r => has(r.title)).slice(0, 6).map(r => ({ id:r.id, name:r.title, meta:r.category || 'Recipe' }));
+}
+function destName(){
+  if (FS.view === 'create') return FS.name.trim();
+  const m = FS.to === 'mini' ? data.minis.find(x => x.id === FS.pick) : FS.to === 'paint' ? paintOf(FS.pick) : data.recipes.find(x => x.id === FS.pick);
+  return m ? (m.name || m.title) : '';
+}
+const fileReady = () => !!FS.to && (FS.view === 'create' ? !!FS.name.trim() : !!FS.pick);
+function sheetPids(){ return FS.batch ? FS.pids : [FS.pids[FS.i]]; }
+
+function drawSheet(first){
+  let el = document.getElementById('fileSheet');
+  if (!el){
+    el = document.createElement('div'); el.id = 'fileSheet'; el.className = 'fsheetbg';
+    el.innerHTML = `<div class="fsheet" role="dialog" aria-modal="true" aria-labelledby="fsTitle"></div>`;
+    document.body.append(el); document.body.classList.add('sheetopen');
+    el.addEventListener('click', sheetClick); el.addEventListener('input', sheetInput); el.addEventListener('change', sheetInput);
+    el.addEventListener('keydown', sheetKey);
+  }
+  const box = el.querySelector('.fsheet'), keep = document.activeElement && box.contains(document.activeElement) ? document.activeElement.id : '';
+  const caret = keep && document.activeElement.selectionStart != null ? document.activeElement.selectionStart : null;
+  const pids = sheetPids(), cnt = pids.length, total = inboxList().length;
+  let h = `<div class="fgrab" aria-hidden="true"></div>
+    <div class="fhead"><span class="fthumb">${photoImg(pids[0], 'ph')}${cnt > 1 ? `<span class="fcount num" aria-hidden="true">${cnt}</span>` : ''}</span>
+      <div class="ftitle"><p class="eyebrow">${FS.batch ? `<span class="num">${cnt}</span> photos selected` : `Photo <span class="num">${Math.min(FS.i + 1, FS.pids.length)}</span> of <span class="num">${FS.pids.length}</span>`}</p>
+        <h2 id="fsTitle">File ${cnt > 1 ? 'these photos' : 'this photo'}</h2></div>
+      <button class="iconbtn fclose" data-fs="close" aria-label="Close. ${cnt > 1 ? 'The photos stay' : 'The photo stays'} in Photos to sort.">&times;</button></div>`;
+  if (FS.failed){
+    const ok = FS.done.length, bad = FS.failed.length, nm = destName();
+    h += `<p class="fok">${TICK_SVG}<span><b class="num">${ok}</b> of <b class="num">${ok + bad}</b> photos attached to <b class="user-text">${esc(nm)}</b>.</span></p>
+      <div class="ferr" role="alert"><b><span class="num">${bad}</span> photo${bad === 1 ? '' : 's'} could not be attached.</b>
+      <ul>${[...new Set(FS.failed.map(f => f.why))].map(w => `<li>${esc(w)}</li>`).join('')}</ul>
+      <p>${bad === 1 ? 'It is' : 'They are'} still in Photos to sort. Trying again only sends ${bad === 1 ? 'that photo' : 'those photos'}${FS.createdId ? ', to the miniature already created' : ''}.</p></div>
+      <div class="ffoot"><div class="facts"><button class="linkbtn" data-fs="close">Leave for later</button><button class="btn" data-fs="retry">Try again with ${bad} photo${bad === 1 ? '' : 's'}</button></div></div>`;
+    box.innerHTML = h; hydratePhotos(); finishDraw(box, first, keep, caret); return;
+  }
+  h += `<p class="flbl" id="fsTo">Attach to</p>
+    <div class="segq gold" role="radiogroup" aria-labelledby="fsTo">${Object.keys(DEST).map(k =>
+      `<button type="button" role="radio" data-fsto="${k}" aria-checked="${FS.to === k}">${destIcon(k)}${DEST[k][0]}</button>`).join('')}</div>`;
+  if (FS.to === 'mini') h += `<p class="flbl" id="fsKind">What ${cnt > 1 ? 'they show' : 'it shows'} <small>optional</small></p>
+    <div class="segq" role="radiogroup" aria-labelledby="fsKind">${['Progress','Finished','Reference'].map(t =>
+      `<button type="button" role="radio" data-fskind="${t}" aria-checked="${FS.kind === t}">${t}</button>`).join('')}</div>
+    ${FS.kind === 'Finished' ? `<p class="small muted fnote">Labels the photo only. The models' stages stay as they are.</p>` : ''}`;
+  if (FS.to && FS.view === 'search'){
+    const word = { mini:'miniature', paint:'paint', recipe:'recipe' }[FS.to], ms = fileMatches();
+    h += `<label class="flbl" for="fsQ">Which ${word}?</label>
+      <div class="fsearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>
+        <input id="fsQ" type="search" value="${esc(FS.q)}" placeholder="Search your ${FS.to === 'mini' ? 'collection' : FS.to === 'paint' ? 'paints' : 'recipes'}" autocomplete="off" enterkeyhint="search" aria-describedby="fsRes"></div>
+      <div id="fsResults">${resultsHtml(ms)}</div>`;
+  }
+  if (FS.view === 'create'){
+    const word = FS.to === 'mini' ? 'miniature' : 'recipe';
+    h += `<button type="button" class="fback" data-fs="search"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>Back to search</button>
+      <h3 class="fnewh">New ${word}</h3>
+      <label for="fsName">Name</label><input id="fsName" value="${esc(FS.name)}" autocomplete="off" aria-describedby="fsNameHelp${FS.err ? ' fsErr' : ''}"${FS.err ? ' aria-invalid="true"' : ''}>
+      <p class="small muted" id="fsNameHelp" style="margin:.25rem 0 0">${FS.fromQ ? 'Taken from your search. Check it before you create it.' : ''}</p>
+      ${FS.err ? `<p class="ferrline" id="fsErr" role="alert">${esc(FS.err)}</p>` : ''}`;
+    if (FS.to === 'mini'){
+      const std = data.stages;
+      h += `<label for="fsTotal">Number of models</label><input id="fsTotal" type="number" min="1" inputmode="numeric" value="${esc(FS.total)}" style="max-width:7.5rem">
+      <label for="fsStage">Stage</label><select id="fsStage"><option value="">Not set yet</option>${std.map(s => `<option${FS.stage === s ? ' selected' : ''}>${esc(s)}</option>`).join('')}</select>
+      <p class="small muted" style="margin:.25rem 0 0">Leave it as Not set yet if you are not sure. It is marked Needs details until you fill the rest in.</p>
+      <details class="more fmore"${FS.more ? ' open' : ''}><summary>More details</summary>${miniMoreHtml(FS.mSys || '', FS.mFac || '')}</details>`;
+    }
+  }
+  const ready = fileReady(), nm = destName(), isNew = FS.view === 'create';
+  const verb = isNew ? (cnt > 1 ? `Create and file ${cnt} photos` : 'Create and save') : (cnt > 1 ? `File ${cnt} photos` : (FS.pids.length > 1 ? 'Save and next' : 'Save'));
+  h += `<div class="ffoot">${ready ? `<p class="fconf" id="fsConf"><b class="num">${cnt}</b> photo${cnt === 1 ? '' : 's'} &rarr; <b class="user-text">${esc(nm)}</b>${isNew ? ' <span class="muted">(new)</span>' : ''}${FS.to === 'mini' && FS.kind ? ` &middot; <b>${FS.kind}</b>` : ''}
+      <small>${FS.to === 'mini' ? 'Painting progress is not changed.' : FS.to === 'paint' ? 'Saved as a swatch of this paint.' : 'Saved as a reference image.'}</small></p>` : ''}
+    <div class="facts"><button type="button" class="linkbtn" data-fs="${FS.batch ? 'close' : 'skip'}">${FS.batch ? 'Cancel' : 'Skip photo'}</button>
+      <button type="button" class="btn" data-fs="save"${ready ? '' : ' disabled'}${ready ? ' aria-describedby="fsConf"' : ''}>${verb}</button></div></div>`;
+  box.innerHTML = h; hydratePhotos();
+  if (FS.view === 'create' && FS.to === 'mini'){
+    wireMiniMore();
+    ['mSys','mFac','mUnit','mBase','mPrice','mAcq','mSysOwn','mFacOwn'].forEach(k => { const f = document.getElementById(k); if (f && FS['v_' + k] != null) f.value = FS['v_' + k]; });
+    if (FS['v_mSys'] != null){ const fac = $('#mFac'); fac.innerHTML = armyOptions(FS['v_mSys'] === '__own' ? '' : FS['v_mSys'], ''); if (FS['v_mFac'] != null) fac.value = FS['v_mFac']; }
+  }
+  finishDraw(box, first, keep, caret);
+}
+function finishDraw(box, first, keep, caret){
+  /* Short sheets keep their buttons fixed at the foot; when the buttons
+     would fill a large part of the screen (big text) they scroll instead. */
+  const foot = box.querySelector('.ffoot'); if (foot) foot.classList.toggle('flow', foot.offsetHeight > innerHeight * .28);
+  if (keep){ const f = document.getElementById(keep); if (f){ f.focus({ preventScroll:true }); if (caret != null && f.setSelectionRange) try { f.setSelectionRange(caret, caret); } catch (e) {} } }
+  else if (first){ const f = box.querySelector('[data-fsto]'); if (f) f.focus(); }
+}
+function resultsHtml(ms){
+  const word = { mini:'miniature', paint:'paint', recipe:'recipe' }[FS.to];
+  let h = `<p class="sr-only" id="fsRes" aria-live="polite">${FS.q.trim() ? `${ms.length} match${ms.length === 1 ? '' : 'es'}` : ''}</p>`;
+  if (FS.q.trim() && ms.length) h += `<ul class="fopts" role="radiogroup" aria-label="Matching ${word}s">${ms.map(x => `<li><button type="button" role="radio" data-fspick="${esc(x.id)}" aria-checked="${FS.pick === x.id}">
+      <span class="rad" aria-hidden="true"></span><span class="th" aria-hidden="true">${x.pid ? photoImg(x.pid) : x.paint ? dropSvg('rpdrop', validHex(x.hex) ? x.hex : '', paintFinish(x.paint)) : ''}</span>
+      <span class="nm"><span class="user-text">${esc(x.name)}</span><span class="meta user-text">${esc(x.meta)}</span></span></button></li>`).join('')}</ul>`;
+  if (FS.q.trim() && !ms.length) h += `<p class="fnone">No ${word}s match &ldquo;<span class="user-text">${esc(FS.q.trim())}</span>&rdquo;.</p>`;
+  if (FS.to === 'paint') h += FS.q.trim() && !ms.length ? `<p class="small muted" style="margin:.375rem 0 0">Add the paint in Paints first, then file the photo to it.</p>` : '';
+  else h += `<button type="button" class="fnew" data-fs="create">${PLUS_SVG}<span>Create a new ${word}${FS.q.trim() ? ` called &ldquo;<span class="user-text">${esc(FS.q.trim())}</span>&rdquo;` : ''}</span></button>`;
+  return h;
+}
+function sheetInput(e){
+  if (!FS) return;
+  const t = e.target;
+  /* Text boxes are handled as you type. Their "change" fires on the way out,
+     in the middle of a tap on a button; redrawing then would swallow the tap. */
+  if (e.type === 'change' && (t.id === 'fsQ' || t.id === 'fsName')) return;
+  if (t.id === 'fsQ'){ FS.q = t.value; if (FS.pick && !fileMatches().some(x => x.id === FS.pick)) FS.pick = '';
+    const r = document.getElementById('fsResults'); if (r){ r.innerHTML = resultsHtml(fileMatches()); hydratePhotos(); } refreshFoot(); return; }
+  if (t.id === 'fsName'){ FS.name = t.value; FS.fromQ = false; if (FS.err && t.value.trim()){ FS.err = ''; t.removeAttribute('aria-invalid'); const er = document.getElementById('fsErr'); if (er) er.remove(); } refreshFoot(); return; }
+  if (t.id === 'fsTotal'){ FS.total = t.value; return; }
+  if (t.id === 'fsStage'){ FS.stage = t.value; return; }
+  if (/^m(Sys|Fac|Unit|Base|Price|Acq|SysOwn|FacOwn)$/.test(t.id)) FS['v_' + t.id] = t.value;
+  if (t.closest && t.closest('.fmore') && e.type === 'change' && t.tagName === 'DETAILS') FS.more = t.open;
+}
+/* Only the confirmation and the button change while typing; redrawing the
+   whole sheet would close the phone keyboard. */
+function refreshFoot(){
+  const old = document.querySelector('#fileSheet .ffoot'); if (!old) return;
+  const tmp = document.createElement('div'); const keepQ = FS.view;
+  const ready = fileReady(), cnt = sheetPids().length, nm = destName(), isNew = FS.view === 'create';
+  const verb = isNew ? (cnt > 1 ? `Create and file ${cnt} photos` : 'Create and save') : (cnt > 1 ? `File ${cnt} photos` : (FS.pids.length > 1 ? 'Save and next' : 'Save'));
+  tmp.innerHTML = `<div class="ffoot">${ready ? `<p class="fconf" id="fsConf"><b class="num">${cnt}</b> photo${cnt === 1 ? '' : 's'} &rarr; <b class="user-text">${esc(nm)}</b>${isNew ? ' <span class="muted">(new)</span>' : ''}${FS.to === 'mini' && FS.kind ? ` &middot; <b>${FS.kind}</b>` : ''}
+      <small>${FS.to === 'mini' ? 'Painting progress is not changed.' : FS.to === 'paint' ? 'Saved as a swatch of this paint.' : 'Saved as a reference image.'}</small></p>` : ''}
+    <div class="facts"><button type="button" class="linkbtn" data-fs="${FS.batch ? 'close' : 'skip'}">${FS.batch ? 'Cancel' : 'Skip photo'}</button>
+      <button type="button" class="btn" data-fs="save"${ready ? '' : ' disabled'}${ready ? ' aria-describedby="fsConf"' : ''}>${verb}</button></div></div>`;
+  old.replaceWith(tmp.firstChild); void keepQ;
+  const foot = document.querySelector('#fileSheet .ffoot'); if (foot) foot.classList.toggle('flow', foot.offsetHeight > innerHeight * .28);
+}
+function sheetKey(e){
+  if (e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); fileClose(); return; }
+  if (e.key === 'Enter' && e.target.id === 'fsQ'){ e.preventDefault(); }
+  if (e.key === 'Tab'){
+    const box = document.querySelector('#fileSheet .fsheet');
+    const f = [...box.querySelectorAll('button:not([disabled]),input,select,summary,[tabindex="0"]')].filter(x => x.offsetParent !== null);
+    if (!f.length) return; const a = f[0], z = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === a){ e.preventDefault(); z.focus(); }
+    else if (!e.shiftKey && document.activeElement === z){ e.preventDefault(); a.focus(); }
+  }
+}
+function sheetClick(e){
+  if (!FS) return;
+  const t = e.target;
+  if (t === e.currentTarget){ fileClose(); return; }                 /* tapping the shade */
+  const to = t.closest('[data-fsto]');
+  if (to){ if (FS.to !== to.dataset.fsto){ FS.to = to.dataset.fsto; FS.pick = ''; FS.view = 'search'; if (FS.to !== 'mini') FS.kind = ''; } drawSheet(); const f = document.getElementById('fsQ'); if (f) f.focus(); return; }
+  const kd = t.closest('[data-fskind]');
+  if (kd){ FS.kind = FS.kind === kd.dataset.fskind ? '' : kd.dataset.fskind; drawSheet(); return; }   /* tap again to clear: it stays optional */
+  const pk = t.closest('[data-fspick]');
+  if (pk){ FS.pick = pk.dataset.fspick; document.querySelectorAll('#fileSheet [data-fspick]').forEach(b => b.setAttribute('aria-checked', String(b === pk))); refreshFoot(); return; }
+  const sm = t.closest('summary'); if (sm && sm.parentNode.classList.contains('fmore')){ setTimeout(() => { FS.more = sm.parentNode.open; }, 0); return; }
+  const b = t.closest('[data-fs]'); if (!b) return;
+  const a = b.dataset.fs;
+  if (a === 'close') return fileClose();
+  if (a === 'create'){ FS.view = 'create'; FS.pick = ''; if (!FS.name) { FS.name = FS.q.trim(); FS.fromQ = !!FS.name; } drawSheet(); const f = document.getElementById('fsName'); if (f) f.focus(); return; }
+  if (a === 'search'){ FS.view = 'search'; FS.err = ''; drawSheet(); const f = document.getElementById('fsQ'); if (f) f.focus(); return; }
+  if (a === 'skip'){ FS.i++; if (FS.i >= FS.pids.length) return fileClose('Skipped. The photo stays in Photos to sort.');
+    resetForNext(); drawSheet(true); announce('Skipped. Next photo.'); return; }
+  if (a === 'save' || a === 'retry') return fileSave(a === 'retry');
+}
+function resetForNext(){ Object.assign(FS, { pick:'', view:'search', name:'', total:'1', stage:'', err:'', failed:null, done:[], createdId:null }); }
+
+/* Attach. A new miniature or recipe is made once and remembered, so a retry
+   never makes a second one; only photos that failed are tried again. */
+async function fileSave(retry){
+  if (!fileReady()){ if (FS.view === 'create' && !FS.name.trim()){ FS.err = 'Give it a name first.'; drawSheet(); const f = document.getElementById('fsName'); if (f) f.focus(); } return; }
+  const btn = document.querySelector('#fileSheet [data-fs="save"],#fileSheet [data-fs="retry"]'); if (btn){ btn.disabled = true; btn.textContent = 'Saving…'; }
+  const pids = retry ? FS.failed.map(f => f.pid) : sheetPids();
+  let target = null;
+  if (FS.view === 'create'){
+    if (FS.createdId) target = FS.to === 'mini' ? data.minis.find(m => m.id === FS.createdId) : data.recipes.find(r => r.id === FS.createdId);
+    if (!target){
+      if (FS.to === 'mini'){
+        const total = Math.max(1, Number(FS.total) || 1);
+        let more = { fields:{}, sysName:'', facName:'' };
+        if (document.getElementById('mSys')) more = readMiniMore();
+        target = withDefaultWorkflow(Object.assign({ id:uid(), name:FS.name.trim(), total, done:0, stage:data.stages[0], tags:'', notes:'', photos:[],
+          needs:true, created:Date.now(), updated:Date.now() }, more.fields));
+        if (FS.stage && stagesOf(target).indexOf(FS.stage) !== -1){ const cnt = stagesOf(target).map(s => s === FS.stage ? total : 0); setCounts(target, cnt); }
+        else target.stageUnset = true;
+        data.minis.push(target);
+        if (more.sysName) setLastUsed({ sys:more.sysName, fac:more.facName });
+      } else {
+        target = { id:uid(), title:FS.name.trim(), category:'', tags:'', desc:'', steps:[], photos:[], visibility:'private', created:Date.now(), updated:Date.now() };
+        data.recipes.push(target);
+      }
+      FS.createdId = target.id;
+    }
+  } else {
+    target = FS.to === 'mini' ? data.minis.find(m => m.id === FS.pick) : FS.to === 'paint' ? paintOf(FS.pick) : data.recipes.find(r => r.id === FS.pick);
+  }
+  if (!target){ FS.pick = ''; FS.view = 'search'; drawSheet(); announce('That entry no longer exists. Choose another.'); return; }
+  const ok = [], bad = [];
+  for (const pid of pids){
+    try {
+      /* the picture must really be here before it is attached anywhere */
+      let rec = await getPhoto(pid), blob = rec && rec.blob;
+      if (!blob && typeof pullPhoto === 'function') blob = await pullPhoto(pid).catch(() => null);
+      if (!blob) throw new Error(navigator.onLine === false ? 'No connection, and this photo is not on this device yet.' : 'This photo could not be read on this device.');
+      if (FS.to === 'mini'){
+        if (!arr(target.photos).includes(pid)) target.photos = arr(target.photos).concat(pid);
+        if (FS.kind){ target.photoKind = Object.assign({}, target.photoKind, { [pid]:FS.kind.toLowerCase() }); }
+        target.updated = Date.now();
+      } else if (FS.to === 'paint'){
+        if (!arr(data.swatches).some(s => s.photoId === pid)) data.swatches.push({ id:uid(), paintId:target.id, undercoatId:'', photoId:pid, needs:true, created:Date.now() });
+      } else {
+        if (!arr(target.photos).includes(pid)) target.photos = arr(target.photos).concat(pid);
+        target.updated = Date.now();
+      }
+      ok.push(pid);
+    } catch (err){ bad.push({ pid, why:err.message || 'It could not be saved.' }); }
+  }
+  /* filed photos leave the inbox; failed ones stay exactly where they were */
+  if (ok.length) setInbox(inboxList().filter(x => ok.indexOf(x.id) === -1));
+  save();
+  FS.done = (retry ? FS.done : []).concat(ok);
+  const nm = destName() || (target.name || target.title);
+  if (bad.length){ FS.failed = bad; drawSheet(); announce(`${FS.done.length} attached. ${bad.length} could not be attached.`); const f = document.querySelector('#fileSheet [data-fs="retry"]'); if (f) f.focus(); return; }
+  FS.failed = null;
+  const msg = `${FS.done.length === 1 ? 'Photo' : FS.done.length + ' photos'} filed to ${nm}.`;
+  toast(msg);
+  if (!FS.batch && FS.i + 1 < FS.pids.length){
+    /* the next photo in the run; the destination is kept, the rest resets */
+    FS.pids = FS.pids.filter(p => ok.indexOf(p) === -1 || false); FS.i = Math.min(FS.i, FS.pids.length - 1);
+    const keepTo = FS.to; resetForNext(); FS.to = keepTo; FS.kind = '';
+    if (!FS.pids.length || !inboxList().some(x => x.id === FS.pids[FS.i])) return fileClose(msg);
+    drawSheet(true); announce(msg + ' Next photo.'); return;
+  }
+  fileClose(msg);
+}
+
+/* --- screen actions --------------------------------------------------------- */
+document.addEventListener('click', e => {
+  const t = e.target;
+  const ph = t.closest('#app [data-inb]');
+  if (ph){
+    const id = ph.dataset.inb;
+    if (state.inboxSel){
+      if (state.inboxSel.has(id)) state.inboxSel.delete(id); else state.inboxSel.add(id);
+      ph.setAttribute('aria-pressed', String(state.inboxSel.has(id)));
+      updateSelBar(); announce(`${state.inboxSel.size} selected`); return;
+    }
+    /* filing from the grid walks through the photos from the one tapped */
+    const ids = inboxList().map(x => x.id), i = ids.indexOf(id);
+    fileOpen(ids.slice(i).concat(ids.slice(0, i)), false); return;
+  }
+  const op = t.closest('[data-openpaint]');
+  if (op){ state.tab = 'paints'; state.openPaint = op.dataset.openpaint; state.sub = null; render(); window.scrollTo(0, 0); return; }
+  const a = t.closest('[data-act]'); if (!a) return;
+  const k = a.dataset.act;
+  if (k === 'inbPick'){ inboxInputs(); closePlus(); $('#inbPick').click(); }
+  else if (k === 'inbCam'){ inboxInputs(); closePlus(); $('#inbCam').click(); }
+  else if (k === 'inbSelect'){ state.inboxSel = new Set(); render(); announce('Selecting. 0 selected.'); const b = document.querySelector('[data-act="inbCancel"]'); if (b) b.focus(); }
+  else if (k === 'inbCancel'){ state.inboxSel = null; render(); announce('Selection cancelled.'); const b = document.querySelector('[data-act="inbSelect"]'); if (b) b.focus(); }
+  else if (k === 'inbAll'){ const all = inboxList().map(x => x.id); state.inboxSel = state.inboxSel && state.inboxSel.size === all.length ? new Set() : new Set(all); render(); announce(`${state.inboxSel.size} selected`); const b = document.querySelector('[data-act="inbAll"]'); if (b) b.focus(); }
+  else if (k === 'inbFile'){ if (state.inboxSel && state.inboxSel.size){ const ids = inboxList().map(x => x.id).filter(id => state.inboxSel.has(id)); fileOpen(ids, ids.length > 1); } }
+  else if (k === 'inbDel'){ const ids = [...(state.inboxSel || [])]; if (!ids.length) return;
+    openDialog(`Delete ${ids.length} photo${ids.length === 1 ? '' : 's'}?`, `<p style="margin-top:0">${ids.length === 1 ? 'It is' : 'They are'} removed from this phone and your account. This cannot be undone.</p>`, () => {
+      setInbox(inboxList().filter(x => ids.indexOf(x.id) === -1)); ids.forEach(id => { forgetPhoto(id).catch(() => {}); if (urlCache.has(id)){ URL.revokeObjectURL(urlCache.get(id)); urlCache.delete(id); } });
+      state.inboxSel = new Set(); save(); render(); const m = `${ids.length} photo${ids.length === 1 ? '' : 's'} deleted.`; toast(m); announce(m); }, 'Delete'); }
+});
+/* Selecting changes only the count and the button, never the scroll position. */
+function updateSelBar(){
+  const n = state.inboxSel.size, all = inboxList().length;
+  const c = document.querySelector('.inbsel .num'); if (c) c.textContent = n;
+  const sa = document.querySelector('[data-act="inbAll"]'); if (sa) sa.textContent = n === all ? 'Select none' : 'Select all';
+  const d = document.querySelector('[data-act="inbDel"]'); if (d) d.disabled = !n;
+  const f = document.querySelector('[data-act="inbFile"]'); if (f){ f.disabled = !n; f.textContent = `File ${n} photo${n === 1 ? '' : 's'}`; }
+}
+
+</script>
+<script>
 "use strict";
 /* ===========================================================================
    MiniManager v002
@@ -4184,7 +4763,7 @@ function syncPill(){
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v043';
+const APP_VERSION = 'v044';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -4652,6 +5231,7 @@ function setCounts(m, cnt){
   const lo = cnt.findIndex(c => c > 0);
   m.stage = names[lo < 0 ? 0 : lo];
   m.atSig = atSig(m);
+  delete m.stageUnset;          /* v044: a stage chosen on purpose is a known stage */
 }
 /* --- dated history (v028) --------------------------------------------------
    Each unit keeps a short list of its stage moves: when, how many, from and
@@ -5059,6 +5639,7 @@ function sessCancel(){
 }
 /* Remember whether the recipe's paint list is open, across redraws. */
 document.addEventListener('toggle', e => {
+  const u = e.target; if (u && u.matches && u.matches('[data-usedd]')){ state.openUsed = u.open ? u.dataset.usedd : null; return; }
   const d = e.target; if (!d || !d.matches || !d.matches('[data-havedet]')) return;
   state.openHave = d.open ? d.dataset.havedet : null;
 }, true);
@@ -5371,8 +5952,9 @@ function screenHome(){
   const c = counts();
   let h = guestMode ? `<div class="guestbar"><span><b>On this phone only.</b> Sign in to keep it safe and use it on your other devices.</span>
       <button class="linkbtn" data-act="signin">Sign in</button></div>` : '';
-  h += `<div class="wbhead"><p class="muted small greet">${greeting()}</p><h2 class="wbtitle">Your Workbench</h2>
-    <p class="wbtag">Plan. Paint. Track. Belong.</p><span class="orn o-topdiv" aria-hidden="true"></span></div>`;
+  /* v044: a compact head and summary, so the featured project is on the
+     first screen of a phone. */
+  h += `<div class="wbhead"><h2 class="wbtitle">Your Workbench</h2><p class="greet">${greeting()}</p></div>`;
   if (c.entries !== 0) h += progStrip(c) + `<div class="wbacts">
       <button class="btn" data-act="addMini">${PLUS_SVG}Add a miniature</button>
       <button class="btn ghost" data-act="dice">${DICE_SVG}Roll the dice</button></div>`;
@@ -5398,9 +5980,10 @@ function screenHome(){
     const i = Math.min(Math.max(state.heroIdx || 0, 0), list.length - 1); state.heroIdx = i;
     const m = list[i]; heroM = m;
     h += heroCard(m, tab, i, list.length);
+    h += inboxReminder();
     h += nudges(m);
   } else {
-    h += `<p class="muted" style="margin:1rem 0">Nothing here yet.</p>`;
+    h += `<p class="muted" style="margin:1rem 0">Nothing here yet.</p>` + inboxReminder();
   }
   h += `</div><div class="wbside">` + sessionStrip(heroM) + activityList() + `</div></div>`;
   /* The shelf (v038): every unit on the bench as a photo card you swipe
@@ -5455,40 +6038,80 @@ function benchLists(){
 const sinceWords = t => { if (!(t > 1577836800000)) return '';
   const d = Math.floor((Date.now() - t) / 86400000);
   return d <= 0 ? 'today' : d === 1 ? 'yesterday' : ageWords(Date.now() - t) + ' ago'; };
+/* v044: the featured project. The photo is shown whole on navy unless the
+   person has chosen to fill the frame around a point (m.frame, per photo).
+   The card itself is not one big button: the photo, the two buttons and the
+   menu are separate controls side by side, never one inside another. */
+const MORE_SVG = '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>';
+const TICK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+function framedPhoto(m, pid, cls){
+  const f = (m.frame || {})[pid];
+  const style = f && f.fill ? ` style="object-position:${Math.round(f.x)}% ${Math.round(f.y)}%"` : '';
+  return photoImg(pid, cls).replace('<img ', `<img${style} `);
+}
+function stageChips(m){
+  const L = stagesOf(m), cnt = stageCounts(m), last = cnt.length - 1, tot = Number(m.total) || 1;
+  if (m.stageUnset) return `<div class="stchips"><span class="stchip"><span>Stage not set</span></span></div>`;
+  return `<div class="stchips" role="group" aria-label="Where the ${tot} model${tot > 1 ? 's are' : ' is'} now">${cnt.map((k, j) => !k ? '' : j === last
+    ? `<span class="stchip fin">${TICK_SVG}<span><span class="num">${k}</span> finished</span></span>`
+    : `<span class="stchip"><span class="dot" style="--c:var(--st${stCol(j, cnt.length)})" aria-hidden="true"></span><span><span class="num">${k}</span> at ${esc(L[j])}</span></span>`).join('')}</div>`;
+}
 function heroCard(m, tab, i, n){
   const pid = arr(m.photos)[0];
   const L = stagesOf(m), cnt = stageCounts(m), tot = Number(m.total) || 1, last = L.length - 1;
   const pct = Math.round(cnt[last] / tot * 100);
   const g = { sys:m.sys||'', fac:m.fac||'' };
   const label = { pinned:'Pinned', bench:'On the bench', next:'Up next' }[tab];
-  const since = sinceWords(m.updated);
   const cur = stageIx(m);
+  const fill = pid && ((m.frame || {})[pid] || {}).fill;
   const act = tot > 1 ? `<button class="btn gold" data-act="moveOn" data-id="${esc(m.id)}">Move models on</button>`
     : cur < last ? `<button class="btn gold" data-act="homeAdv" data-id="${esc(m.id)}">Move to ${esc(L[cur+1])}</button>`
     : `<button class="btn gold" data-act="moveOn" data-id="${esc(m.id)}">Move back</button>`;
+  const menuOpen = state.heroMenu === m.id;
   return `<div class="pwrap" id="herocard">
     <span class="orn o-cornerL cn tl" aria-hidden="true"></span><span class="orn o-cornerR cn tr" aria-hidden="true"></span><span class="orn o-star topstar" aria-hidden="true"></span>
     <div class="pcard">
-      <button class="pc-ph${pid ? '' : ' empty'}" data-open="${esc(m.id)}" aria-label="Open ${esc(m.name)}">
-        ${pid ? photoImg(pid, 'ph') : `<span class="pc-none">No photo yet</span>`}
+      <button class="pc-ph${pid ? (fill ? ' fill' : '') : ' empty'}" data-open="${esc(m.id)}" aria-label="Open ${esc(m.name)}">
+        ${pid ? framedPhoto(m, pid, 'ph') : `<span class="pc-none">No photo yet</span>`}
         ${m.pinned ? '<span class="orn o-penCrim pen" aria-hidden="true"></span>' : ''}
         ${n > 1 ? `<span class="pg">${label} &middot; ${i + 1} of ${n}</span>` : `<span class="pg">${label}</span>`}</button>
       <div class="pc-body">
         <p class="eyebrow">${esc(armyLabel(g))}${g.sys ? ' &middot; ' + esc(gameLabel(g.sys)) : ''}</p>
-        <div class="pc-row"><h3 class="pc-name user-text">${esc(m.name)}</h3><span class="pc-pct num">${pct}%</span></div>
-        <p class="pc-meta"><span class="num">${tot}</span> model${tot > 1 ? 's' : ''} &middot; <span class="num">${cnt[last]}</span> finished${since ? ' &middot; last changed ' + since : ''}</p>
-        <div class="pc-bar">${stageBar(cnt, '', L)}<span class="orn o-starS" aria-hidden="true"></span></div>
-        ${nowLegend(m)}
+        <div class="pc-row"><h3 class="pc-name user-text${m.name.length > 34 ? ' long' : ''}">${esc(m.name)}</h3>
+          <button class="pc-more" data-act="heroMenu" data-id="${esc(m.id)}" aria-label="More for ${esc(m.name)}" aria-haspopup="menu" aria-expanded="${menuOpen}" aria-controls="heroMenu">${MORE_SVG}</button>
+          ${menuOpen ? `<div class="pc-menu" id="heroMenu" role="menu" aria-label="${esc(m.name)}">
+            ${m.archived ? '' : `<button role="menuitem" data-act="sessStart" data-id="${esc(m.id)}">${PLAY_SVG}<span>Start painting</span></button>`}
+            ${pid ? `<button role="menuitem" data-act="frameOpen" data-id="${esc(m.id)}">${CROP_SVG}<span>Adjust photo framing</span></button>` : ''}
+            <button role="menuitem" data-act="heroPin" data-id="${esc(m.id)}">${PIN_OFF_SVG}<span>${m.pinned ? 'Unpin from Workbench' : 'Pin to Workbench'}</span></button></div>` : ''}</div>
+        <p class="pc-meta"><span class="num">${tot}</span> model${tot > 1 ? 's' : ''}${sinceWords(m.updated) ? ' &middot; last changed ' + sinceWords(m.updated) : ''}</p>
+        <div class="pc-prog">
+          <span class="pc-pct num">${m.stageUnset ? '&ndash;' : pct + '%'}<small>finished</small></span>
+          <div class="pc-bar">${stageBar(cnt, '', L)}</div>
+          <p class="nowlab">Where they are now</p>
+          ${stageChips(m)}
+        </div>
         <div class="pc-btns">${act}<button class="btn ghost" data-open="${esc(m.id)}">Open</button></div>
         ${n > 1 ? `<div class="pc-nav"><button class="iconbtn" data-hero="-1" aria-label="Previous"${i === 0 ? ' disabled' : ''}>&lsaquo;</button>
           <button class="iconbtn" data-hero="1" aria-label="Next"${i === n - 1 ? ' disabled' : ''}>&rsaquo;</button></div>` : ''}
       </div></div></div>`;
 }
+const CROP_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 2v16h16M2 6h16v16"/></svg>';
+const PIN_OFF_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6l-1 6 4 4H6l4-4-1-6ZM12 13v8"/></svg>';
+/* Shown only when there is something to sort. */
+function inboxReminder(){
+  const n = inboxList().length, need = needsDetails().length;
+  if (!n && !need) return '';
+  const CAM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>';
+  const a = n ? `${n} photo${n === 1 ? '' : 's'} to sort` : `${need} need${need === 1 ? 's' : ''} details`;
+  const b = n && need ? `${need} need${need === 1 ? 's' : ''} details` : '';
+  return `<button class="inboxrem" data-act="openInbox"><span class="ic">${CAM}</span><span class="tx"><b>${a}</b>${b ? `<small>${b}</small>` : ''}</span><span class="go" aria-hidden="true">Sort</span></button>`;
+}
 const MED_ICON = {
   laurel:'<path d="M12 20c-4.5-1.5-7-5-7-10M12 20c4.5-1.5 7-5 7-10M5.5 13c1.6.2 2.8 1 3.4 2.3M4.6 9.5c1.6-.1 2.9.5 3.7 1.6M18.5 13c-1.6.2-2.8 1-3.4 2.3M19.4 9.5c-1.6-.1-2.9.5-3.7 1.6M12 20v2"/>',
   brush:'<path d="M19.5 3.5 11 12M9 14c-2 0-3.5 1.5-3.5 3.5 0 1-.5 2-1.5 2.5 3 .5 6.5-.5 6.5-4.5Z"/><path d="m10.5 11.5 2 2"/>',
   tools:'<path d="M4 20 14 10M14 10l2-6 4 4-6 2M20 20l-8-8M6.5 4.5a2.5 2.5 0 0 0 3 3l1 1-2 2-1-1a2.5 2.5 0 0 0-3-3l2-2Z"/>',
-  pot:'<path d="M9.5 3h5v3h-5zM7.5 9a3 3 0 0 1 3-3h3a3 3 0 0 1 3 3v9.5A2.5 2.5 0 0 1 14 21h-4a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M7.5 13h9"/>'
+  pot:'<path d="M9.5 3h5v3h-5zM7.5 9a3 3 0 0 1 3-3h3a3 3 0 0 1 3 3v9.5A2.5 2.5 0 0 1 14 21h-4a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M7.5 13h9"/>',
+  cam:'<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>'
 };
 /* Where you stand, first thing (v035): finished out of everything, as a bar,
    with the other counts in one quiet line underneath. */
@@ -6672,6 +7295,7 @@ function screenMini(){
   const pen = m.fac ? pennantSrc(pennantFor('fac', m.fac)) : '';
   h += `<div class="utitle">${pen ? `<img src="${pen}" alt="" aria-hidden="true">` : ''}<div><h2 class="display user-text">${esc(m.name)}</h2>
     ${sub ? `<p class="muted user-text">${esc(sub)}${n > 1 ? ` &middot; <span class="num">${n}</span> models` : ''}</p>` : ''}</div></div>`;
+  if (m.needs || m.stageUnset) h += `<p class="needsnote" role="note"><span class="dot" aria-hidden="true"></span><span><b>Needs details.</b> Added from a photo.${m.stageUnset ? ' Its stage is not set yet: use Move models on when you know it.' : ''} Fill in the details below and save to clear this.</span></p>`;
 
   /* "Waiting since", not "neglected for". The hobby makes its own jokes about
      the pile of shame; the app only has to tell the truth. */
@@ -6850,12 +7474,16 @@ function recipeStrip(r, cls){
    Full screen, one photo at a time. Swipe, the arrows or the arrow keys move
    along; Escape or the cross closes it and puts you back where you were. */
 let galBack = null;
-function openGallery(i, from){
-  const m = data.minis.find(x => x.id === state.openMini); if (!m || !arr(m.photos).length) return;
+function openGallery(i, from, kind, rid){
+  /* v044: the same viewer shows a recipe's reference images */
+  const m = kind === 'recipe' ? data.recipes.find(x => x.id === rid) : data.minis.find(x => x.id === state.openMini);
+  if (!m || !arr(m.photos).length) return;
   galBack = from || document.activeElement;
-  state.gal = { id:m.id, i:Math.max(0, Math.min(arr(m.photos).length - 1, i || 0)) };
+  state.gal = { id:m.id, kind:kind || 'mini', i:Math.max(0, Math.min(arr(m.photos).length - 1, i || 0)) };
   drawGallery(true);
 }
+const galRec = () => state.gal && (state.gal.kind === 'recipe' ? data.recipes.find(x => x.id === state.gal.id) : data.minis.find(x => x.id === state.gal.id));
+const galName = m => m ? (m.name || m.title || '') : '';
 function closeGallery(){
   const g = document.getElementById('gal'); if (g) g.remove();
   state.gal = null; document.body.classList.remove('galopen');
@@ -6866,35 +7494,47 @@ function closeGallery(){
 function drawGallery(first){
   const g0 = document.getElementById('gal'); if (g0) g0.remove();
   if (!state.gal) return;
-  const m = data.minis.find(x => x.id === state.gal.id), ps = arr(m && m.photos);
+  const m = galRec(), ps = arr(m && m.photos), isRec = state.gal.kind === 'recipe';
   if (!m || !ps.length){ closeGallery(); return; }
   const i = state.gal.i = Math.min(state.gal.i, ps.length - 1), n = ps.length;
   const g = document.createElement('div');
   g.id = 'gal'; g.className = 'gal'; g.setAttribute('role', 'dialog'); g.setAttribute('aria-modal', 'true');
-  g.setAttribute('aria-label', 'Photos of ' + m.name);
-  g.innerHTML = `<div class="galtop"><span class="user-text"><b>${esc(m.name)}</b> &middot; <span class="num">${i + 1}</span> of <span class="num">${n}</span></span>
+  g.setAttribute('aria-label', (isRec ? 'Reference images for ' : 'Photos of ') + galName(m));
+  g.innerHTML = `<div class="galtop"><span class="user-text"><b>${esc(galName(m))}</b> &middot; <span class="num">${i + 1}</span> of <span class="num">${n}</span></span>
       <button class="galbtn" data-galx aria-label="Close photos">&times;</button></div>
     <div class="galmid">${photoImg(ps[i], 'galimg')}
       ${n > 1 ? `<button class="galbtn galnav l" data-galgo="-1" aria-label="Previous photo">&lsaquo;</button><button class="galbtn galnav r" data-galgo="1" aria-label="Next photo">&rsaquo;</button>` : ''}</div>
     <div class="galbot">${n > 1 ? `<div class="galstrip">${ps.map((pid, j) => `<button data-galto="${j}" aria-label="Photo ${j + 1}"${j === i ? ' aria-current="true"' : ''}>${photoImg(pid)}</button>`).join('')}</div>` : ''}
-      <div class="galacts">${i ? `<button class="linkbtn" data-galcover>Make cover photo</button>` : `<span class="small">Cover photo</span>`}
-        <button class="linkbtn" data-galadd>Add photo</button><button class="linkbtn" data-galdel>Remove</button></div></div>`;
+      <div class="galacts">${isRec ? '' : i ? `<button class="linkbtn" data-galcover>Make cover photo</button>` : `<span class="small">Cover photo</span>`}
+        <button class="linkbtn" data-galadd>${isRec ? 'Add image' : 'Add photo'}</button><button class="linkbtn" data-galdel>Remove</button></div></div>`;
   document.body.appendChild(g); document.body.classList.add('galopen');
   hydratePhotos();
-  const ia = g.querySelector('.galimg'); if (ia) ia.setAttribute('alt', 'Photo ' + (i + 1) + ' of ' + m.name);
+  const ia = g.querySelector('.galimg'); if (ia) ia.setAttribute('alt', (isRec ? 'Reference image ' : 'Photo ') + (i + 1) + ' of ' + galName(m));
   if (first) g.querySelector('[data-galx]').focus();
   else { const k = g.querySelector('[data-galgo="1"]') || g.querySelector('[data-galx]'); if (k) k.focus(); }
 }
-function galGo(d){ if (!state.gal) return; const m = data.minis.find(x => x.id === state.gal.id); const n = arr(m && m.photos).length; if (n < 2) return;
+function galGo(d){ if (!state.gal) return; const m = galRec(); const n = arr(m && m.photos).length; if (n < 2) return;
   state.gal.i = (state.gal.i + d + n) % n; drawGallery(); }
 document.addEventListener('click', e => {
   const t = e.target;
   const og = t.closest('[data-gal]'); if (og){ openGallery(+og.dataset.gal, og); return; }
+  const rm = t.closest('[data-rmode]'); if (rm){ state.recipeMode = rm.dataset.rmode; render(); const b = document.querySelector(`[data-rmode="${state.recipeMode}"]`); if (b) b.focus(); return; }
+  const rl = t.closest('[data-relink]'); if (rl){ dlgRelink(rl.dataset.relink, +rl.dataset.k); return; }
+  const orf = t.closest('[data-recref]'); if (orf){ openGallery(+orf.dataset.recref, orf, 'recipe', state.openRecipe); return; }
+  if (t.closest('[data-act="recRefAdd"]')){ refInput().click(); return; }
   const g = t.closest('#gal'); if (!g) return;
   if (t.closest('[data-galx]')) return closeGallery();
   const go = t.closest('[data-galgo]'); if (go) return galGo(+go.dataset.galgo);
   const to = t.closest('[data-galto]'); if (to){ state.gal.i = +to.dataset.galto; return drawGallery(); }
-  const m = data.minis.find(x => x.id === state.gal.id); if (!m) return closeGallery();
+  const m = galRec(); if (!m) return closeGallery();
+  if (state.gal.kind === 'recipe'){
+    if (t.closest('[data-galadd]')){ closeGallery(); refInput().click(); return; }
+    if (t.closest('[data-galdel]')){ const pid = arr(m.photos)[state.gal.i], k = state.gal.i; closeGallery();
+      openDialog('Remove this image?', `<p style="margin-top:0">Reference image ${k + 1} of ${esc(m.title)} will be deleted from this phone and from your account.</p>`, () => {
+        m.photos = arr(m.photos).filter(x => x !== pid); m.updated = Date.now(); save(); forgetPhoto(pid).catch(() => {});
+        if (urlCache.has(pid)){ URL.revokeObjectURL(urlCache.get(pid)); urlCache.delete(pid); } render(); toast('Image removed.'); announce('Image removed.'); }, 'Remove image', 'Keep it'); }
+    return;
+  }
   if (t.closest('[data-galcover]')){ const ps = arr(m.photos).slice(), pid = ps.splice(state.gal.i, 1)[0]; m.photos = [pid].concat(ps); m.updated = Date.now();
     save(); state.gal.i = 0; render(); drawGallery(); toast('Cover photo changed.'); return; }
   if (t.closest('[data-galadd]')){ closeGallery(); $('#photoIn').click(); return; }
@@ -7043,7 +7683,7 @@ function screenPaintDetail(){
       h += `<div class="row swrow">
         ${photoImg(s.photoId,'realswatch')}
         <span class="grow"><b>Over ${esc(ucName(s.undercoatId) || 'an undercoat')}</b>
-          <span class="small muted" style="display:block">${esc(swatchLine(s))}</span>
+          ${s.needs ? `<span class="needsline"><span class="dot" aria-hidden="true"></span>Needs details <button class="linkbtn" data-swfinish="${esc(s.id)}">Add details</button></span>` : `<span class="small muted" style="display:block">${esc(swatchLine(s))}</span>`}
           ${s.notes?`<span class="small muted user-text" style="display:block">${esc(s.notes)}</span>`:''}</span>
         <button class="iconbtn" data-delswatch="${esc(s.id)}" aria-label="Delete swatch ${si + 1} of ${esc(p.name)}">&times;</button></div>`;
     });
@@ -7272,48 +7912,99 @@ function addMissing(){
   toast(add.length === 1 ? add[0].name + ' added to your shopping list.' : add.length + ' paints added to your shopping list.');
 }
 
+/* v044: a drying time is a time. Anything else typed into Dry (older
+   records have "Spray, two light passes") is shown as an instruction. */
+const isDuration = t => /^\s*(about\s+|~\s*)?\d+(\.\d+)?\s*(-\s*\d+(\.\d+)?\s*)?(s|secs?|seconds?|m|mins?|minutes?|h|hrs?|hours?|days?)\b/i.test(t || '') || /^\s*overnight\s*$/i.test(t || '');
+function stepInstr(s){ return [s.notes, s.dry && !isDuration(s.dry) ? s.dry : ''].map(x => String(x || '').trim()).filter(Boolean).join('. '); }
+/* Each paint a recipe needs, once, in step order, with what is known about it. */
+function recipeNeeds(r){
+  const seen = new Set(), out = [];
+  arr(r.steps).forEach(s => stepPaints(s).forEach((x, k) => {
+    const key = x.paint ? 'p:' + x.paint.id : 'n:' + (x.name || x.id || k);
+    if (seen.has(key)) return; seen.add(key);
+    out.push(Object.assign({ step:s.id, k }, x));
+  }));
+  return out;
+}
+const gonePaintName = x => x.name || 'Unknown paint';
+function refInput(){
+  let el = document.getElementById('refIn');
+  if (!el){ el = document.createElement('input'); el.type = 'file'; el.accept = 'image/*'; el.multiple = true; el.hidden = true; el.id = 'refIn'; document.body.append(el);
+    el.addEventListener('change', async () => {
+      const r = data.recipes.find(x => x.id === state.openRecipe); const files = Array.from(el.files || []); el.value = '';
+      if (!r || !files.length) return;
+      let added = 0;
+      for (const f of files){ try { const blob = await deadline(Promise.resolve(f.slice()), 45000, 'Reading ' + f.name); const id = uid(); await putPhoto(id, blob); r.photos = arr(r.photos).concat(id); added++; } catch (e) { console.warn('ref', e.message); } }
+      r.updated = Date.now(); save(); render();
+      const m = added ? `${added === 1 ? 'Reference image' : added + ' reference images'} added.` : 'That image could not be read.'; toast(m); announce(m);
+    }); }
+  return el;
+}
 function screenRecipeDetail(){
   const r = data.recipes.find(x => x.id === state.openRecipe);
   if (!r) return `<div class="empty"><p>That recipe no longer exists.</p>
     <button class="btn" data-back="recipes">Back to recipes</button></div>`;
   const used = data.links.filter(l => l.recipeId === r.id);
   /* v033: reading and editing are separate. Reading shows the steps first,
-     with nothing you could delete by accident; Edit brings out the controls. */
+     with nothing you could delete by accident; Edit brings out the controls.
+     v044: reading has two views. Overview for browsing; Painting folds the
+     paints, references and models away so the steps come first. */
   const editing = state.editRecipe === r.id;
+  const painting = !editing && state.recipeMode === 'painting';
+  const needs = recipeNeeds(r), refs = arr(r.photos);
+  const ms = used.map(l => data.minis.find(m => m.id === l.miniId)).filter(Boolean);
   let h = backBtn('recipes','Recipes');
-  h += `<div class="rhead"><div class="grow"><h2 class="display user-text" style="font-size:1.625rem;margin:0">${esc(r.title)}</h2>
-    ${r.category ? `<p class="muted user-text" style="margin:.125rem 0 0">${esc(r.category)}</p>` : ''}</div>
+  h += `<div class="rhead"><div class="grow"><h2 class="display user-text rtitle${painting ? ' sm' : ''}">${esc(r.title)}</h2>
+    ${r.category && !painting ? `<span class="rcat user-text">${esc(r.category)}</span>` : ''}</div>
     ${editing ? '' : `<button class="btn ghost sm" data-act="editRecipe">Edit</button>`}</div>`;
-  if (!editing && r.desc) h += `<p class="user-text rdesc">${esc(r.desc)}</p>`;
-  if (!editing) h += recipeStrip(r, 'rpal');
-  if (used.length){
-    const ms = used.map(l => data.minis.find(m => m.id === l.miniId)).filter(Boolean);
-    const faces = ms.filter(m => arr(m.photos).length).slice(0, 3).map(m => `<span class="rface">${photoImg(arr(m.photos)[0])}</span>`).join('');
-    const names = ms.slice(0, 2).map(m => `<span class="user-text">${esc(m.name)}</span>`).join(' and ') + (ms.length > 2 ? ` and <span class="num">${ms.length - 2}</span> more` : '');
-    h += `<p class="rused">${faces}<span>Used on ${editing ? `<b>${used.length}</b> unit${used.length>1?'s':''}. Editing it changes all of them.` : names}</span></p>`;
+  if (!editing && !painting && r.desc) h += `<p class="user-text rdesc">${esc(r.desc)}</p>`;
+  if (!editing) h += `<div class="rmode" role="tablist" aria-label="How to view this recipe">
+      <button role="tab" data-rmode="overview" aria-selected="${!painting}">Overview</button><button role="tab" data-rmode="painting" aria-selected="${painting}">Painting</button></div>`;
+  const needList = `<ul class="rneeds" aria-label="Paints this recipe needs">${needs.map(x => x.paint
+      ? `<li>${dropSvg('rpdrop', validHex(x.paint.hex) ? esc(x.paint.hex) : '', paintFinish(x.paint))}<span class="user-text">${esc(x.paint.name)}</span>${x.paint.type ? `<span class="sr-only">, ${esc(x.paint.type)}</span>` : ''}</li>`
+      : `<li class="gone"><span class="user-text">${esc(gonePaintName(x))}</span><span class="rtag">Removed</span></li>`).join('')}</ul>`;
+  const refGrid = `<div class="rrefs">${refs.map((pid, i) => `<button data-recref="${i}" aria-label="Reference image ${i + 1} of ${refs.length}, open full screen">${photoImg(pid, 'ph')}</button>`).join('')}
+      <button class="add" data-act="recRefAdd" aria-label="Add a reference image">${PLUS_SVG}<span>Add image</span></button></div>`;
+  const usedList = ms.length ? `<details class="rusedd"${state.openUsed === r.id ? ' open' : ''} data-usedd="${esc(r.id)}"><summary><span class="faces" aria-hidden="true">${ms.filter(m => arr(m.photos).length).slice(0, 3).map(m => `<span>${photoImg(arr(m.photos)[0])}</span>`).join('')}</span>
+      <span class="rused">Used on <b class="num">${ms.length}</b> miniature${ms.length === 1 ? '' : 's'}<span class="sr-only">: ${esc(ms.map(m => m.name).join(', '))}</span></span><svg class="chev" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <ul>${ms.map(m => `<li><button data-open="${esc(m.id)}"><span class="user-text">${esc(m.name)}</span><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button></li>`).join('')}</ul></details>` : '';
+  if (!editing && !painting){
+    if (needs.length) h += `<section class="rsec" aria-labelledby="rqH"><h3 id="rqH">${needs.length} paint${needs.length === 1 ? '' : 's'} required</h3>${needList}</section>`;
+    h += `<section class="rsec" aria-labelledby="rfH"><h3 id="rfH">Reference images</h3>${refGrid}</section>`;
+    if (usedList) h += `<section class="rsec">${usedList}</section>`;
+  }
+  if (painting){
+    h += `<details class="rsum"><summary><span><b class="num">${needs.length}</b> paint${needs.length === 1 ? '' : 's'} required &middot; <b class="num">${refs.length}</b> reference${refs.length === 1 ? '' : 's'}${ms.length ? ` &middot; used on <b class="num">${ms.length}</b>` : ''}</span><svg class="chev" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="rsumin">${needs.length ? needList : ''}${refGrid}${usedList}</div></details>`;
   }
 
-  h += `<div class="card"><div class="row spread"><h3 style="margin:0">Steps</h3>
+  h += `<div class="card${painting ? ' rpaint' : ''}"><div class="row spread"><h3 style="margin:0">Steps</h3>
     ${editing ? `<button class="btn sm ghost" data-act="addStep">Add step</button>` : ''}</div>`;
   if (!arr(r.steps).length) h += `<p class="small muted">No steps yet.${editing ? '' : ' Choose Edit to add some.'}</p>`;
   h += `<ol class="rsteps${editing ? '' : ' tl'}">`;
   arr(r.steps).forEach((s,i) => {
-    const firstHex = (stepPaints(s).find(y => y.paint && validHex(y.paint.hex)) || {}).paint;
     const sp = stepPaints(s);
+    const firstHex = (sp.find(y => y.paint && validHex(y.paint.hex)) || {}).paint;
     const names = sp.map(x => x.paint
       ? `<span class="rp">${dropSvg('rpdrop', /^#[0-9a-f]{6}$/i.test(x.paint.hex || '') ? esc(x.paint.hex) : '', paintFinish(x.paint))}<span class="user-text">${esc(x.paint.name)}</span></span>`
-      : `<span class="rp gone"><i class="user-text">${esc(x.name || 'A deleted paint')}</i> <span class="muted">(no longer in your paints)</span></span>`);
+      : `<span class="rp gone"><i class="user-text">${esc(gonePaintName(x))}</i></span>`);
+    const gone = sp.map((x, k) => ({ x, k })).filter(o => !o.x.paint);
     const dot = !editing && firstHex ? ` style="background:${firstHex.hex};color:${lum(firstHex.hex) > .55 ? '#0B1A2E' : '#F4F1EA'}"` : '';
+    const instr = stepInstr(s), dry = isDuration(s.dry) ? s.dry : '';
+    const relink = o => `<button class="linkbtn" data-relink="${esc(s.id)}" data-k="${o.k}">Relink<span class="sr-only"> ${esc(gonePaintName(o.x))}</span></button>`;
     h += `<li class="rstep"><span class="rn num" aria-hidden="true"${dot}>${i+1}</span>
-      <span class="grow"><b class="user-text">${esc(s.technique||'Step')}</b>
+      <span class="grow"><b class="user-text"><span class="sr-only">Step ${i + 1}: </span>${esc(s.technique||'Step')}</b>
         ${names.length?`<span class="rps">${names.join('<span class="rplus" aria-hidden="true">+</span>')}</span>`:''}
-        ${s.notes?`<span class="small muted user-text" style="display:block">${esc(s.notes)}</span>`:''}
-        ${s.mix || s.dry ? `<span class="rmeta">${s.mix ? `<span class="user-text">Mix: ${esc(s.mix)}</span>` : ''}${s.dry ? `<span>Leave ${esc(s.dry)}</span>` : ''}</span>` : ''}</span>
+        ${instr ? `<span class="rins user-text">${esc(instr)}</span>` : ''}
+        ${s.mix || dry ? `<span class="rmeta">${s.mix ? `<span class="user-text"><b>Mix</b> ${esc(s.mix)}</span>` : ''}${dry ? `<span class="user-text"><b>Dry</b> ${esc(dry)}</span>` : ''}</span>` : ''}
+        ${!editing && gone.length ? (painting
+          ? gone.map(o => `<span class="rgone sm"><span>${esc(gonePaintName(o.x))}: no longer in your paints.</span>${relink(o)}</span>`).join('')
+          : gone.map(o => `<span class="rgone"><span>${o.x.name ? `<span class="user-text">${esc(o.x.name)}</span> is no longer in your paints. The recipe keeps its name so you know what to use.` : 'A paint here is no longer in your paints, and its name was not kept.'}</span>${relink(o)}</span>`).join('')) : ''}</span>
       ${editing ? `<button class="btn ghost sm danger-text" data-delstep="${esc(s.id)}" aria-label="Delete step ${i+1}, ${esc(s.technique||'Step')}">Delete</button>` : ''}</li>`;
   });
   h += `</ol></div>`;
 
-  h += recipeHaveCard(r);
+  if (!painting) h += recipeHaveCard(r);
 
   if (editing){
     h += `<div class="card"><h3>Details</h3>
@@ -7331,7 +8022,7 @@ function screenRecipeDetail(){
 /* ===========================================================================
    Render
    =========================================================================== */
-const TITLES = { home:'MiniManager', coll:'Collection', paints:'Paints', recipes:'Recipes', session:'Painting session' };
+const TITLES = { inbox:'Photos to sort', home:'MiniManager', coll:'Collection', paints:'Paints', recipes:'Recipes', session:'Painting session' };
 
 /* The one thing you most often do on each list screen, in the top bar beside
    its title. Detail screens and the setup flow have their own buttons. */
@@ -7375,6 +8066,7 @@ function render(){
   else if (state.tab === 'account')  html = screenAccount();
   else if (state.tab === 'privacy')  html = screenPrivacy('home');
   else if (state.tab === 'pick')     html = screenPick();
+  else if (state.tab === 'inbox')    html = screenInbox();
   else if (state.tab === 'session')  html = screenSession();
   else if (state.tab === 'shop')     html = screenShop();
   else if (state.tab === 'home')     html = screenHome();
@@ -7397,6 +8089,13 @@ function render(){
   closePlus(false);
   refreshFilterSheet();
   hydratePhotos();
+  /* v044: fixed bars on the photo inbox sit clear of the header and the tabs */
+  { const nv = document.querySelector('nav.tabs'), hb = document.querySelector('header.bar'), rs = document.documentElement.style;
+    rs.setProperty('--navh', (nv && !nv.hidden && getComputedStyle(nv).position === 'fixed' ? nv.offsetHeight : 0) + 'px');
+    rs.setProperty('--hdr', (hb ? hb.offsetHeight : 0) + 'px');
+    /* with very large text the title gets a line of its own rather than
+       being cut to a letter or two */
+    const h1 = hb && hb.querySelector('h1'); if (h1){ hb.classList.remove('wrapt'); if (h1.scrollWidth > h1.clientWidth + 2) hb.classList.add('wrapt'); rs.setProperty('--hdr', hb.offsetHeight + 'px'); } }
   /* Last, and guarded so it can only ever fire once: it renders again. */
   maybeStartSetup();
 }
@@ -8033,6 +8732,71 @@ function openDialog(title, body, onOk, okLabel, cancelLabel, onCancel){
 }
 const NAME_REQUIRED = 'Give it a name first.';
 
+/* v044: one polite announcer for saves, failures and selection counts. */
+function announce(msg){
+  let el = document.getElementById('srLive');
+  if (!el){ el = document.createElement('p'); el.id = 'srLive'; el.className = 'sr-only'; el.setAttribute('aria-live', 'polite'); el.setAttribute('role', 'status'); document.body.append(el); }
+  el.textContent = ''; setTimeout(() => { el.textContent = msg; }, 40);
+}
+
+/* ---------------------------------------------------------------------------
+   Photo framing (v044). The Workbench card shows a photo whole on navy by
+   default. "Fill the frame" crops it to the card around a chosen point; the
+   preview is the card's own shape, so what you see is what the card shows. */
+function dlgFrame(id){
+  const m = data.minis.find(x => x.id === id); if (!m) return;
+  const pid = arr(m.photos)[0]; if (!pid) return;
+  const cur = Object.assign({ fill:false, x:50, y:50 }, (m.frame || {})[pid]);
+  const ph = document.querySelector('#herocard .pc-ph');
+  const ratio = ph && ph.offsetHeight ? (ph.offsetWidth / ph.offsetHeight) : 16 / 9;
+  const draw = () => {
+    const box = document.getElementById('frBox'); if (!box) return;
+    box.classList.toggle('fill', cur.fill);
+    const img = box.querySelector('img'); if (img) img.style.objectPosition = cur.fill ? `${cur.x}% ${cur.y}%` : '';
+    box.setAttribute('aria-valuetext', cur.fill ? `${Math.round(cur.x)}% across, ${Math.round(cur.y)}% down` : 'Whole photo');
+    box.tabIndex = cur.fill ? 0 : -1; box.setAttribute('aria-disabled', String(!cur.fill));
+    document.querySelectorAll('[data-frmode]').forEach(b => b.setAttribute('aria-checked', String((b.dataset.frmode === 'fill') === cur.fill)));
+    const hint = document.getElementById('frHint');
+    if (hint) hint.textContent = cur.fill ? 'Drag the photo, or use the arrow keys, to choose which part sits in the middle. Parts of the photo may be cut off at the edges.'
+      : 'The whole photo is shown on navy. Nothing is cut off.';
+  };
+  openDialog('Photo framing',
+    `<p class="small muted user-text" style="margin:0 0 .75rem">${esc(m.name)} &middot; on the Workbench card</p>
+     <div class="segq" role="radiogroup" aria-label="How the photo fits the card">
+       <button type="button" role="radio" data-frmode="whole" aria-checked="${!cur.fill}">Whole photo</button>
+       <button type="button" role="radio" data-frmode="fill" aria-checked="${cur.fill}">Fill the frame</button></div>
+     <div class="frbox${cur.fill ? ' fill' : ''}" id="frBox" role="slider" aria-label="Part of the photo in the middle of the card" aria-valuemin="0" aria-valuemax="100"
+       style="aspect-ratio:${ratio.toFixed(3)}">${photoImg(pid, 'ph')}</div>
+     <p class="small muted" id="frHint" style="margin:.5rem 0 0"></p>`,
+    () => {
+      m.frame = Object.assign({}, m.frame);
+      if (cur.fill) m.frame[pid] = { fill:true, x:Math.round(cur.x), y:Math.round(cur.y) }; else delete m.frame[pid];
+      if (!Object.keys(m.frame).length) delete m.frame;
+      m.updated = Date.now(); save(); render(); toast('Framing saved.');
+    }, 'Save framing');
+  hydratePhotos(); draw();
+  document.querySelectorAll('[data-frmode]').forEach(b => b.addEventListener('click', () => { cur.fill = b.dataset.frmode === 'fill'; draw(); }));
+  const box = document.getElementById('frBox');
+  let drag = null;
+  box.addEventListener('pointerdown', e => { if (!cur.fill) return; drag = { x:e.clientX, y:e.clientY, ox:cur.x, oy:cur.y }; box.setPointerCapture(e.pointerId); });
+  box.addEventListener('pointermove', e => { if (!drag) return; const r = box.getBoundingClientRect();
+    /* dragging the photo right shows more of its left side */
+    cur.x = Math.max(0, Math.min(100, drag.ox - (e.clientX - drag.x) / r.width * 100));
+    cur.y = Math.max(0, Math.min(100, drag.oy - (e.clientY - drag.y) / r.height * 100)); draw(); });
+  box.addEventListener('pointerup', () => { drag = null; });
+  box.addEventListener('keydown', e => { if (!cur.fill) return; const k = { ArrowLeft:[-5,0], ArrowRight:[5,0], ArrowUp:[0,-5], ArrowDown:[0,5] }[e.key]; if (!k) return;
+    e.preventDefault(); cur.x = Math.max(0, Math.min(100, cur.x + k[0])); cur.y = Math.max(0, Math.min(100, cur.y + k[1])); draw(); });
+}
+
+/* The project menu: Escape closes it, the arrow keys move through it. */
+document.addEventListener('keydown', e => {
+  const menu = document.getElementById('heroMenu'); if (!menu) return;
+  const items = [...menu.querySelectorAll('[role="menuitem"]')], i = items.indexOf(document.activeElement);
+  if (e.key === 'Escape'){ e.preventDefault(); state.heroMenu = null; render(); const b = document.querySelector('[data-act="heroMenu"]'); if (b) b.focus(); }
+  else if (e.key === 'ArrowDown'){ e.preventDefault(); items[(i + 1) % items.length].focus(); }
+  else if (e.key === 'ArrowUp'){ e.preventDefault(); items[(i - 1 + items.length) % items.length].focus(); }
+});
+
 /* ---------------------------------------------------------------------------
    Move models on. Pick where they are now, where they are going, and how
    many. It suggests the next stage and all the models at the first stage
@@ -8341,68 +9105,70 @@ function dlgAddMini(){
 
   openDialog('Add a miniature',
     `${state.tab === 'coll' && state.openArmy && !state.openMini ? `<p class="small" style="margin:0 0 .5rem"><button class="linkbtn" data-act="addMany">Add several at once instead</button></p>` : ''}
-    <label for="mName">What is it?</label>
+    <label for="mName">Name</label>
      <input id="mName" placeholder="Skaven Clanrats" autocomplete="off">
-     <label for="mTotal">How many models</label>
+     <label for="mTotal">Number of models</label>
      <input id="mTotal" type="number" min="1" value="1" inputmode="numeric" style="max-width:7.5rem">
      ${hint}
-     <details class="more"><summary>More details</summary>
-       <label for="mSys">Game system</label>
+     <details class="more"><summary>More details</summary>${miniMoreHtml(lastSys, last.fac || '')}</details>`,
+    () => {
+      const name = $('#mName').value.trim();
+      if (!name){ toast(NAME_REQUIRED); return false; }
+
+      const more = readMiniMore();
+      data.minis.push(withDefaultWorkflow(Object.assign({ id:uid(), name,
+        total:Math.max(1, Number($('#mTotal').value) || 1),
+        done:0, stage:data.stages[0], tags:'', notes:'', photos:[],
+        created:Date.now(), updated:Date.now() }, more.fields)));
+      setLastUsed({ sys:more.sysName, fac:more.facName });
+      save(); state.tab='coll'; state.openMini=null; render(); toast('Added.');
+    }, 'Add');
+
+  wireMiniMore();
+}
+
+/* v044: the optional fields of a new miniature, shared by Add a miniature
+   and by filing a photo to a new miniature, so both ask the same things. */
+function miniMoreHtml(lastSys, lastFac){
+  const sysList = systemNames();
+  return `<label for="mSys">Game system</label>
        <select id="mSys">
          <option value="">Not set</option>
          ${sysList.map(n => `<option value="${esc(n)}"${n === lastSys ? ' selected' : ''}>${esc(n)}</option>`).join('')}
          <option value="__own">Type my own&hellip;</option>
        </select>
        <input id="mSysOwn" type="text" aria-label="Your own game name" placeholder="Your own game" style="margin-top:.5rem" hidden>
-
        <label for="mFac">Army or faction</label>
-       <select id="mFac">${armyOptions(lastSys, last.fac || '')}</select>
+       <select id="mFac">${armyOptions(lastSys, lastFac || '')}</select>
        <input id="mFacOwn" type="text" aria-label="Your own army name" placeholder="Your own army" style="margin-top:.5rem" hidden>
-
-       ${chips('mUnit', UNIT_TYPES, { label:'Unit type',
-         help:'unitType', ownPlaceholder:'Whatever your game calls it' })}
-
+       ${chips('mUnit', UNIT_TYPES, { label:'Unit type', help:'unitType', ownPlaceholder:'Whatever your game calls it' })}
        ${field('mBase','Base size',
          `<select id="mBase"><option value="">Not set</option>
             ${BASE_SIZES.map(b => `<option value="${esc(b[0])}">${esc(b[0])} &mdash; ${esc(b[1])}</option>`).join('')}
           </select>`, 'baseSize')}
-
        <label for="mPrice">What it cost <span class="opt">optional</span></label>
        <input id="mPrice" type="number" min="0" step="0.01" inputmode="decimal"
          placeholder="${esc(money(0).replace(/[\d.,\s]/g,''))}">
        <label for="mAcq">When you got it <span class="opt">optional</span></label>
-       <input id="mAcq" type="date">
-     </details>`,
-    () => {
-      const name = $('#mName').value.trim();
-      if (!name){ toast(NAME_REQUIRED); return false; }
-
-      const sysSel = $('#mSys').value;
-      const sysName = sysSel === '__own' ? $('#mSysOwn').value.trim() : sysSel;
-      const facSel = $('#mFac').value;
-      const facName = facSel === '__own' ? $('#mFacOwn').value.trim() : facSel;
-
-      const sys = systemIdByName(sysName);
-      const fac = factionIdByName(facName, sys);
-
-      data.minis.push(withDefaultWorkflow({ id:uid(), name, sys, fac,
-        base:$('#mBase').value || '',
-        unit:$('#mUnit') ? $('#mUnit').value.trim() : '',
-        total:Math.max(1, Number($('#mTotal').value) || 1),
-        /* Both optional and both stay empty rather than zero: a price of 0
-           and no price recorded are different facts, and the collection
-           total must not count a guess as a real figure. */
-        price: $('#mPrice').value === '' ? null : Math.max(0, Number($('#mPrice').value) || 0),
-        acquired: $('#mAcq').value || '',
-        done:0, stage:data.stages[0], tags:'', notes:'', photos:[],
-        created:Date.now(), updated:Date.now() }));
-      setLastUsed({ sys:sysName, fac:facName });
-      save(); state.tab='coll'; state.openMini=null; render(); toast('Added.');
-    }, 'Add');
-
+       <input id="mAcq" type="date">`;
+}
+function readMiniMore(){
+  const sysSel = $('#mSys').value;
+  const sysName = sysSel === '__own' ? $('#mSysOwn').value.trim() : sysSel;
+  const facSel = $('#mFac').value;
+  const facName = facSel === '__own' ? $('#mFacOwn').value.trim() : facSel;
+  const sys = systemIdByName(sysName);
+  const fac = factionIdByName(facName, sys);
+  /* Price and date stay empty rather than zero: a price of 0 and no price
+     recorded are different facts, and totals must not count a guess. */
+  return { sysName, facName, fields:{ sys, fac, base:$('#mBase').value || '', unit:$('#mUnit') ? $('#mUnit').value.trim() : '',
+    price: $('#mPrice').value === '' ? null : Math.max(0, Number($('#mPrice').value) || 0), acquired: $('#mAcq').value || '' } };
+}
+function wireMiniMore(){
   /* Changing the system swaps the army list. A stale army from the previous
      system would quietly file the model in the wrong place, so it is cleared. */
   const sys = $('#mSys'), sysOwn = $('#mSysOwn'), fac = $('#mFac'), facOwn = $('#mFacOwn');
+  if (!sys) return;
   const syncFacOwn = () => {
     const custom = fac.value === '__own';
     facOwn.hidden = !custom;
@@ -8649,7 +9415,10 @@ function dlgLabelSwatch(photoId, keep){
         coats:Number($('#swCoats').value)||null, lighting:$('#swLight').value.trim(),
         notes:$('#swNotes').value.trim(), created:Date.now() };
       if (applied) { sw.applied = applied; try { localStorage.setItem('mm.lastApplied', applied); } catch (e) {} }
-      data.swatches.push(sw);
+      /* v044: finishing a swatch that was filed from Photos to sort */
+      const was = k.editId && data.swatches.find(x => x.id === k.editId);
+      if (was){ Object.keys(was).forEach(x => { if (x !== 'id' && x !== 'created') delete was[x]; }); Object.assign(was, sw, { id:was.id, created:was.created || sw.created }); }
+      else data.swatches.push(sw);
       save(); render(); toast('Swatch saved.');
     }, 'Save swatch');
   const ucSel = $('#swUc');
@@ -8658,7 +9427,7 @@ function dlgLabelSwatch(photoId, keep){
     if (ucSel.value !== '__addUc'){ prevUc = ucSel.value; return; }
     const held = { paintId:$('#swPaint').value, how:$('#swHow').value, coats:$('#swCoats').value,
       light:$('#swLight').value, notes:$('#swNotes').value };
-    dlgAddUndercoat(newId => dlgLabelSwatch(photoId, Object.assign(held, { uc: newId || prevUc })));
+    dlgAddUndercoat(newId => dlgLabelSwatch(photoId, Object.assign(held, { uc: newId || prevUc, editId:k.editId })));
   });
   hydratePhotos();
 }
@@ -8686,7 +9455,7 @@ function dlgAddStep(){
      ${chips('stMix', CHIPS.mix, { label:'Thinned how much?', help:'thinning',
         ownPlaceholder:'e.g. 2:1 with Lahmian Medium' })}
      ${chips('stDry', CHIPS.dry, { label:'Drying time', ownPlaceholder:'How long?' })}
-     <label for="stNotes">Notes</label><textarea id="stNotes" class="user-text"></textarea>`,
+     <label for="stNotes">Instructions</label><textarea id="stNotes" class="user-text" placeholder="How to put it on, e.g. thin coat, recesses only"></textarea>`,
     () => {
       const tech = $('#stTech').value.trim();
       if (!tech){ toast('Give the step a technique.'); return false; }
@@ -8697,6 +9466,25 @@ function dlgAddStep(){
         mix:$('#stMix').value.trim(), dry:$('#stDry').value.trim(), notes:$('#stNotes').value.trim() });
       save(); render(); toast('Step added.');
     }, 'Add step');
+}
+
+/* v044: point a step back at a paint on your shelf after the old one was deleted. */
+function dlgRelink(stepId, k){
+  const r = data.recipes.find(x => x.id === state.openRecipe); if (!r) return;
+  const s = arr(r.steps).find(x => x.id === stepId); if (!s) return;
+  const old = (arr(s.paintNames)[k] || {}).name || 'Unknown paint';
+  if (!data.paints.length){ toast('Add the paint in Paints first.'); return; }
+  const near = data.paints.slice().sort((a, b) => (b.name.toLowerCase() === old.toLowerCase()) - (a.name.toLowerCase() === old.toLowerCase()) || a.name.localeCompare(b.name));
+  openDialog('Relink a paint',
+    `<p style="margin-top:0">This step used <b class="user-text">${esc(old)}</b>, which is no longer in your paints. Choose the paint to use instead.</p>
+     <label for="rlPaint">Paint</label><select id="rlPaint">${near.map(p => `<option value="${esc(p.id)}">${esc(p.name)}${p.brand ? ' &mdash; ' + esc(p.brand) : ''}</option>`).join('')}</select>`,
+    () => {
+      const p = paintOf($('#rlPaint').value); if (!p) return false;
+      s.paintIds = arr(s.paintIds).slice(); s.paintIds[k] = p.id;
+      s.paintNames = arr(s.paintNames).slice(); while (s.paintNames.length < s.paintIds.length) s.paintNames.push({});
+      s.paintNames[k] = { name:p.name, brand:p.brand || '' };
+      r.updated = Date.now(); save(); render(); toast('Relinked to ' + p.name + '.'); announce('Relinked to ' + p.name + '.');
+    }, 'Relink');
 }
 
 function dlgLinkRecipe(){
@@ -8783,6 +9571,17 @@ document.addEventListener('touchend', e => {
 
 document.addEventListener('click', e => {
   const t = e.target;
+  /* v044: the project menu closes on any click outside it. */
+  if (state.heroMenu && !t.closest('#heroMenu') && !t.closest('[data-act="heroMenu"]')){
+    state.heroMenu = null; const mm = document.getElementById('heroMenu'); if (mm) mm.remove();
+    const b = document.querySelector('[data-act="heroMenu"]'); if (b) b.setAttribute('aria-expanded', 'false');
+  }
+  /* v044: the crest goes home from anywhere. */
+  if (t.closest('[data-act="goHome"]')){
+    if ($('#dlg').open) $('#dlg').close();
+    state.tab = 'home'; state.openMini = state.openPaint = state.openRecipe = null; state.openArchive = false; state.sub = null;
+    render(); window.scrollTo(0, 0); const h = document.querySelector('#app h2'); if (h){ h.setAttribute('tabindex', '-1'); h.focus({ preventScroll:true }); } return;
+  }
   const tab = t.closest('#tabs button');
   if (tab && !tab.disabled){
     state.tab = tab.dataset.tab; state.openMini = state.openPaint = state.openRecipe = null; state.openArchive = false;
@@ -8915,6 +9714,15 @@ document.addEventListener('click', e => {
     if (a === 'sessPause') return sessPause();
     if (a === 'sessFinish') return sessFinish();
     if (a === 'sessCancel') return sessCancel();
+    if (a === 'heroMenu'){ state.heroMenu = state.heroMenu === act.dataset.id ? null : act.dataset.id; render();
+      if (state.heroMenu){ const f = document.querySelector('#heroMenu [role="menuitem"]'); if (f) f.focus(); }
+      else { const b = document.querySelector('[data-act="heroMenu"]'); if (b) b.focus(); } return; }
+    if (a === 'heroPin'){ const m = data.minis.find(x => x.id === act.dataset.id); if (!m) return; state.heroMenu = null;
+      if (m.pinned) delete m.pinned; else m.pinned = Date.now();
+      m.updated = Date.now(); save(); render(); toast(m.pinned ? 'Pinned to the top of your Workbench.' : `${m.name} unpinned.`);
+      const b = document.querySelector('[data-act="addMini"]'); if (b) b.focus(); return; }
+    if (a === 'frameOpen'){ state.heroMenu = null; render(); dlgFrame(act.dataset.id); return; }
+    if (a === 'openInbox'){ if ($('#dlg').open) $('#dlg').close(); closePlus(); state.tab = 'inbox'; state.inboxSel = null; state.openMini = null; render(); window.scrollTo(0, 0); return; }
     if (a === 'togglePin'){ const m = data.minis.find(x => x.id === state.openMini); if (!m) return;
       if (m.pinned) delete m.pinned; else m.pinned = Date.now();
       m.updated = Date.now(); save(); render(); toast(m.pinned ? 'Pinned to the top of your Workbench.' : 'Unpinned.'); return; }
@@ -9089,6 +9897,8 @@ document.addEventListener('click', e => {
   }
   const dp = t.closest('[data-delphoto]'); if (dp) return removePhoto(dp.dataset.delphoto);
   const hd = t.closest('[data-hdate]'); if (hd) return dlgHistoryDate(hd.dataset.hdate);
+  const swf = t.closest('[data-swfinish]');
+  if (swf){ const sw = data.swatches.find(x => x.id === swf.dataset.swfinish); if (sw) dlgLabelSwatch(sw.photoId, { paintId:sw.paintId, editId:sw.id }); return; }
   const ds = t.closest('[data-delswatch]'); if (ds) return deleteSwatch(ds.dataset.delswatch);
   const dst = t.closest('[data-delstep]'); if (dst) return deleteStep(dst.dataset.delstep);
   const ul = t.closest('[data-unlink]');
@@ -9212,6 +10022,7 @@ function saveMiniEdits(){
   if ($('#ePrice')) m.price = $('#ePrice').value === '' ? null
                             : Math.max(0, Number($('#ePrice').value) || 0);
   if ($('#eAcq')) m.acquired = $('#eAcq').value || '';
+  delete m.needs;               /* v044: details saved, so it no longer needs them */
   m.updated = Date.now(); save(); render(); toast(moved ? 'Moved to ' + moved + '.' : 'Saved.');
 }
 /* A second box of the same thing: same details, unbuilt, no photos. */
@@ -9220,6 +10031,7 @@ function duplicateMini(){
   const c = JSON.parse(JSON.stringify(m));
   c.id = uid(); c.photos = []; c.done = 0; c.stage = stagesOf(m)[0];
   delete c.at; delete c.atSig; delete c.archived; delete c.pinned; delete c.log; delete c.paintMins;
+  delete c.frame; delete c.photoKind;
   c.acquired = ''; c.created = c.updated = Date.now();
   data.minis.push(c); save();
   state.openMini = c.id; state.openArchive = false; render(); window.scrollTo(0,0);
@@ -9653,7 +10465,9 @@ function plusItems(){
     recipe:['newRecipe', 'A recipe', 'brush'],
     sys:   ['addSys', 'A game system or army', 'tools'],
     wish:  ['addWish', 'Something to my wishlist', 'pot'],
-    supply:['addSupply', 'A hobby supply', 'tools']
+    supply:['addSupply', 'A hobby supply', 'tools'],
+    cam:   ['inbCam', 'Take a photo to sort later', 'cam'],
+    pics:  ['inbPick', 'Photos to sort later', 'cam']
   };
   let first = ['mini'];
   if (state.tab === 'coll' && state.openArmy && !state.openMini) first = ['mini', 'many'];
@@ -9661,7 +10475,7 @@ function plusItems(){
   else if (state.tab === 'recipes') first = ['recipe'];
   const rest = ['mini', 'paint', 'recipe', 'sys', 'wish', 'supply'].filter(k => first.indexOf(k) === -1);
   const btn = k => `<button type="button" role="menuitem" data-act="${I[k][0]}">${ic(I[k][2])}<span>${esc(I[k][1])}</span></button>`;
-  return `<p class="pmh" aria-hidden="true">Add</p>${first.map(btn).join('')}<hr>${rest.map(btn).join('')}`;
+  return `<p class="pmh" aria-hidden="true">Add</p>${first.map(btn).join('')}<hr>${['cam', 'pics'].map(btn).join('')}<hr>${rest.map(btn).join('')}`;
 }
 function openPlus(){
   const m = $('#plusMenu'), b = $('#plusBtn'); if (!m || !b) return;
