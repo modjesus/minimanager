@@ -4184,7 +4184,7 @@ function syncPill(){
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v042';
+const APP_VERSION = 'v043';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -9940,25 +9940,29 @@ function choose(list){
 const CSS = `
 body.diceopen{overflow:hidden}
 #dice{position:fixed;inset:0;z-index:60;overflow-y:auto;overscroll-behavior:contain;color-scheme:dark;
-  --dz-bg:#081524;--dz-panel:#0B1A2E;--dz-surface:#112640;--dz-line:#24405F;--dz-soft:#1B3350;
+  --dz-bg:#081524;--dz-panel:#0B1A2E;--dz-surface:#112640;--dz-line:#24405F;--dz-soft:#24405F;
   --dz-text:#EEF2F7;--dz-text2:#A9B6C6;--dz-gold:#D3B676;--dz-gold2:#B8964F;--dz-ink:#D9BE80;
   background:var(--dz-bg);color:var(--dz-text);font-family:var(--f-body);font-size:15px;line-height:1.5;
-  padding:max(10px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
+  padding:max(8px,env(safe-area-inset-top,0px)) max(8px,env(safe-area-inset-right,0px)) max(8px,env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
 #dice[hidden]{display:none}
 #dice *{box-sizing:border-box}
-#dice .dzp{max-width:28rem;margin:0 auto;display:grid;gap:10px}
+#dice .dzp{max-width:28rem;min-height:100%;margin:0 auto;display:grid;align-content:start;gap:12px;border:1px solid var(--dz-line);border-radius:4px;padding:6px 12px 18px;background:var(--dz-panel)}
 #dice .dzp>*{min-width:0;margin:0}
-#dice .dzhead{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:8px}
-#dice .dzhead svg.dzmark{width:28px;height:auto}
-#dice .dzhead h1{font-family:var(--f-display);font-weight:500;font-size:1.3125rem;margin:0;color:var(--dz-text);overflow-wrap:anywhere}
+#dice .dzhead{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:8px}
+#dice .dzhead svg.dzmark{width:34px;height:auto}
+#dice .dzhead h1{font-family:var(--f-display);font-weight:400;font-size:1.25rem;padding-left:10px;margin:0;color:var(--dz-text);overflow-wrap:anywhere}
 #dice .dzi{width:44px;height:44px;display:grid;place-items:center;border:0;background:none;color:var(--dz-ink);border-radius:10px;cursor:pointer;padding:0}
 #dice .dzi:hover{background:var(--dz-surface)}
 #dice .dzi svg{width:22px;height:22px}
-#dice h2{font-family:var(--f-display);font-weight:600;font-size:clamp(1.5rem,6.6vw,2rem);line-height:1.1;margin:0;text-align:center;text-wrap:balance;color:var(--dz-text);overflow-wrap:anywhere}
+#dice .dzrule{display:flex;align-items:center;gap:8px;color:var(--dz-gold2);margin-top:-8px}
+#dice .dzrule::before,#dice .dzrule::after{content:"";flex:1;height:1px;background:color-mix(in srgb,var(--dz-gold2) 60%,transparent)}
+#dice .dzrule svg{width:12px;height:12px}
+#dice h2{font-family:var(--f-display);font-weight:600;font-size:clamp(1.625rem,7.4vw,2.125rem);line-height:1.12;margin:0;text-align:center;text-wrap:balance;color:var(--dz-text);overflow-wrap:anywhere}
 #dice h2:focus{outline:none}
+#dice #dzHSet,#dice #dzHRoll{margin-top:8px}
 #dice .dzsub{color:var(--dz-text2);text-align:center;margin-top:-6px}
 #dice .dzkick{color:var(--dz-gold);text-align:center;font-size:.8125rem;letter-spacing:.16em;font-weight:600;margin-bottom:-6px}
-#dice .dzstage{position:relative;width:100%;height:clamp(190px,min(36svh,74vw),330px);border-radius:12px;overflow:hidden;
+#dice .dzstage{position:relative;width:100%;aspect-ratio:8/7;max-height:50svh;border-radius:12px;overflow:hidden;
   background:radial-gradient(110% 90% at 50% 40%,#10233D 0%,#0A1729 70%)}
 #dice .dzstage canvas,#dice .dzstage .dzstill{position:absolute;inset:0;width:100%;height:100%;display:block}
 #dice .dzstill{object-fit:contain;transition:opacity .4s}
@@ -9967,14 +9971,14 @@ body.diceopen{overflow:hidden}
 @keyframes dzchoose{0%,100%{opacity:.55}50%{opacity:1}}
 #dice .dzstage.choosing .dzstill{animation:dzchoose 1s ease-in-out infinite}
 #dice .dzpre{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-#dice .dzpb{min-height:48px;display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;border:1px solid var(--dz-line);background:none;
+#dice .dzpb{min-height:54px;display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px;border:1px solid var(--dz-line);background:none;
   color:var(--dz-text);font:inherit;font-size:.875rem;line-height:1.25;text-align:left;cursor:pointer;overflow-wrap:anywhere;margin:0}
 #dice .dzpb svg{width:20px;height:20px;flex:none;color:var(--dz-ink)}
 #dice .dzpb[aria-pressed="true"]{background:linear-gradient(180deg,#D8BC7E,#B8964F);color:#0B1A2E;border-color:transparent;font-weight:600}
 #dice .dzpb[aria-pressed="true"] svg{color:#0B1A2E}
 #dice button:focus-visible,#dice summary:focus-visible,#dice select:focus-visible{outline:2px solid var(--dz-gold);outline-offset:2px}
 #dice .dznote{color:var(--dz-text2);font-size:.8125rem;text-align:center;margin-top:-4px}
-#dice details{border-top:1px solid var(--dz-soft);border-bottom:1px solid var(--dz-soft)}
+#dice details{border-top:1px solid var(--dz-line);margin-top:4px}
 #dice summary{list-style:none;display:flex;align-items:center;gap:10px;min-height:44px;cursor:pointer;color:var(--dz-text)}
 #dice summary::-webkit-details-marker{display:none}
 #dice summary svg{width:20px;height:20px;color:var(--dz-ink)}
@@ -9998,12 +10002,12 @@ body.diceopen{overflow:hidden}
 #dice .dzcount b{color:var(--dz-text);font-weight:600}
 #dice .dzbtn{display:block;width:100%;min-height:54px;border-radius:12px;font-family:var(--f-display);font-size:1.3125rem;font-weight:500;cursor:pointer;border:1px solid transparent;margin:0;padding:6px 12px}
 #dice .dzbtn.gold{background:linear-gradient(180deg,#DCC285,#B8964F);color:#0B1A2E}
-#dice .dzbtn.outline{background:none;border-color:var(--dz-gold2);color:var(--dz-ink)}
+#dice .dzbtn.outline{background:none;border-color:var(--dz-gold2);color:var(--dz-ink);font-size:1.1875rem}
 #dice .dzbtn:disabled{opacity:.45;cursor:not-allowed}
 #dice .dzhold{touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 #dice .dzhint{text-align:center;color:var(--dz-text2);font-size:.8125rem;margin-top:-4px}
 #dice .dzlink{background:none;border:0;color:var(--dz-text);text-decoration:underline;text-underline-offset:3px;font:inherit;font-size:.9375rem;cursor:pointer;min-height:44px;padding:0 8px;justify-self:center}
-#dice .dzstatus{text-align:center;color:var(--dz-text)}
+#dice .dzstatus{text-align:center;color:var(--dz-text);margin-top:clamp(16px,9svh,96px)}
 #dice .dzshare{border-top:1px solid var(--dz-soft);padding-top:4px;display:grid;justify-items:center}
 #dice .dzshare .dzlink{display:inline-flex;align-items:center;gap:10px;text-decoration:none}
 #dice .dzshare svg{width:20px;height:20px;color:var(--dz-text2)}
@@ -10019,7 +10023,7 @@ body.diceopen{overflow:hidden}
 #dice .dzpin{text-align:center;color:var(--dz-text2);font-size:.8125rem;margin-top:-6px}
 #dice [hidden]{display:none!important}
 #dice .dzsr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-@media (max-height:740px){ #dice .dzsub{display:none} #dice .dzp{gap:8px} }
+@media (max-height:740px){ #dice .dzsub{display:none} #dice .dzp{gap:8px} #dice .dzstage{max-height:40svh} }
 @media (prefers-reduced-motion: reduce){ #dice .dzstill{transition:none} #dice .dzstage.choosing .dzstill{animation:none} }
 `;
 const STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2l1.8 8.2L22 12l-8.2 1.8L12 22l-1.8-8.2L2 12l8.2-1.8z"/></svg>';
@@ -10028,9 +10032,9 @@ const HTML = `
   <div class="dzhead">
     <span id="dzMark"></span>
     <h1 id="dzTitle">Roll the dice</h1>
-    <button type="button" class="dzi" id="dzSound" aria-pressed="false" aria-label="Dice sound"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path class="son" d="M16.5 8.5a5 5 0 0 1 0 7" hidden/><path class="soff" d="M17 9l5 6M22 9l-5 6"/></svg></button>
     <button type="button" class="dzi" id="dzClose" aria-label="Close Roll the dice"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   </div>
+  <div class="dzrule" aria-hidden="true">${STAR}</div>
 
   <h2 id="dzHSet" data-for="set" tabindex="-1">What will you paint next?</h2>
   <p class="dzsub" data-for="set">Let the dice choose from your collection.</p>
@@ -10049,7 +10053,7 @@ const HTML = `
     <button type="button" class="dzpb" data-preset="backlog" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="4" width="16" height="7" rx="2"/><rect x="4" y="13" width="16" height="7" rx="2"/></svg>Rescue the backlog</button>
     <button type="button" class="dzpb" data-preset="challenge" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M5 19L19 5M5 5l14 14M4 20l2-2M18 6l2-2M4 4l2 2M18 18l2 2"/></svg>Set a challenge</button>
   </div>
-  <p class="dznote" id="dzNote" data-for="set" aria-live="polite"></p>
+  <p class="dzsr" id="dzNote" data-for="set" aria-live="polite"></p>
 
   <details id="dzCustom" data-for="set">
     <summary><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>Customise your roll<svg class="dzchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></summary>
@@ -10063,7 +10067,7 @@ const HTML = `
 
   <p class="dzcount" id="dzCount" data-for="set" aria-live="polite"></p>
   <button type="button" class="dzbtn gold dzhold" id="dzRoll" data-for="set" aria-describedby="dzHint">Roll the dice</button>
-  <p class="dzhint" id="dzHint" data-for="set">${HINT}</p>
+  <p class="dzsr" id="dzHint" data-for="set">${HINT}</p>
 
   <p class="dzstatus" id="dzStatus" data-for="roll" hidden></p>
   <button type="button" class="dzlink" id="dzSkip" data-for="roll" hidden>Skip animation</button>
@@ -10072,7 +10076,7 @@ const HTML = `
   <p class="dzmeta user-text" id="dzMeta" data-for="reveal" hidden></p>
   <p class="dznext" id="dzNext" data-for="reveal" hidden></p>
   <button type="button" class="dzbtn gold" id="dzAccept" data-for="reveal" aria-describedby="dzPinNote" hidden>Accept the challenge</button>
-  <p class="dzpin" id="dzPinNote" data-for="reveal" hidden>Pins it to the top of your Workbench.</p>
+  <p class="dzsr" id="dzPinNote" data-for="reveal" hidden>Pins it to the top of your Workbench.</p>
   <button type="button" class="dzbtn outline dzhold" id="dzAgain" data-for="reveal" hidden>Roll again</button>
   <button type="button" class="dzlink" id="dzAdjust" data-for="reveal" hidden>Adjust the pool</button>
   <div class="dzshare" data-for="reveal" hidden><button type="button" class="dzlink" id="dzShare"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>Share challenge</button><p class="dzsharemsg" id="dzShareMsg" aria-live="polite"></p></div>
@@ -10098,7 +10102,7 @@ function build(){
 function show(s, focusEl){
   screen = s; q('#dzPanel').dataset.screen = s;
   root.querySelectorAll('[data-for]').forEach(el => { el.hidden = !el.dataset.for.split(' ').includes(s); });
-  if (focusEl) requestAnimationFrame(() => focusEl.focus({ preventScroll:true }));
+  if (focusEl) focusEl.focus({ preventScroll:true });
 }
 function updateCount(){
   const n = eligible().length, sys = F.game || 'All systems';
@@ -10137,7 +10141,7 @@ function open(from){
 }
 function close(){
   if (!root || root.hidden) return;
-  rollToken++; holding = false; clearTimeout(holdCap);
+  rollToken++; holding = false; clearTimeout(holdCap); q('#dzRoll').textContent = 'Roll the dice';
   q('#dzStage').classList.remove('choosing'); tray3d?.skip();
   root.hidden = true; document.body.classList.remove('diceopen');
   const o = opener; opener = null;
@@ -10157,6 +10161,7 @@ function begin(){
   if (screen !== 'set') show('roll', q('#dzHRoll'));         /* from the reveal, bring the tray back */
   q('#dzStatus').textContent = 'Shaking the dice… let go to roll.';
   q('#dzHint').textContent = 'Shaking… let go to roll.'; announce('Shaking the dice. Let go to roll.');
+  q('#dzRoll').textContent = 'Let go to roll';
   /* on a short phone the tray can be above the fold: bring it into view without moving the button away */
   const sg = q('#dzStage'), r = sg.getBoundingClientRect();
   if (r.top < 0) root.scrollBy({ top:r.top - 8, behavior:RM() ? 'auto' : 'smooth' });
@@ -10171,7 +10176,7 @@ async function release(){
   if (token !== rollToken) return;
   chosen = choose(snapshot); lastId = chosen.id;             /* chosen as you let go; the face it lands on is for show */
   q('#dzStatus').textContent = `Rolling from ${snapshot.length} project${snapshot.length === 1 ? '' : 's'}…`;
-  show('roll', q('#dzHRoll')); announce(q('#dzStatus').textContent); q('#dzHint').textContent = HINT;
+  show('roll', q('#dzHRoll')); announce(q('#dzStatus').textContent); q('#dzHint').textContent = HINT; q('#dzRoll').textContent = 'Roll the dice';
   const minShake = (tray3d && !RM()) ? 1500 : 0, sofar = performance.now() - holdT0;
   if (sofar < minShake) await sleep(minShake - sofar);
   const held = performance.now() - holdT0;
@@ -10218,7 +10223,7 @@ function reveal(){
   const n = u.total;
   q('#dzMeta').textContent = [u.army || u.game, `${n} model${n === 1 ? '' : 's'}`, u.label].join(' · ');
   const step = NEXT[u.cur] || (u.next ? `get them to ${u.next}` : 'pick it up again');
-  q('#dzNext').innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M14 4l6 6-8 8H6v-6z"/><path d="M4 20l2-2"/></svg><span>Next step: ${esc(step)}.</span>`;
+  q('#dzNext').innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M20.5 3.5c-3 1.6-7.3 5.7-9.3 8.6l1.2 1.2c2.9-2 7-6.3 8.1-9.8z"/><path d="M10.2 13.2c-1.7-.2-3.2 1-3.4 2.7-.2 1.4-.8 2.4-2.3 3.1 3 .9 6.6.2 7.1-3.2.2-1.2-.2-2.1-1.4-2.6z"/></svg><span>Next step: ${esc(step)}.</span>`;
   const m = data.minis.find(x => x.id === u.id);
   q('#dzPinNote').textContent = m && m.pinned ? 'Already pinned to your Workbench.' : 'Pins it to the top of your Workbench.';
   q('#dzShareMsg').textContent = '';
@@ -10257,8 +10262,6 @@ function wire(){
     } catch (e) { if (e && e.name === 'AbortError') return; msg.textContent = 'Sharing is not available on this device.'; }
   });
   q('#dzClose').addEventListener('click', close);
-  q('#dzSound').addEventListener('click', () => { soundOn = !soundOn; const b = q('#dzSound'); b.setAttribute('aria-pressed', String(soundOn));
-    b.querySelector('.son').hidden = !soundOn; b.querySelector('.soff').hidden = soundOn; if (soundOn) audio(); });
   /* listened for on the whole page while open, so Escape works wherever focus happens to be */
   document.addEventListener('keydown', e => {
     if (root.hidden) return;
@@ -10348,8 +10351,9 @@ async function start3d(){
 
   /* camera: the concept's steep front view. The whole tray always fits, whatever shape the stage is. */
   const camera = new THREE.PerspectiveCamera(35, 1, 0.005, 5);
-  const HF = 2 * Math.atan(18 / 46), REF = 900 / 743;
-  const vfovFor = a => 2 * Math.atan(Math.tan(HF / 2) / a);
+  const HF = 2 * Math.atan(18 / 46), REF = 8 / 7;
+  const ZOOM = 0.9;                                          /* v043: tray fills the width, as in the concept */
+  const vfovFor = a => 2 * Math.atan(ZOOM * Math.tan(HF / 2) / a);
   function frame(){ const w = stage.clientWidth, h = stage.clientHeight; if (!w || !h) return;
     renderer.setSize(w, h, false); camera.aspect = w / h;
     camera.fov = THREE.MathUtils.radToDeg(Math.max(vfovFor(camera.aspect), vfovFor(REF)));
@@ -10388,7 +10392,7 @@ async function start3d(){
   let restAt = 0, shakeT0 = 0, ph = [], prevT = 0;
   const prevP = new THREE.Vector3(), vel = new THREE.Vector3();
   const r = (a, b) => a + Math.random() * (b - a);
-  const HOVER = new THREE.Vector3(0, 0.082, 0.012);
+  const HOVER = new THREE.Vector3(0, 0.060, 0.008);          /* v043: lower, mid-tray, as in the concept */
   const qa = new THREE.Quaternion(), ea = new THREE.Euler();
   function shakePose(tt){
     const p = HOVER.clone();
