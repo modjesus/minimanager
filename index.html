@@ -416,6 +416,7 @@ html[data-nav="back"]::view-transition-new(main){animation-name:mm-in-left}
   dialog.sheet.dragging{transition:none!important}
 }
 header.bar.gated #actslot,header.bar.gated #moreBtn,header.bar.gated #plusBtn{display:none}
+header.bar.welmode #actslot,header.bar.welmode #moreBtn,header.bar.welmode #plusBtn{display:none}
 /* nav.tabs sets display:flex, which beats the browser's own [hidden] rule.
    Without this the tab bar stays on screen behind the sign-in gate, offering
    four tabs that cannot do anything. */
@@ -2129,9 +2130,9 @@ html:has(.welwrap){scroll-padding-bottom:7rem}
 .wmini .stepbtn{width:var(--tap);height:var(--tap);min-height:var(--tap)}
 .wmini input::-webkit-outer-spin-button,.wmini input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .wmini input{-moz-appearance:textfield;appearance:textfield;width:3.25rem;min-height:var(--tap);height:var(--tap);padding:0;text-align:center;font-size:1.0625rem}
-.wstrip{flex:1 1 8rem;min-width:0;display:flex;gap:.375rem;overflow-x:auto;scrollbar-width:none;padding:4px 6px;scroll-padding-left:6px;scroll-snap-type:x proximity}
+.wstrip{flex:1 1 8rem;min-width:0;display:flex;gap:.375rem;overflow-x:auto;scrollbar-width:none;padding:4px 6px}
 .wstrip::-webkit-scrollbar{display:none}
-.wstrip button{flex:0 0 auto;scroll-snap-align:start;min-height:var(--tap);padding:0 .75rem;border-radius:22px;border:1px solid var(--border);background:none;color:var(--text);font:inherit;font-size:.875rem;cursor:pointer;white-space:nowrap}
+.wstrip button{flex:0 0 auto;min-height:var(--tap);padding:0 .75rem;border-radius:22px;border:1px solid var(--border);background:none;color:var(--text);font:inherit;font-size:.875rem;cursor:pointer;white-space:nowrap}
 .wstrip button[aria-checked="true"],.wstrip button[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:var(--ink-navy);font-weight:700}
 .wstrip button.cur{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--text)}
 .wstrip button .n{font-weight:700}
@@ -2140,6 +2141,48 @@ html:has(.welwrap){scroll-padding-bottom:7rem}
 .wline2{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.375rem .5rem;margin-top:.375rem}
 .wline2 .small{flex:1 1 10rem;margin:0}
 .wcur{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+/* v052: quiet Guild touches on the welcome (a brand moment): star divider, hairline-gold
+   notched plaques with each game's pennant, the navy armies box with the gold corners */
+.weldiv{height:18px;margin:.125rem 0 1rem;background:var(--o-topdiv) center/contain no-repeat;opacity:.85}
+.welwrap .welq{border-color:var(--gold-line);background:var(--deep)}
+.welcards li{border-color:var(--gold-line);background:var(--surface)}
+.wsearch{display:flex;align-items:center;gap:.625rem;padding:0 .875rem;min-height:48px;margin:0 0 1rem;border:1px solid var(--gold-line);border-radius:12px;background:var(--deep);color:var(--gold)}
+.wsearch svg{flex:none}
+.wsearch input{flex:1;min-width:0;border:0;background:none;padding:0;min-height:46px;font-size:1rem;color:var(--text);box-shadow:none}
+.wsearch input:focus{outline:none}
+.wsearch:focus-within{outline:2px solid var(--focus);outline-offset:2px}
+.wgames{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,6.25rem),1fr));grid-auto-flow:row dense;gap:.5rem}
+.wgame{--n:8px;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:.25rem;min-width:0;min-height:4.75rem;padding:0 .25rem .5rem;border:0;cursor:pointer;color:var(--text);font:inherit;text-align:center;
+  background:var(--gold-line);clip-path:polygon(var(--n) 0,calc(100% - var(--n)) 0,100% var(--n),100% calc(100% - var(--n)),calc(100% - var(--n)) 100%,var(--n) 100%,0 calc(100% - var(--n)),0 var(--n))}
+.wgame::before{content:"";position:absolute;inset:1px;background:var(--surface);clip-path:polygon(7.6px 0,calc(100% - 7.6px) 0,100% 7.6px,100% calc(100% - 7.6px),calc(100% - 7.6px) 100%,7.6px 100%,0 calc(100% - 7.6px),0 7.6px)}
+.wgame>*{position:relative}
+.wgame img{width:17px;height:auto;filter:drop-shadow(0 2px 2px rgba(0,0,0,.45))}
+.wgame .nm{font-size:.75rem;font-weight:600;line-height:1.15;overflow-wrap:anywhere}
+.wgame small{font-size:.6875rem;color:var(--text-2);line-height:1.1}
+.wgame.on{background:linear-gradient(170deg,#F0DDA0,#C4A461 50%,#9C7A35)}
+.wgame.on::before{inset:1.5px;background:radial-gradient(110% 80% at 50% 0%,#24395A 0%,#132D4A 70%)}
+.wgame .tk{position:absolute;top:5px;right:6px;width:16px;height:16px;border-radius:50%;background:var(--gold);color:var(--ink-navy);font-size:10px;font-weight:800;line-height:16px;text-align:center}
+.wgame:not(.on) .tk{display:none}
+.wgame:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.wgame:active{transform:scale(.97)}
+.warmies{grid-column:1/-1;position:relative;margin:.375rem 0 .25rem;padding:1.125rem 1.25rem 1rem;border:1px solid var(--gold-line);border-radius:12px;background:#0E2640}
+.warmies .wc{position:absolute;top:3px;width:30px;height:27px;background:var(--o-cornerL) center/contain no-repeat;pointer-events:none}
+.warmies .wc.l{left:3px}.warmies .wc.r{right:3px;background-image:var(--o-cornerR)}
+.warmies .wc.bl,.warmies .wc.br{top:auto;bottom:3px;transform:scaleY(-1)}.warmies .wc.bl{left:3px}.warmies .wc.br{right:3px;background-image:var(--o-cornerR)}
+.warmies .wstar{position:absolute;left:50%;top:-9px;transform:translateX(-50%);width:18px;height:18px;background:var(--o-starS) center/contain no-repeat}
+.warmies .wacap{margin:0 0 .625rem;text-align:center;color:var(--text-2);font-size:.8125rem}
+.warmies .chips{justify-content:center}
+.warmies .welownrow{margin-top:.75rem}
+.warmies .wrm{display:block;margin:.5rem auto 0;font-size:.8125rem}
+.wres{list-style:none;margin:.25rem 0 1rem;padding:0;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.wres li+li{border-top:1px solid var(--border)}
+.wres button{display:flex;align-items:center;gap:.75rem;width:100%;min-height:52px;padding:.5rem .75rem;border:0;background:none;color:var(--text);font:inherit;text-align:left;cursor:pointer}
+.wres .box{flex:none;display:grid;place-items:center;width:1.5rem;height:1.5rem;border-radius:6px;border:1.5px solid var(--border);color:var(--ink-navy)}
+.wres .box svg{width:1rem;height:1rem}
+.wres [aria-pressed="true"] .box{background:var(--gold);border-color:var(--gold)}
+.wres b{display:block;font-weight:600}.wres small{display:block;color:var(--text-2)}
+.wres button:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+@media (prefers-reduced-motion:reduce){.wgame:active{transform:none}}
 .welsum dt{font-size:1rem}.welsum dd{margin:0;font-family:var(--f-display);font-size:1.5rem;color:var(--gold-ink)}
 </style>
 <script type="importmap">
@@ -6778,7 +6821,7 @@ window.addEventListener('hashchange', checkSharedLink);
 <script>
 /* ===========================================================================
    Welcome (v048). A new collector ticks their way in: paint brands, then the
-   paints they own, games, factions, then models, where ticking a unit opens
+   paints they own, games and their armies (one page since v052), then models, where ticking a unit opens
    "how many" and "where are they" on the same list. Every step can be
    skipped; nothing is saved until the end (or "Skip setup"), and the end
    screen can undo all of it. Progress is kept on this device, so closing the
@@ -6793,8 +6836,9 @@ let UNITS = null;
 function unitsData(){ if (!UNITS){ try { UNITS = JSON.parse(document.getElementById('units').textContent); } catch (e){ UNITS = {}; } } return UNITS; }
 const TOP_BRANDS = ['Citadel', 'The Army Painter', 'Vallejo', 'AK Interactive', 'Scale75', 'Monument', 'Green Stuff World', 'Duncan', 'Reaper', 'P3', 'Kimera Kolors', 'Turbo Dork', 'Foundry', 'Tamiya', 'Mission Models', "Coat d'Arms"];
 const BRAND_LABEL = { Duncan:'Duncan (Two Thin Coats)', Monument:'Monument (Pro Acryl)' };
-const WSTEPS = 6;
-const welBlank = () => ({ step:0, brands:[], brand:'', ropen:{}, picked:{}, games:[], facs:{}, fac:'', units:{}, ex:'', q:'', more:false, legends:{}, made:null });
+const WSTEPS = 5;   /* v052: games and armies share one step */
+const TOP_GAMES = ['Warhammer 40,000', 'Warhammer: Age of Sigmar', 'Kill Team', 'Warhammer: The Horus Heresy', 'Warcry', 'Blood Bowl'];
+const welBlank = () => ({ step:0, brands:[], brand:'', ropen:{}, picked:{}, games:[], facs:{}, fac:'', units:{}, ex:'', q:'', more:false, legends:{}, made:null, gopen:'', gmore:false, fall:{} });
 function welSave(){ try { localStorage.setItem(WEL_KEY, JSON.stringify(state.wel)); } catch (e){} }
 function welLoad(){ try { const w = JSON.parse(localStorage.getItem(WEL_KEY) || 'null'); return w && typeof w === 'object' ? Object.assign(welBlank(), w) : null; } catch (e){ return null; } }
 function startWelcome(fresh){
@@ -6839,10 +6883,10 @@ function screenWelcome(){
   const dots = s && s < WSTEPS ? `<div class="wdots" aria-hidden="true">${Array.from({ length:WSTEPS - 1 }, (_, i) => `<i class="${i < s ? 'on' : ''}"></i>`).join('')}</div>` : '<span></span>';
   const skip = s === 0 ? `<button class="linkbtn" data-wel="skipall">Skip setup</button>` : s < WSTEPS ? `<button class="linkbtn" data-wel="skip">Skip this step</button>` : '';
   let h = `<div class="welwrap"><div class="weltop">${dots}<span class="sr-only">${s && s < WSTEPS ? `Step ${s} of ${WSTEPS - 1}` : ''}</span>${skip}</div>`;
-  h += [welIntro, welBrands, welPaints, welGames, welFactions, welModelsStep, welDone][s]();
+  h += [welIntro, welBrands, welPaints, welGamesArmies, welModelsStep, welDone][s]();
   return h + `</div>`;
 }
-const welHead = (eb, title, sub) => `<p class="eb">${eb}</p><h2 class="welh display" id="welH" tabindex="-1">${title}</h2>${sub ? `<p class="muted welsub">${sub}</p>` : ''}`;
+const welHead = (eb, title, sub) => `<p class="eb">${eb}</p><h2 class="welh display" id="welH" tabindex="-1">${title}</h2>${sub ? `<p class="muted welsub">${sub}</p>` : ''}<div class="weldiv" aria-hidden="true"></div>`;
 const welFoot = (label, opts) => `<div class="welfoot">${(opts || {}).back !== false ? `<button class="btn ghost" data-wel="back">Back</button>` : ''}<button class="btn gold" data-wel="next">${label}</button></div>`;
 
 function welIntro(){
@@ -6873,7 +6917,7 @@ function welPaints(){
   const nPick = b => Object.keys(w.picked).filter(ci => cat[ci].b === b).length;
   let h = welHead('Paints &middot; 2 of 2', 'Tick what you own') +
     (w.brands.length > 1 ? `<div class="chips welsw" role="group" aria-label="Brand">${w.brands.map(b => `<button class="chip" data-wpbrand="${esc(b)}" aria-pressed="${w.brand === b}">${esc(b)} <span class="n">${nPick(b)}</span></button>`).join('')}</div>` : '') +
-    `<label for="wq" class="sr-only">Search ${esc(w.brand)} paints</label><input id="wq" type="search" class="welq" placeholder="Search ${esc(w.brand)}&hellip;" value="${esc(w.q)}" autocomplete="off">`;
+    `<div class="wsearch"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><label for="wq" class="sr-only">Search ${esc(w.brand)} paints</label><input id="wq" type="search" placeholder="Search ${esc(w.brand)}&hellip;" value="${esc(w.q)}" autocomplete="off"></div>`;
   const rows = welCatRows(w.brand);
   const tile = ci => { const r = cat[ci], own = welOwned(r), on = own || !!w.picked[ci];
     return `<button class="wtile" data-wpaint="${ci}" aria-pressed="${on}"${own ? ' disabled' : ''}><span class="sw${finOf({ name:r.n, brand:r.b, range:r.rg }) === 'metal' ? ' metal' : ''}" style="background-color:#${esc(r.hex.replace('#', ''))};--c:${esc(r.hex)}"></span><span class="nm">${esc(r.n)}</span>${own ? '<small>Yours</small>' : ''}${on ? `<span class="tick" aria-hidden="true">&#10003;</span>` : ''}</button>`; };
@@ -6896,25 +6940,55 @@ function welPaints(){
   const total = Object.keys(w.picked).length;
   return h + welFoot(total ? `Next &middot; ${total} paint${total === 1 ? '' : 's'} ticked` : 'Next');
 }
-function welGames(){
-  const w = state.wel, names = SYSTEMS.map(s => s.name).concat(w.games.filter(g => !SYSTEMS.some(s => s.name === g)));
-  return welHead('Games', 'What do you play?', 'Or collect: painting without playing counts.') +
-    `<div class="chips" role="group" aria-label="Games">${names.map(g => `<button class="chip" data-wgame="${esc(g)}" aria-pressed="${w.games.indexOf(g) !== -1}">${esc(g)}</button>`).join('')}</div>
-    <div class="welown"><label for="wOwnGame">Another game</label><div class="row"><input id="wOwnGame" placeholder="Its name" autocomplete="off"><button class="btn ghost" data-wel="owngame">Add</button></div></div>` +
-    welFoot(w.games.length ? `Next &middot; ${w.games.length} game${w.games.length === 1 ? '' : 's'}` : 'Next');
+/* v052: games and armies on one page. Tap a game to tick it and open its armies
+   underneath; a second game folds the first. Or search for any army in any game. */
+const welShortGame = g => g.replace(/^Warhammer: /, '');
+function welGamePen(g){ const n = g.toLowerCase(), hit = PENNANT_NAMES.find(x => x[2] && x[0].startsWith('game-') && x[2].test(n)); return hit ? hit[0] : 'spare-navy'; }
+function welArmiesOf(g){
+  const U = unitsData(), pre = presetArmies(g).flatMap(x => x.items), extra = Object.keys(U[g] || {}).filter(f => pre.indexOf(f) === -1);
+  const mine = arr(state.wel.facs[g]);
+  return pre.concat(extra).concat(mine.filter(f => pre.indexOf(f) === -1 && extra.indexOf(f) === -1));
 }
-function welFactions(){
-  const w = state.wel, U = unitsData();
-  if (!w.games.length) return welHead('Armies', 'Tick your factions', 'No games chosen. Go back to choose some, or carry on.') + welFoot('Next');
-  let h = welHead('Armies', 'Tick your factions');
-  w.games.forEach((g, gi) => {
-    const pre = presetArmies(g).flatMap(x => x.items), extra = Object.keys(U[g] || {}).filter(f => pre.indexOf(f) === -1);
-    const mine = arr(w.facs[g]), all = pre.concat(extra).concat(mine.filter(f => pre.indexOf(f) === -1 && extra.indexOf(f) === -1));
-    h += `<section class="wfsec"><h3>${esc(g)}</h3><div class="chips" role="group" aria-label="${esc(g)} factions">${all.map(f => `<button class="chip" data-wfac="${esc(f)}" data-g="${esc(g)}" aria-pressed="${mine.indexOf(f) !== -1}">${esc(f)}</button>`).join('')}</div>
-      <div class="row welownrow"><label for="wOwnFac${gi}" class="sr-only">Your own faction for ${esc(g)}</label><input id="wOwnFac${gi}" placeholder="My own faction or warband" autocomplete="off"><button class="btn ghost sm" data-wel="ownfac" data-g="${esc(g)}" data-i="${gi}">Add</button></div></section>`;
-  });
-  const n = welFacList().length;
-  return h + welFoot(n ? `Next &middot; ${n} arm${n === 1 ? 'y' : 'ies'}` : 'Next');
+function welArmyBox(g, gi){
+  const w = state.wel, mine = arr(w.facs[g]), all = welArmiesOf(g), FIRST = 8;
+  const shown = w.fall[g] || all.length <= FIRST + 2 ? all : all.slice(0, FIRST).concat(mine.filter(f => all.indexOf(f) >= FIRST));
+  return `<div class="warmies" role="group" aria-label="${esc(g)} armies" id="warm"><span class="wc l"></span><span class="wc r"></span><span class="wc bl"></span><span class="wc br"></span><span class="wstar"></span>
+    <p class="wacap">${esc(welShortGame(g))} armies</p>
+    ${all.length ? `<div class="chips">${shown.map(f => `<button class="chip" data-wfac="${esc(f)}" data-g="${esc(g)}" aria-pressed="${mine.indexOf(f) !== -1}">${esc(f)}</button>`).join('')}
+      ${shown.length < all.length ? `<button class="linkbtn" data-wel="fall" data-g="${esc(g)}">All ${all.length}&hellip;</button>` : ''}</div>`
+      : `<p class="small muted" style="margin:0 0 .5rem">No ready list of armies for this game. Add yours below.</p>`}
+    <div class="row welownrow"><label for="wOwnFac${gi}" class="sr-only">Your own army for ${esc(g)}</label><input id="wOwnFac${gi}" placeholder="Your own army" autocomplete="off"><button class="btn ghost sm" data-wel="ownfac" data-g="${esc(g)}" data-i="${gi}">Add</button></div>
+    <button class="linkbtn wrm" data-wel="rmgame" data-g="${esc(g)}">Not playing this? Remove ${esc(welShortGame(g))}</button></div>`;
+}
+function welGamesArmies(){
+  const w = state.wel, q = w.q.trim().toLowerCase();
+  const allNames = SYSTEMS.map(s => s.name).concat(w.games.filter(g => !SYSTEMS.some(s => s.name === g)));
+  let h = welHead('Your games and armies', 'What do you play?', 'Tap a game, then its armies. Or search.') +
+    `<div class="wsearch"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <label for="wq" class="sr-only">Find an army or game</label><input id="wq" type="search" placeholder="Find an army or game&hellip;" value="${esc(w.q)}" autocomplete="off"></div>`;
+  if (q){
+    const hits = [];
+    allNames.forEach(g => { welArmiesOf(g).forEach(f => { if (f.toLowerCase().indexOf(q) !== -1) hits.push([f, g]); }); });
+    const games = allNames.filter(g => g.toLowerCase().indexOf(q) !== -1);
+    if (games.length) h += `<p class="lab">Games</p><ul class="wres">${games.map(g => `<li><button data-wgame="${esc(g)}" data-keep aria-pressed="${w.games.indexOf(g) !== -1}"><span class="box" aria-hidden="true">${w.games.indexOf(g) !== -1 ? TICK_SVG : ''}</span><span><b>${esc(g)}</b></span></button></li>`).join('')}</ul>`;
+    if (hits.length) h += `<p class="lab">Armies</p><ul class="wres">${hits.slice(0, 40).map(([f, g]) => { const on = arr(w.facs[g]).indexOf(f) !== -1;
+      return `<li><button data-wfac="${esc(f)}" data-g="${esc(g)}" data-fromsearch aria-pressed="${on}"><span class="box" aria-hidden="true">${on ? TICK_SVG : ''}</span><span><b>${esc(f)}</b><small>${esc(g)}</small></span></button></li>`; }).join('')}</ul>`;
+    if (!hits.length && !games.length) h += `<p class="small muted">Nothing matches &ldquo;${esc(w.q)}&rdquo;. Add it as your own game below, or clear the search.</p>`;
+  } else {
+    const vis = w.gmore ? allNames : TOP_GAMES.filter(g => allNames.indexOf(g) !== -1).concat(w.games.filter(g => TOP_GAMES.indexOf(g) === -1));
+    if (w.gopen && w.games.indexOf(w.gopen) === -1) w.gopen = '';
+    h += `<div class="wgames">`;
+    vis.forEach((g, gi) => {
+      const on = w.games.indexOf(g) !== -1, open = on && w.gopen === g, nf = arr(w.facs[g]).length, src = pennantSrc(welGamePen(g));
+      h += `<button class="wgame${on ? ' on' : ''}" data-wgame="${esc(g)}" aria-pressed="${on}"${on ? ` aria-expanded="${open}"` : ''}>${src ? `<img src="${src}" alt="">` : ''}<span class="nm">${esc(welShortGame(g))}</span>${on && !open ? `<small>${nf ? `${nf} arm${nf === 1 ? 'y' : 'ies'}` : 'Tap for armies'}</small>` : ''}<span class="tk" aria-hidden="true">&#10003;</span></button>`;
+      if (open) h += welArmyBox(g, gi);
+    });
+    h += `</div>`;
+    if (!w.gmore) h += `<button class="linkbtn welmore" data-wel="gmore">Show ${allNames.length - vis.length} more games</button>`;
+    else h += `<div class="welown"><label for="wOwnGame">Another game</label><div class="row"><input id="wOwnGame" placeholder="Its name" autocomplete="off"><button class="btn ghost" data-wel="owngame">Add</button></div></div>`;
+  }
+  const n = w.games.length, nf = welFacList().length;
+  return h + welFoot(n ? `Next &middot; ${n} game${n === 1 ? '' : 's'}${nf ? `, ${nf} arm${nf === 1 ? 'y' : 'ies'}` : ''}` : 'Next');
 }
 function welModelsStep(){
   const w = state.wel, U = unitsData(), facs = welFacList();
@@ -6945,7 +7019,7 @@ function welModelsStep(){
     }
     return r;
   };
-  h += `<label for="wq" class="sr-only">Search ${esc(f)} units</label><input id="wq" type="search" class="welq" placeholder="Search ${esc(f)} units&hellip;" value="${esc(w.q)}" autocomplete="off">`;
+  h += `<div class="wsearch"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><label for="wq" class="sr-only">Search ${esc(f)} units</label><input id="wq" type="search" placeholder="Search ${esc(f)} units&hellip;" value="${esc(w.q)}" autocomplete="off"></div>`;
   const q = w.q.trim().toLowerCase(), match = n => !q || n.toLowerCase().indexOf(q) !== -1;
   if (custom.length) h += `<h3 class="wsech">Added by you</h3><ul class="wulist">${custom.filter(u => match(u.name)).map(u => row(u.name)).join('')}</ul>`;
   if (D){
@@ -6965,7 +7039,7 @@ function welDone(){
   const models = m.minis.map(id => data.minis.find(x => x.id === id)).filter(Boolean).reduce((n, x) => n + (Number(x.total) || 1), 0);
   return welHead('All set', 'Your shelf is ready') +
     `<dl class="welsum"><div><dt>Paints</dt><dd class="num">${m.paints.length}</dd></div><div><dt>Games</dt><dd class="num">${state.wel.games.length}</dd></div>
-      <div><dt>Armies</dt><dd class="num">${welFacList().length}</dd></div><div><dt>Units &middot; models</dt><dd class="num">${m.minis.length} &middot; ${models}</dd></div></dl>
+      <div><dt>Armies</dt><dd class="num">${welFacList().length}</dd></div><div><dt>Units</dt><dd class="num">${m.minis.length}</dd></div><div><dt>Models</dt><dd class="num">${models}</dd></div></dl>
     <div class="card"><b>Whenever you like</b><p class="small muted" style="margin:.25rem 0 0">Recipes, photos, colour schemes and more detail can all be added later. You can run this again from the &middot;&middot;&middot; menu.</p></div>
     <div class="welfoot col"><button class="btn gold" data-wel="finish">Go to my Workbench</button>${m.paints.length + m.minis.length ? `<button class="btn ghost" data-wel="undo">Undo everything I just added</button>` : ''}</div>`;
 }
@@ -7012,7 +7086,9 @@ function welEnd(){
 }
 function welKeepFocus(sel){ const f = sel && document.querySelector(sel); if (f) f.focus({ preventScroll:true }); }
 function welRerender(sel){ const y = window.scrollY; welSave(); render(); window.scrollTo(0, y);
-  const c = document.querySelector('.wstrip .cur, .wstrip [aria-checked="true"]'); if (c){ const p = c.parentNode; p.scrollLeft = Math.max(0, c.offsetLeft - p.offsetLeft - 16); }
+  /* the chosen stage sits in the middle of the strip, never cut off at an edge */
+  const c = document.querySelector('.wstrip .cur, .wstrip [aria-checked="true"]'); if (c){ const p = c.parentNode, pr = p.getBoundingClientRect(), cr = c.getBoundingClientRect();
+    p.scrollLeft = Math.max(0, p.scrollLeft + (cr.left - pr.left) - (pr.width - cr.width) / 2); }
   welKeepFocus(sel); }
 
 /* --- events ---------------------------------------------------------------- */
@@ -7027,10 +7103,13 @@ document.addEventListener('click', e => {
   if (a === 'finish'){ welEnd(); return; }
   if (a === 'undo'){ welUndo(); return; }
   if (a === 'more'){ w.more = true; welRerender('[data-wbrand]:not([aria-pressed="true"])'); return; }
-  if (a === 'owngame'){ const v = $('#wOwnGame').value.trim(); if (!v) return; if (w.games.indexOf(v) === -1) w.games.push(v); welRerender('#wOwnGame'); announce(`${v} added.`); return; }
-  if (a === 'ownfac'){ const g = t.dataset.g, v = $('#wOwnFac' + t.dataset.i).value.trim(); if (!v) return; w.facs[g] = arr(w.facs[g]); if (w.facs[g].indexOf(v) === -1) w.facs[g].push(v); welRerender('#wOwnFac' + t.dataset.i); announce(`${v} added.`); return; }
+  if (a === 'owngame'){ const v = $('#wOwnGame').value.trim(); if (!v) return; if (w.games.indexOf(v) === -1) w.games.push(v); w.gopen = v; welRerender('#warm input'); announce(`${v} added. Add its armies, or carry on.`); return; }
+  if (a === 'gmore'){ w.gmore = true; welRerender('.wgame:not([aria-pressed="true"])'); return; }
+  if (a === 'fall'){ w.fall[t.dataset.g] = true; welRerender('#warm .chip:last-of-type'); return; }
+  if (a === 'rmgame'){ const g = t.dataset.g, i = w.games.indexOf(g); if (i !== -1) w.games.splice(i, 1); w.gopen = ''; welRerender(`[data-wgame="${CSS.escape(g)}"]`); announce(`${g} removed.`); return; }
+  if (a === 'ownfac'){ const g = t.dataset.g, v = $('#wOwnFac' + t.dataset.i).value.trim(); if (!v) return; w.facs[g] = arr(w.facs[g]); if (w.facs[g].indexOf(v) === -1) w.facs[g].push(v); w.fall[g] = true; welRerender('#wOwnFac' + t.dataset.i); announce(`${v} added.`); return; }
   if (a === 'ownunit'){ const v = $('#wOwnUnit').value.trim(); if (!v) return; const [g, f] = w.fac.split('|'), key = g + '|' + f + '|' + v;
-    w.units[key] = w.units[key] || { game:g, fac:f, name:v, qty:1, stage:data.stages.indexOf(w.last) !== -1 ? w.last : data.stages[0], own:true }; w.ex = key; w.q = ''; welRerender('#wQty'); announce(`${v} ticked. How many?`); return; }
+    w.units[key] = w.units[key] || { game:g, fac:f, name:v, qty:1, stage:data.stages.indexOf(w.last) !== -1 ? w.last : data.stages[0], own:true }; w.ex = key; w.q = ''; welRerender('.wstrip [aria-checked="true"]'); announce(`${v} ticked. How many?`); return; }
   if (t.dataset.wbrand != null){ const b = t.dataset.wbrand, i = w.brands.indexOf(b); if (i === -1) w.brands.push(b); else w.brands.splice(i, 1); welRerender(`[data-wbrand="${CSS.escape(b)}"]`); return; }
   if (t.dataset.wpbrand != null){ w.brand = t.dataset.wpbrand; w.q = ''; welRerender(`[data-wpbrand="${CSS.escape(w.brand)}"]`); return; }
   if (t.dataset.wpaint != null){ const ci = t.dataset.wpaint; if (w.picked[ci]) delete w.picked[ci]; else w.picked[ci] = 1; welRerender(`[data-wpaint="${ci}"]`); return; }
@@ -7038,17 +7117,22 @@ document.addEventListener('click', e => {
   if (t.dataset.wrall != null){ const rg = t.dataset.wrall, cat = catalogue().rows, ids = welCatRows(w.brand).filter(ci => (cat[ci].rg || 'Other') === rg && !welOwned(cat[ci]));
     const all = ids.every(ci => w.picked[ci]); ids.forEach(ci => { if (all) delete w.picked[ci]; else w.picked[ci] = 1; });
     welRerender(`[data-wrall="${CSS.escape(rg)}"]`); announce(`${all ? 'Unticked' : 'Ticked'} ${ids.length} ${rg} paints.`); return; }
-  if (t.dataset.wgame != null){ const g = t.dataset.wgame, i = w.games.indexOf(g); if (i === -1) w.games.push(g); else w.games.splice(i, 1); welRerender(`[data-wgame="${CSS.escape(g)}"]`); return; }
-  if (t.dataset.wfac != null){ const g = t.dataset.g, f = t.dataset.wfac; w.facs[g] = arr(w.facs[g]); const i = w.facs[g].indexOf(f); if (i === -1) w.facs[g].push(f); else w.facs[g].splice(i, 1);
+  if (t.dataset.wgame != null){ const g = t.dataset.wgame, i = w.games.indexOf(g);
+    if (t.hasAttribute('data-keep')){ if (i === -1) w.games.push(g); else w.games.splice(i, 1); welRerender(`[data-wgame="${CSS.escape(g)}"]`); return; }
+    if (i === -1){ w.games.push(g); w.gopen = g; announce(`${g} ticked. Its armies are below.`); }
+    else if (w.gopen === g){ w.gopen = ''; announce(`${g} folded.`); }
+    else { w.gopen = g; }
+    welRerender(`[data-wgame="${CSS.escape(g)}"]`); return; }
+  if (t.dataset.wfac != null){ const g = t.dataset.g, f = t.dataset.wfac; w.facs[g] = arr(w.facs[g]); const i = w.facs[g].indexOf(f); if (i === -1){ w.facs[g].push(f); if (w.games.indexOf(g) === -1){ w.games.push(g); announce(`${f} ticked, and ${g} added.`); } } else w.facs[g].splice(i, 1);
     welRerender(`[data-wfac="${CSS.escape(f)}"][data-g="${CSS.escape(g)}"]`); return; }
   if (t.dataset.wmfac != null){ w.fac = t.dataset.wmfac; w.q = ''; w.ex = ''; welRerender(`[data-wmfac="${CSS.escape(w.fac)}"]`); return; }
   if (t.hasAttribute('data-wlegends')){ w.legends[w.fac] = !w.legends[w.fac]; welRerender('[data-wlegends]'); return; }
   if (t.dataset.wunit != null){ const [g, f] = w.fac.split('|'), name = t.dataset.wunit, key = g + '|' + f + '|' + name;
     if (w.units[key]){ delete w.units[key]; if (w.ex === key) w.ex = ''; welRerender(`[data-wunit="${CSS.escape(name)}"]`); announce(`${name} unticked.`); }
     else { const st = data.stages.indexOf(w.last) !== -1 ? w.last : data.stages[0];
-      w.units[key] = { game:g, fac:f, name, qty:1, stage:st }; w.ex = key; welRerender('#wQty'); const q = $('#wQty'); if (q) q.select(); announce(`${name} ticked: 1, ${st}. Change the number or stage, or tick the next one.`); }
+      w.units[key] = { game:g, fac:f, name, qty:1, stage:st }; w.ex = key; welRerender(`[data-wunit="${CSS.escape(name)}"]`); announce(`${name} ticked: 1, ${st}. Change the number or stage, or tick the next one.`); }
     return; }
-  if (t.dataset.wedit != null){ w.ex = t.dataset.wedit; welRerender('#wQty'); return; }
+  if (t.dataset.wedit != null){ w.ex = t.dataset.wedit; welRerender('.wstrip [aria-checked="true"]'); return; }
   const u = w.units[w.ex];
   if (t.dataset.wqty != null){ if (!u) return; u.qty = Math.max(1, Math.min(9999, (Number(u.qty) || 1) + Number(t.dataset.wqty)));
     if (u.split){ const bi = data.stages.indexOf(u.stage), others = u.split.reduce((a, k, i) => a + (i === bi ? 0 : k), 0); if (u.qty < others) u.qty = others; welRebal(u); }
@@ -7064,7 +7148,7 @@ document.addEventListener('click', e => {
     if (u.split){ const bi = data.stages.indexOf(u.stage);
       if (i === bi){ u.cur = null; welRerender(`[data-wstage="${CSS.escape(t.dataset.wstage)}"]`); return; }
       if (!u.split[i]){ if (u.split[bi] > 0) u.split[i] = 1; else { u.split[i] = 1; u.qty += 1; } }
-      u.cur = i; welRebal(u); welRerender('#wSq'); const q = $('#wSq'); if (q) q.select(); announce(`How many at ${t.dataset.wstage}?`); return; }
+      u.cur = i; welRebal(u); welRerender('[data-wsq="1"]'); announce(`How many at ${t.dataset.wstage}?`); return; }
     u.stage = t.dataset.wstage; w.last = u.stage; const name = u.name; w.ex = '';
     welRerender(`[data-wunit="${CSS.escape(name)}"]`); announce(`${name}: ${u.qty}, ${u.stage}.`); return; }
 });
@@ -7080,6 +7164,7 @@ document.addEventListener('input', e => {
     welSave(); return; }
   if (e.target.dataset && e.target.dataset.wqtyin){ const u = state.wel.units[e.target.dataset.wqtyin]; if (u){ u.qty = Math.max(1, Math.min(9999, Math.round(Number(e.target.value)) || 1)); welSave(); } }
 });
+document.addEventListener('focusin', e => { if (state.wel && (e.target.id === 'wQty' || e.target.id === 'wSq')) { try { e.target.select(); } catch (er){} } });
 document.addEventListener('keydown', e => {
   if (!state.wel || e.key !== 'Enter') return;
   const id = e.target.id;
@@ -7102,7 +7187,7 @@ document.addEventListener('keydown', e => {
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v050';
+const APP_VERSION = 'v052';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -10819,6 +10904,7 @@ function render(){
   const plusB = document.getElementById('plusBtn');
   if (plusB) plusB.hidden = !!state.setup.step || !!state.wel;
   { const nv = document.querySelector('nav.tabs'); if (nv) nv.hidden = !!state.wel; }
+  { const hb = document.querySelector('header.bar'); if (hb) hb.classList.toggle('welmode', !!state.wel); }   /* v052: no + or ··· during the welcome */
   closePlus(false);
   refreshFilterSheet();
   hydratePhotos();
