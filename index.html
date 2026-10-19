@@ -7102,7 +7102,7 @@ document.addEventListener('keydown', e => {
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v049';
+const APP_VERSION = 'v050';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -8795,7 +8795,10 @@ function startSetup(only){
 let setupChecked = false;
 function maybeStartSetup(){
   if (setupChecked || state.setup.step) return;
-  if (!syncState.firstPullDone) return;
+  if (authGate !== 'in') return;
+  /* Signed in: wait until the account's data has arrived. A guest has nothing to wait for
+     (v049 fix: this used to wait for ever, so guests were never offered the quick start). */
+  if (!guestMode && !syncState.firstPullDone) return;
   setupChecked = true;
   /* v049: after signing in (or choosing to try without an account), everyone is offered the
      quick start once per account, including people who already have a collection. */
