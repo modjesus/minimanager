@@ -6846,11 +6846,15 @@ const welHead = (eb, title, sub) => `<p class="eb">${eb}</p><h2 class="welh disp
 const welFoot = (label, opts) => `<div class="welfoot">${(opts || {}).back !== false ? `<button class="btn ghost" data-wel="back">Back</button>` : ''}<button class="btn gold" data-wel="next">${label}</button></div>`;
 
 function welIntro(){
-  return welHead('Welcome to the Guild', 'Let&rsquo;s fill your shelf', 'About two minutes. Tick, don&rsquo;t type. Every step can be skipped and finished later.') +
+  const has = data.minis.length || data.paints.length;
+  return (has
+    ? welHead('Quick start', 'Add the rest in minutes', 'Tick your paints, games and models instead of typing them. Everything already in MiniManager stays as it is. Every step can be skipped.')
+    : welHead('Welcome to the Guild', 'Let&rsquo;s fill your shelf', 'About two minutes. Tick, don&rsquo;t type. Every step can be skipped and finished later.')) +
     `<ol class="welcards"><li><span class="n">1</span><span><b>Your paints</b><small>Pick your brands, tick what you own</small></span></li>
       <li><span class="n">2</span><span><b>Your games and armies</b><small>Tick the games you play and your factions</small></span></li>
       <li><span class="n">3</span><span><b>Your models</b><small>Tick units; set how many and their stage on the same list</small></span></li></ol>
-    <div class="welfoot col"><button class="btn gold" data-wel="next">Start</button><button class="btn ghost" data-wel="skipall">I&rsquo;ll explore on my own</button></div>`;
+    <div class="welfoot col"><button class="btn gold" data-wel="next">${has ? 'Quick start' : 'Start'}</button><button class="btn ghost" data-wel="skipall">${has ? 'Not now' : 'I&rsquo;ll explore on my own'}</button></div>
+    <p class="small muted" style="text-align:center;margin-top:.75rem">You can open this again any time: &middot;&middot;&middot; then Set up my collection.</p>`;
 }
 function welBrands(){
   const w = state.wel, cat = catalogue(), count = {};
@@ -7098,7 +7102,7 @@ document.addEventListener('keydown', e => {
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v048';
+const APP_VERSION = 'v049';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -8793,11 +8797,11 @@ function maybeStartSetup(){
   if (setupChecked || state.setup.step) return;
   if (!syncState.firstPullDone) return;
   setupChecked = true;
-  if (data.settings.setupDone) return;
-  if (data.minis.length || data.paints.length){
-    data.settings.setupDone = true; save(); return;
-  }
-  startWelcome();   /* v048: the tick-through welcome */
+  /* v049: after signing in (or choosing to try without an account), everyone is offered the
+     quick start once per account, including people who already have a collection. */
+  if (data.settings.welOffered) return;
+  data.settings.welOffered = true; save();
+  startWelcome();
 }
 
 function endSetup(go){
@@ -13343,7 +13347,7 @@ $('#moreBtn').addEventListener('click', () => {
      <div class="row wrapm" style="margin-top:.625rem">
        <button class="btn ghost sm" data-act="editStages">Your painting stages</button></div>
      <hr><h3 style="font-size:.9375rem">Getting started</h3>
-     <p class="small muted">Fill an empty collection quickly, a game system and an army at a time.</p>
+     <p class="small muted">Tick your paints, games and models instead of typing them. Anything already here stays as it is.</p>
      <div class="row wrapm" style="margin-top:.625rem">
        <button class="btn ghost sm" data-act="setupStart">Set up my collection</button></div>
      <hr><h3 style="font-size:.9375rem">Your data</h3>
