@@ -2115,7 +2115,7 @@ html:has(.welwrap){scroll-padding-bottom:7rem}
 .welsum div{display:flex;justify-content:space-between;align-items:baseline;padding:.625rem 0;border-bottom:1px solid var(--border)}
 .welwrap .chip[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:var(--ink-navy);font-weight:600}
 .welwrap .chip[aria-pressed="true"]::before{content:"\2713";margin-right:.3rem}
-.welwrap .chip[aria-pressed="true"] .n{color:var(--ink-navy);opacity:.75}
+.welwrap .chip[aria-pressed="true"] .n{color:var(--ink-navy)}
 .wtile .sw{width:100%!important;flex:none}
 .wtile .tick{width:1.5rem;height:1.5rem}.wtile .tick svg{width:1rem;height:1rem}
 .welh:focus{outline:none}
@@ -2183,16 +2183,43 @@ html:has(.welwrap){scroll-padding-bottom:7rem}
 .wres b{display:block;font-weight:600}.wres small{display:block;color:var(--text-2)}
 .wres button:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 @media (prefers-reduced-motion:reduce){.wgame:active{transform:none}}
+/* v058: five tabs: labels stay whole on narrow phones */
+@media(max-width:380px){nav.tabs button{padding-left:0;padding-right:0}nav.tabs .tl{font-size:.75rem;letter-spacing:-.02em}nav.tabs button[aria-current="page"] .tl{font-weight:600;letter-spacing:-.035em}}
+/* v060: audit fixes */
+.segbar button[aria-current="page"]{background:linear-gradient(180deg,#D3B676,#B8964F);color:var(--ink-navy)}
+/* labels wrap instead of being cut off at large text */
+.ctnav button,.hlview button,.hlfilt button,.sthead .btn,.sttop .btn{white-space:normal;line-height:1.15;overflow-wrap:anywhere;hyphens:auto}
+nav.tabs .tl{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.1;overflow-wrap:anywhere;text-align:center}
+.hlchips li{white-space:normal}.hlchips .user-text{overflow:visible;text-overflow:clip;white-space:normal;overflow-wrap:anywhere}
+#dlg .wrapm .btn{white-space:normal;height:auto;overflow:visible;text-overflow:clip;line-height:1.2;overflow-wrap:anywhere;max-width:100%;min-width:0}
+/* Highlights: only the tool tabs are gold; the view and filter are quiet chips */
+.hlview,.hlfilt{background:none;border:0;padding:0;gap:.375rem}
+.segbar.hlview button,.segbar.hlfilt button{border:1px solid var(--border);border-radius:999px;min-height:var(--tap);font-size:.75rem;letter-spacing:.04em}
+.segbar.hlview button[aria-pressed="true"],.segbar.hlfilt button[aria-pressed="true"]{background:none;border-color:var(--gold);color:var(--gold-ink)}
+/* the scheme name has its own line */
+.sthead{flex-wrap:wrap}.sthead .schname{flex:1 1 100%}
+.sthead .stheadbtns{display:flex;gap:.5rem;flex:1 1 100%;justify-content:flex-end;margin-top:-.25rem}
+/* an add list with nothing ticked: the button looks inactive */
+.welfoot .btn.wempty{flex:1 1 auto;border-style:dashed;background:var(--surface);color:var(--text-2)}
+/* the Add bar is early in the reading order but stays at the bottom of the screen */
+.welfoot.wfloat{position:fixed;left:50%;transform:translateX(-50%);width:min(calc(100% - 2rem),40rem);bottom:max(.75rem,env(safe-area-inset-bottom));margin:0}
+.welwrap:has(.wfloat){padding-bottom:6rem}
+/* v059: the + menu's three big choices */
+.pmbig{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.5rem;margin:.25rem 0 .5rem}
+#plusMenu .pmbig button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.375rem;padding:.875rem .25rem;border:1px solid var(--gold-line);border-radius:12px;background:#132f4a;color:var(--gold-ink);font-weight:600;font-size:.875rem;min-height:5rem;width:auto}
+.pmnote{margin:0 .25rem .375rem;font-size:.75rem;color:var(--text-2)}
+.moreack summary{cursor:pointer;min-height:var(--tap);display:flex;align-items:center}
+.colacts .n{background:var(--gold);color:var(--ink-navy);border-radius:999px;padding:0 .4rem;font-size:.75rem;margin-left:.25rem}
 /* v057: colour studio */
 .sthead{display:flex;gap:.5rem;align-items:center;margin:0 0 .5rem}.sthead .schname{font-size:1.25rem;padding:.25rem .5rem}.sthead .schname{flex:1;min-width:0;margin:0}
 .studio{display:grid;grid-template-columns:minmax(0,1fr);gap:.5rem;margin-bottom:1rem}.stview{min-width:0}
 .stview{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:radial-gradient(ellipse at 50% 50%,#234253 0,#0a1c2a 74%)}
-.sttop{display:flex;justify-content:space-between;align-items:baseline;padding:.375rem .75rem 0}.sttop .display{font-size:1rem}
+.sttop{display:flex;justify-content:space-between;align-items:center;padding:.375rem .5rem 0}.sttop .btn{min-height:36px;padding:.25rem .625rem;font-size:.8125rem}.sttop .display{font-size:1rem}
 .ststage{height:285px;display:flex;align-items:center;justify-content:center;position:relative}
 .stcanvas{height:100%;width:auto;max-width:100%;cursor:pointer;opacity:0;transition:opacity .2s}.stview.ready .stcanvas{opacity:1}
 .stfail{display:none;position:absolute;inset:auto 1rem 1rem}.stview.failed .stfail{display:block}
 .stview.big .ststage{height:min(58dvh,640px)}
-@media(max-height:900px){.stview:not(.big) .ststage{height:228px}}
+@media(max-height:900px){.stview:not(.big) .ststage{height:214px}}
 @media(max-height:730px){.stview:not(.big) .ststage{height:190px}}
 @media(min-width:700px){.stview:not(.big) .ststage{height:420px}}
 .stctl{display:flex;justify-content:space-between;align-items:center;gap:.5rem;padding:.25rem .5rem;border-top:1px solid var(--border)}
@@ -2203,7 +2230,7 @@ html:has(.welwrap){scroll-padding-bottom:7rem}
 .sthd{display:flex;justify-content:space-between;align-items:baseline;font-weight:600;font-size:.8125rem}
 .stzones{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.375rem}
 .stzone{display:flex;flex-direction:column;align-items:center;gap:.15rem;padding:.3rem .25rem;min-height:5rem;background:#10283b;border:1px solid var(--border);border-radius:8px;color:var(--text);font:inherit;cursor:pointer;min-width:0}
-.stzone:hover{border-color:var(--gold)}.stzone.miss .stdot{outline:2px dashed var(--gold-ink);outline-offset:2px}
+@media(hover:hover){.stzone:hover{border-color:var(--gold)}}.stzone.miss .stdot{outline:2px dashed var(--gold-ink);outline-offset:2px}
 .stdot{display:inline-block;flex:none;width:1.875rem;height:1.875rem;border-radius:7px;border:1px solid #7b8c96;position:relative}.stdot.sm{width:1.5rem;height:1.5rem}
 .stdot.metal{background-image:linear-gradient(135deg,#0005 0%,#ffffff16 26%,#ffffffa8 37%,#ffffff16 49%,#0004 68%,#ffffff40 95%)}
 .stlock{position:absolute;right:-6px;bottom:-5px;background:#0c2233;color:var(--gold);border:1px solid var(--gold);border-radius:50%;font-size:.5rem;font-weight:700;min-width:15px;line-height:14px;text-align:center}
@@ -2348,6 +2375,7 @@ html:has(.welwrap){scroll-padding-bottom:7rem}
   <button data-tab="home" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16M6 10v9M18 10v9M9 10V6.5a3 3 0 0 1 6 0V10"/></svg><span class="tl">Workbench</span></button>
   <button data-tab="coll"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20h14M7 20v-3.5a5 5 0 0 1 10 0V20M12 11.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/></svg><span class="tl">Collection</span></button>
   <button data-tab="paints"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6v3H9zM7 9.5A2.5 2.5 0 0 1 9.5 7h5A2.5 2.5 0 0 1 17 9.5V18a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2Z"/><path d="M7 13h10"/></svg><span class="tl">Paints</span></button>
+  <button data-tab="colour"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.6-.9 1.2-1.8-.5-1 .2-2.2 1.3-2.2H17a4 4 0 0 0 4-4c0-5.5-4-10-9-10Z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="10" cy="7" r="1.2"/><circle cx="15" cy="7.5" r="1.2"/></svg><span class="tl">Colour</span></button>
   <button data-tab="recipes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6.5C10 5 7.5 4.5 4 5v13c3.5-.5 6 0 8 1.5 2-1.5 4.5-2 8-1.5V5c-3.5-.5-6 0-8 1.5ZM12 6.5v13"/></svg><span class="tl">Recipes</span></button>
 </nav>
 
@@ -6339,7 +6367,7 @@ function valueNotes(sc){
 
 /* --- screens --------------------------------------------------------------- */
 function screenSchemes(){
-  let h = backBtn('paints', 'Paints') + colourToolsNav('planner');
+  let h = colourToolsNav('planner');
   const list = schemesList();
   h += `<div class="row spread"><h2 class="display" style="font-size:1.5rem;margin:0">Colour schemes</h2></div>
     <p class="muted" style="margin:.25rem 0 .75rem">Plan the colours for a unit or an army, see them together, and find the paints.</p>
@@ -6437,7 +6465,7 @@ function newScheme(from, startHex, paintId){
   studioReady(sc); stSuggest(sc); ST_HIST[sc.id] = [];
   if (paintId && paintOf(paintId)) stSetPaint(sc, 0, { mine:paintOf(paintId) });
   setSchemes(schemesList().concat(sc)); save();
-  state.schemeId = sc.id; state.sub = 'scheme'; state.tab = 'paints'; state.openPaint = null; state.schAlt = null;
+  state.schemeId = sc.id; state.sub = 'scheme'; state.tab = 'colour'; state.openPaint = null; state.schAlt = null;
   return sc;
 }
 /* Fill roles from the starting colour and harmony. Roles with a chosen paint are left alone. */
@@ -6582,7 +6610,7 @@ document.addEventListener('click', e => {
     render(); window.scrollTo(0, 0); const n = $('#schName'); if (n){ n.focus(); n.select(); }
     if (t.dataset.from === 'shelf') announce('Only paints you have will be suggested.');
     return; }
-  if (a === 'open'){ state.schemeId = t.dataset.id; state.sub = 'scheme'; state.tab = 'paints'; state.openPaint = null; state.openMini = null; state.schAlt = null; render(); window.scrollTo(0, 0); return; }
+  if (a === 'open'){ state.schemeId = t.dataset.id; state.sub = 'scheme'; state.tab = 'colour'; state.openPaint = null; state.openMini = null; state.schAlt = null; render(); window.scrollTo(0, 0); return; }
   if (a === 'list'){ state.sub = 'planner'; state.schemeId = null; render(); window.scrollTo(0, 0); return; }
   if (!sc) return;
   if (a === 'grey'){ state.schGrey = !!t.dataset.v; schSave(sc); const f = document.querySelector(`[data-sch="grey"][data-v="${t.dataset.v}"]`); if (f) f.focus({ preventScroll:true }); return; }
@@ -6650,7 +6678,7 @@ document.addEventListener('change', e => {
 
 /* --- your shelf -------------------------------------------------------------- */
 function screenShelfColours(){
-  let h = backBtn('paints', 'Paints') + colourToolsNav('shelf');
+  let h = colourToolsNav('shelf');
   const own = data.paints.filter(p => OWNED_STOCK(p.stock) && validHex(p.hex));
   h += `<h2 class="display" style="font-size:1.5rem;margin:0">Your shelf by colour</h2>
     <p class="muted" style="margin:.25rem 0 .75rem">The paints you have, grouped by the maker&rsquo;s colour. Families are estimates.</p>`;
@@ -6848,7 +6876,7 @@ function hlCard(S, status){
 }
 function screenHighlights(){
   const v = state.hlv === 'all' ? 'all' : 'mine';
-  let h = backBtn('paints', 'Paints') + colourToolsNav('hl');
+  let h = colourToolsNav('hl');
   h += `<h2 class="display" style="font-size:1.5rem;margin:0">Highlight systems</h2>
     <p class="muted" style="margin:.25rem 0 .75rem">${v === 'mine' ? 'A shade, base and highlight for each paint you own, from your paints first.' : 'A shade, base and highlight for every base colour. Ticks are paints you have.'}</p>
     <div class="segbar hlview" role="group" aria-label="View">${[['mine', 'My paints'], ['all', 'All colours']].map(([k, l]) => `<button data-act="hlView" data-v="${k}" aria-pressed="${v === k}">${l}</button>`).join('')}</div>`;
@@ -7070,7 +7098,7 @@ function stShuffle(sc){
   if (locks.length >= 8) return 'Every part is locked. Unlock one to shuffle.';
   const pool = stPool(sc).map(x => Object.assign(x, stKind(x)));
   const inPool = r => pool.some(x => stSame(x, r));
-  if (sc.owned && locks.some(m => !inPool(sc.roles[stMatIndex(m)]))) return 'A locked paint is not on your shelf. Unlock it, or choose All paints under Paints.';
+  if (sc.owned && locks.some(m => !inPool(sc.roles[stMatIndex(m)]))) return 'A locked paint is not on your shelf. Unlock it, or choose All paints under Which paints.';
   const colours = pool.filter(x => x.k === 'colour' && x.s >= .2 && x.l >= .15 && x.l <= .8);
   const lockedA = locks.includes('armour'), lockedC = locks.includes('cloth');
   const curA = roleChoice(sc, sc.roles[0]), curC = roleChoice(sc, sc.roles[1]);
@@ -7080,14 +7108,14 @@ function stShuffle(sc){
   else if (lockedA || lockedC){ const fix = lockedA ? curA : curC, fh = hueOf(fix);
     colours.forEach(x => { if (stGap(x.h, fh) >= 145) pairs.push(lockedA ? [fix, x] : [x, fix]); }); }
   else colours.forEach(a => colours.forEach(b => { if (a !== b && stGap(a.h, b.h) >= 145) pairs.push([a, b]); }));
-  if (!pairs.length) return lockedA || lockedC ? 'The locked colour has no opposite colour in these paints. Unlock it, or choose All paints under Paints.'
-    : sc.owned ? 'Your shelf needs two coloured paints that are opposite each other on the colour wheel. Choose All paints under Paints to use the catalogue.' : 'No opposite colours found for this brand.';
+  if (!pairs.length) return lockedA || lockedC ? 'The locked colour has no opposite colour in these paints. Unlock it, or choose All paints under Which paints.'
+    : sc.owned ? 'Your shelf needs two coloured paints that are opposite each other on the colour wheel. Choose All paints under Which paints to use the catalogue.' : 'No opposite colours found for this brand.';
   const metals = pool.filter(x => x.k === 'metal'), earth = pool.filter(x => x.k === 'earth'), neutral = pool.filter(x => x.k === 'neutral').sort((x, y) => x.l - y.l);
   const need = [];
   if (!metals.length && !(locks.includes('trim') && locks.includes('steel'))) need.push('a metallic');
   if (!earth.length && !(locks.includes('leather') && locks.includes('ground'))) need.push('a brown');
   if (!neutral.length && !(locks.includes('joints') && locks.includes('rim'))) need.push('a black or dark grey');
-  if (need.length) return `${sc.owned ? 'Your shelf' : 'This brand'} also needs ${need.join(', ').replace(/, ([^,]*)$/, ' and $1')} to finish a scheme.${sc.owned ? ' Or choose All paints under Paints.' : ''}`;
+  if (need.length) return `${sc.owned ? 'Your shelf' : 'This brand'} also needs ${need.join(', ').replace(/, ([^,]*)$/, ' and $1')} to finish a scheme.${sc.owned ? ' Or choose All paints under Which paints.' : ''}`;
   const last = ST_LAST[sc.id], fresh = pairs.filter(([a, b]) => stKey(a) + '|' + stKey(b) !== last);
   const [main, accent] = stRand(fresh.length ? fresh : pairs);
   const mh = hueOf(main), cool = mh > 130 && mh < 290;
@@ -7096,7 +7124,7 @@ function stShuffle(sc){
   const steel = (coolM.length ? coolM : metals).slice().sort((x, y) => Math.abs(x.l - .6) - Math.abs(y.l - .6))[0];
   const leather = stRand(earth), groundPool = earth.filter(x => x !== leather), ground = stRand(groundPool.length ? groundPool : earth);
   const dark = neutral[0], rim = neutral[1] && neutral[1].l < .3 ? neutral[1] : neutral[0];
-  stRemember(sc);
+  stRemember(sc); delete sc.firstAuto;
   const next = [main, accent, trim, steel, leather, dark, ground, rim];
   sc.roles.forEach((r, i) => { if (!locks.includes(r.mat) && next[i]) stSetPaint(sc, i, next[i]); });
   ST_LAST[sc.id] = stKey(main) + '|' + stKey(accent);
@@ -7117,7 +7145,7 @@ function stSuggest(sc){
 function studioViewer(big){
   const m = state.stMode || 'colour';
   return `<section class="stview${big ? ' big' : ''}" aria-label="Miniature preview">
-    <div class="sttop"><span class="display">Guild Sentinel</span><span class="small muted">Fixed view</span></div>
+    ${big ? '<div class="sttop"><span class="display">Guild Sentinel</span><span class="small muted">Fixed view</span></div>' : '<div class="sttop"><button class="btn ghost sm" data-sch="list">All schemes</button><button class="btn ghost sm" data-st="paints">Which paints</button></div>'}
     <div class="ststage"><canvas class="stcanvas" width="${ST_W}" height="${ST_H}" role="img" aria-label="The miniature in this scheme's paints. Tap a part to choose its paint."></canvas><p class="stfail small muted">The preview could not be drawn on this device.</p></div>
     <div class="stctl"><div class="stmodes" role="group" aria-label="Preview">${[['colour', 'Colour'], ['values', 'Values']].concat(big ? [['clay', 'Unpainted']] : []).map(([k, l]) => `<button data-st="mode" data-v="${k}" aria-pressed="${m === k}">${l}</button>`).join('')}</div>
       ${big ? '' : '<button data-st="big" class="stbigbtn">Enlarge <span aria-hidden="true">&nearr;</span></button>'}</div></section>`;
@@ -7133,18 +7161,18 @@ function studioSwatch(sc, r, i){
 function screenStudio(sc){
   const msg = state.stMsg && state.stMsg.id === sc.id ? state.stMsg.text : '';
   const P = state.schPhoto && state.schPhoto.id === sc.id ? state.schPhoto : null;
-  let h = `<button class="backlink" data-sch="list"><span aria-hidden="true">&lsaquo;</span> Colour schemes</button>
+  let h = colourToolsNav('scheme') + `
     <div class="sthead"><label for="schName" class="sr-only">Scheme name</label><input id="schName" class="schname display" value="${esc(sc.name)}" data-schf="name">
-      <button class="btn ghost sm" data-st="paints">Paints</button></div>`;
+</div>`;
   h += `<div class="studio">${studioViewer(false)}`;
   if ((state.stMode || 'colour') === 'values'){ const n = valueNotes(sc);
     h += n.length ? `<ul class="schwarn">${n.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : `<p class="small muted" style="margin:.375rem 0 0">Armour, cloth and trim are clearly lighter or darker than each other, so they stay distinct.</p>`; }
   h += `<div class="stshuf"><button class="btn gold stshufbtn" data-st="shuffle"><svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path d="M3 6h3c5 0 6 12 11 12h4m-4-4 4 4-4 4M3 18h3c2 0 4-3 6-6s3-6 5-6h4m-4-4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Shuffle scheme</button>
       <button class="btn ghost" data-st="undo"${(ST_HIST[sc.id] || []).length ? '' : ' disabled'}>Undo</button></div>
     <p class="stmsg small" role="status">${esc(msg)}</p>
-    <div class="sthd"><span class="small muted stharm">${sc.stHarm ? esc(sc.stHarm) : `Shuffles ${sc.owned ? 'your paints' : esc(stBrand(sc)) + ' paints'}`}</span><span class="small muted">Tap a part to change it</span></div>
+    <div class="sthd"><span class="small muted stharm">${sc.firstAuto ? 'A first scheme. Shuffle to try your own paints.' : sc.stHarm ? esc(sc.stHarm) : `Shuffles ${sc.owned ? 'your paints' : esc(stBrand(sc)) + ' paints'}`}</span>${sc.firstAuto ? '' : '<span class="small muted">Tap a part to change it</span>'}</div>
     <div class="stzones">${sc.roles.map((r, i) => studioSwatch(sc, r, i)).join('')}</div>
-    <p class="small muted stnote">Screen colours are estimates from makers&rsquo; published colours, not real paint.</p></div>`;
+    <p class="small muted stnote">One fixed view. Screen colours are estimates from makers&rsquo; published colours, not real paint.</p></div>`;
   /* start from a colour, a paint or a photo */
   const start = sc.start || { hex:sc.roles[0].hex };
   const neutral = isNeutral(start.hex);
@@ -7193,7 +7221,7 @@ function stResults(sc, i, q){
     catalogue().rows.forEach((row, ci) => { if (list.length > 60 || seen.has(row.n + '|' + row.b) || NOT_COLOUR.test(row.rg || '') || !validHex(row.hex)) return;
       if ((row.n + ' ' + row.b).toLowerCase().includes(q)) list.push({ row, ci }); });
   }
-  if (!list.length) return `<p class="small muted">${sc.owned ? 'No paint on your shelf matches. Choose All paints under Paints to search the catalogue.' : 'No paint matches.'}</p>`;
+  if (!list.length) return `<p class="small muted">${sc.owned ? 'No paint on your shelf matches. Choose All paints under Which paints to search the catalogue.' : 'No paint matches.'}</p>`;
   return `${q ? '' : `<p class="small muted" style="margin:0 0 .375rem">Closest to the current colour</p>`}<ul class="stres">${list.slice(0, 40).map(x => { const on = stSame(x, r);
     const f = finOf(x.mine || { name:x.row.n, brand:x.row.b, range:x.row.rg }) === 'metal', st = x.mine ? stockStat(x.mine) : 'Missing';
     return `<li><button data-st="use" data-i="${i}" ${x.mine ? `data-pid="${esc(x.mine.id)}"` : `data-ci="${x.ci}"`} aria-pressed="${!!on}">
@@ -7208,13 +7236,13 @@ function dlgStudioPaint(i){
     <p class="small muted" style="margin:.25rem 0 .5rem">${lock ? 'Locked: Shuffle keeps this paint.' : 'Lock it to keep this paint when you shuffle.'}</p>
     <label for="stQ" class="sr-only">Search paints</label><input type="search" id="stQ" placeholder="Search ${sc.owned ? 'your paints' : 'paints'}" autocomplete="off">
     <div id="stRes" class="stresbox">${stResults(sc, i, '')}</div>
-    <p class="small muted">${sc.owned ? 'Your paints only. Change this under Paints.' : 'All paints. Change this under Paints.'}</p>`, null, null, 'Done');
+    <p class="small muted">${sc.owned ? 'Your paints only. Change this under Which paints.' : 'All paints. Change this under Which paints.'}</p>`, null, null, 'Done');
   $('#stQ').addEventListener('input', e => { $('#stRes').innerHTML = stResults(sc, i, e.target.value); });
 }
 function dlgStudioPaints(){
   const sc = schemeOf(state.schemeId); if (!sc) return;
   const brands = [...new Set(catalogue().rows.map(r => r.b))].sort((a, b) => a.localeCompare(b)), mine = hlBrands();
-  openDialog('Paints', `<fieldset class="stfs"><legend>Choose paints from</legend>
+  openDialog('Which paints', `<fieldset class="stfs"><legend>Choose paints from</legend>
       <label class="checkrow"><input type="radio" name="stpool" value="mine" data-st="pool"${sc.owned ? ' checked' : ''}><span class="ctext">My paints <span class="small muted">(${data.paints.filter(p => OWNED_STOCK(p.stock)).length} on your shelf)</span></span></label>
       <label class="checkrow"><input type="radio" name="stpool" value="all" data-st="pool"${sc.owned ? '' : ' checked'}><span class="ctext">All paints</span></label></fieldset>
     <label for="stBrandSel">Brand for All paints</label><select id="stBrandSel" data-st="brand"><option value="">${esc(stBrand(Object.assign({}, sc, { brand:'' })))} (the brand you use most)</option>${(mine.length ? `<optgroup label="Brands you use">${mine.sort().map(b => `<option${sc.brand === b ? ' selected' : ''}>${esc(b)}</option>`).join('')}</optgroup><optgroup label="All brands">` : '') + brands.filter(b => !mine.includes(b)).map(b => `<option${sc.brand === b ? ' selected' : ''}>${esc(b)}</option>`).join('') + (mine.length ? '</optgroup>' : '')}</select>
@@ -7260,7 +7288,7 @@ document.addEventListener('click', e => {
     announce(sc.roles[i].role + (on ? ' locked.' : ' unlocked.')); return; }
   if (a === 'use'){ const item = t.dataset.pid ? { mine:paintOf(t.dataset.pid) } : { row:catalogue().rows[+t.dataset.ci], ci:+t.dataset.ci };
     if (!item.mine && !item.row) return;
-    stRemember(sc); stSetPaint(sc, i, item); sc.stHarm = ''; state.stMsg = null; if (state.stMode === 'clay') state.stMode = 'colour';
+    stRemember(sc); stSetPaint(sc, i, item); sc.stHarm = ''; delete sc.firstAuto; state.stMsg = null; if (state.stMode === 'clay') state.stMode = 'colour';
     $('#dlg').close(); schSave(sc); keep(`[data-st="mat"][data-i="${i}"]`); announce(`${sc.roles[i].role}: ${choiceName(item)}.`); return; }
 });
 document.addEventListener('change', e => {
@@ -7477,13 +7505,49 @@ const BRAND_LABEL = { Duncan:'Duncan (Two Thin Coats)', Monument:'Monument (Pro 
 const WSTEPS = 5;   /* v052: games and armies share one step */
 const TOP_GAMES = ['Warhammer 40,000', 'Warhammer: Age of Sigmar', 'Kill Team', 'Warhammer: The Horus Heresy', 'Warcry', 'Blood Bowl'];
 const welBlank = () => ({ step:0, brands:[], brand:'', ropen:{}, picked:{}, games:[], facs:{}, fac:'', units:{}, ex:'', q:'', more:false, legends:{}, made:null, gopen:'', gmore:false, fall:{} });
-function welSave(){ try { localStorage.setItem(WEL_KEY, JSON.stringify(state.wel)); } catch (e){} }
+function welSave(){ if (state.wel && state.wel.mode) return; try { localStorage.setItem(WEL_KEY, JSON.stringify(state.wel)); } catch (e){} }
 function welLoad(){ try { const w = JSON.parse(localStorage.getItem(WEL_KEY) || 'null'); return w && typeof w === 'object' ? Object.assign(welBlank(), w) : null; } catch (e){ return null; } }
 function startWelcome(fresh){
   state.wel = (!fresh && welLoad()) || welBlank();
   if (state.wel.step >= WSTEPS) state.wel = welBlank();
   state.setup.step = 0;
   welGo(state.wel.step);
+}
+/* v059: adding later uses the same tick lists. mode 'paints' starts on your
+   brands; mode 'models' starts on your armies (the one you are looking at first).
+   Nothing is saved until Add; then an Undo bar, and back to where you were. */
+function startAdd(mode){
+  const w = welBlank(); w.mode = mode;
+  w.ret = { tab:state.tab, sub:state.sub, openArmy:state.openArmy, openGame:state.openGame, openMini:state.openMini, openPaint:state.openPaint };
+  if (mode === 'paints'){
+    const cnt = {}, cat = catalogue(); data.paints.forEach(p => { if (p.brand && OWNED_STOCK(p.stock)) cnt[p.brand] = (cnt[p.brand] || 0) + 1; });
+    w.brands = Object.keys(cnt).filter(b => cat.brands.indexOf(b) !== -1).sort((a, b) => cnt[b] - cnt[a]);
+    w.step = w.brands.length ? 2 : 1;
+  } else {
+    const recent = f => Math.max(0, ...data.minis.filter(m => m.fac === f.id).map(m => m.updated || 0));
+    const facs = arr(data.factions).slice().sort((a, b) => recent(b) - recent(a));
+    facs.forEach(f => { const sy = arr(data.systems).find(x => x.id === f.sys); if (!sy) return;
+      if (w.games.indexOf(sy.name) === -1) w.games.push(sy.name); w.facs[sy.name] = arr(w.facs[sy.name]).concat(w.facs[sy.name] && w.facs[sy.name].indexOf(f.name) !== -1 ? [] : [f.name]); });
+    let here = state.tab === 'coll' && state.openArmy ? state.openArmy.split('|')[1] : (state.openMini && (data.minis.find(m => m.id === state.openMini) || {}).fac);
+    if (!here && state.tab === 'coll' && state.openGame){ const f0 = facs.find(f => f.sys === state.openGame); if (f0) here = f0.id; }
+    const hf = here && arr(data.factions).find(f => f.id === here), hs = hf && arr(data.systems).find(x => x.id === hf.sys);
+    if (hf && hs) w.fac = hs.name + '|' + hf.name;
+    state.wel = w;
+    w.step = welFacList().length ? 4 : 3;
+  }
+  w.start = w.step; state.wel = w; state.setup.step = 0;
+  welGo(w.step);
+}
+function welAddEnd(made){
+  const w = state.wel, r = (w && w.ret) || {};
+  state.wel = null;
+  Object.assign(state, { tab:r.tab || 'home', sub:r.sub || null, openArmy:r.openArmy || null, openGame:r.openGame || null, openMini:r.openMini || null, openPaint:r.openPaint || null });
+  if (state.tab === 'coll' && !state.openArmy && made && made.minis.length){ const m = data.minis.find(x => x.id === made.minis[0]); if (m){ state.openGame = m.sys || NO_SYS_ID; state.openArmy = armyKey(m); } }
+  render(); window.scrollTo(0, 0);
+  if (made && (made.paints.length || made.minis.length)){
+    const msg = made.paints.length ? `${made.paints.length} paint${made.paints.length === 1 ? '' : 's'} added.` : `${made.minis.length} unit${made.minis.length === 1 ? '' : 's'} added.`;
+    undoBar(msg, () => { welUndoMade(made); render(); }); announce(msg);
+  }
 }
 function welGo(n){
   const w = state.wel; w.step = n; w.q = ''; welSave();
@@ -7513,19 +7577,33 @@ function welUnitsCredit(g){
 }
 const welUnitCount = () => Object.values(state.wel.units);
 const welModels = () => welUnitCount().reduce((n, u) => n + (Number(u.qty) || 1), 0);
+const welAddLabel = () => { const n = welUnitCount().length, m = welModels(); return `Add ${n} unit${n === 1 ? '' : 's'} &middot; ${m} model${m === 1 ? '' : 's'}`; };
 const welFacList = () => { const w = state.wel, out = []; w.games.forEach(g => arr(w.facs[g]).forEach(f => out.push([g, f]))); return out; };
 
 /* --- the screen ------------------------------------------------------------ */
+/* v060: in an add list the Add bar is early in the reading order (keyboard and
+   screen readers reach it without passing every row) but still shows at the
+   bottom of the screen. */
+function welMoveFoot(h){
+  const m = h.match(/<div class="welfoot">[\s\S]*?<\/div>(?=\s*$)/); if (!m) return h;
+  const rest = h.slice(0, m.index), at = rest.indexOf('<div class="wsearch">');
+  if (at < 0) return h;
+  const end = rest.indexOf('</div>', rest.indexOf('<input', at)) + 6;
+  return rest.slice(0, end) + m[0].replace('class="welfoot"', 'class="welfoot wfloat"') + rest.slice(end);
+}
 function screenWelcome(){
   const w = state.wel, s = w.step;
   const dots = s && s < WSTEPS ? `<div class="wdots" aria-hidden="true">${Array.from({ length:WSTEPS - 1 }, (_, i) => `<i class="${i < s ? 'on' : ''}"></i>`).join('')}</div>` : '<span></span>';
   const skip = s === 0 ? `<button class="linkbtn" data-wel="skipall">Skip setup</button>` : s < WSTEPS ? `<button class="linkbtn" data-wel="skip">Skip this step</button>` : '';
-  let h = `<div class="welwrap"><div class="weltop">${dots}<span class="sr-only">${s && s < WSTEPS ? `Step ${s} of ${WSTEPS - 1}` : ''}</span>${skip}</div>`;
-  h += [welIntro, welBrands, welPaints, welGamesArmies, welModelsStep, welDone][s]();
+  let h = w.mode ? `<div class="welwrap"><div class="weltop"><span class="small muted">${w.mode === 'paints' ? 'Add paints' : 'Add models'}</span><button class="linkbtn" data-wel="cancel">Cancel</button></div>`
+    : `<div class="welwrap"><div class="weltop">${dots}<span class="sr-only">${s && s < WSTEPS ? `Step ${s} of ${WSTEPS - 1}` : ''}</span>${skip}</div>`;
+  const body = [welIntro, welBrands, welPaints, welGamesArmies, welModelsStep, welDone][s]();
+  h += w.mode && (s === 2 || s === 4) ? welMoveFoot(body) : body;
   return h + `</div>`;
 }
 const welHead = (eb, title, sub) => `<p class="eb">${eb}</p><h2 class="welh display" id="welH" tabindex="-1">${title}</h2>${sub ? `<p class="muted welsub">${sub}</p>` : ''}<div class="weldiv" aria-hidden="true"></div>`;
-const welFoot = (label, opts) => `<div class="welfoot">${(opts || {}).back !== false ? `<button class="btn ghost" data-wel="back">Back</button>` : ''}<button class="btn gold" data-wel="next">${label}</button></div>`;
+const welAddFoot = (label, none) => `<div class="welfoot">${none ? `<button class="btn ghost wempty" data-wel="add" aria-disabled="true">${label}</button>` : `<button class="btn gold" data-wel="add">${label}</button>`}</div>`;
+const welFoot = (label, opts) => state.wel && state.wel.mode ? `<div class="welfoot"><button class="btn gold" data-wel="next">${label}</button></div>` : `<div class="welfoot">${(opts || {}).back !== false ? `<button class="btn ghost" data-wel="back">Back</button>` : ''}<button class="btn gold" data-wel="next">${label}</button></div>`;
 
 function welIntro(){
   const has = data.minis.length || data.paints.length;
@@ -7536,14 +7614,14 @@ function welIntro(){
       <li><span class="n">2</span><span><b>Your games and armies</b><small>Tick the games you play and your factions</small></span></li>
       <li><span class="n">3</span><span><b>Your models</b><small>Tick units; set how many and their stage on the same list</small></span></li></ol>
     <div class="welfoot col"><button class="btn gold" data-wel="next">${has ? 'Quick start' : 'Start'}</button><button class="btn ghost" data-wel="skipall">${has ? 'Not now' : 'I&rsquo;ll explore on my own'}</button></div>
-    <p class="small muted" style="text-align:center;margin-top:.75rem">You can open this again any time: &middot;&middot;&middot; then Set up my collection.</p>`;
+    <p class="small muted" style="text-align:center;margin-top:.75rem">Add more any time with the gold + button.</p>`;
 }
 function welBrands(){
   const w = state.wel, cat = catalogue(), count = {};
   cat.rows.forEach(r => { count[r.b] = (count[r.b] || 0) + 1; });
   const top = TOP_BRANDS.filter(b => count[b]), rest = cat.brands.filter(b => top.indexOf(b) === -1).sort((a, b) => a.localeCompare(b));
   const chip = b => `<button class="chip" data-wbrand="${esc(b)}" aria-pressed="${w.brands.indexOf(b) !== -1}">${esc(BRAND_LABEL[b] || b)} <span class="n">${count[b]}</span></button>`;
-  return welHead('Paints &middot; 1 of 2', 'Which brands do you use?', 'Tick all that apply.') +
+  return welHead(w.mode ? 'Add paints' : 'Paints &middot; 1 of 2', 'Which brands do you use?', 'Tick all that apply.') +
     `<div class="chips" role="group" aria-label="Paint brands">${top.map(chip).join('')}${w.more ? rest.map(chip).join('') : ''}</div>
     ${w.more ? '' : `<button class="linkbtn welmore" data-wel="more">Show ${rest.length} more brands</button>`}` +
     welFoot(w.brands.length ? `Next &middot; ${w.brands.length} brand${w.brands.length === 1 ? '' : 's'}` : 'Next');
@@ -7553,8 +7631,8 @@ function welPaints(){
   if (!w.brands.length) return welHead('Paints &middot; 2 of 2', 'Tick what you own', 'No brands chosen. Go back to choose some, or carry on.') + welFoot('Next');
   if (w.brands.indexOf(w.brand) === -1) w.brand = w.brands[0];
   const nPick = b => Object.keys(w.picked).filter(ci => cat[ci].b === b).length;
-  let h = welHead('Paints &middot; 2 of 2', 'Tick what you own') +
-    (w.brands.length > 1 ? `<div class="chips welsw" role="group" aria-label="Brand">${w.brands.map(b => `<button class="chip" data-wpbrand="${esc(b)}" aria-pressed="${w.brand === b}">${esc(b)} <span class="n">${nPick(b)}</span></button>`).join('')}</div>` : '') +
+  let h = welHead(w.mode ? 'Your brands' : 'Paints &middot; 2 of 2', 'Tick what you own') +
+    (w.brands.length > 1 || w.mode ? `<div class="chips welsw" role="group" aria-label="Brand">${w.brands.map(b => `<button class="chip" data-wpbrand="${esc(b)}" aria-pressed="${w.brand === b}">${esc(b)} <span class="n">${nPick(b)}</span></button>`).join('')}${w.mode ? '<button class="chip" data-wel="gostep" data-s="1">+ Another brand</button>' : ''}</div>` : '') +
     `<div class="wsearch"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><label for="wq" class="sr-only">Search ${esc(w.brand)} paints</label><input id="wq" type="search" placeholder="Search ${esc(w.brand)}&hellip;" value="${esc(w.q)}" autocomplete="off"></div>`;
   const rows = welCatRows(w.brand);
   const tile = ci => { const r = cat[ci], own = welOwned(r), on = own || !!w.picked[ci];
@@ -7576,6 +7654,7 @@ function welPaints(){
     });
   }
   const total = Object.keys(w.picked).length;
+  if (w.mode) return h + welAddFoot(total ? `Add ${total} paint${total === 1 ? '' : 's'}` : 'Nothing ticked yet', !total);
   return h + welFoot(total ? `Next &middot; ${total} paint${total === 1 ? '' : 's'} ticked` : 'Next');
 }
 /* v052: games and armies on one page. Tap a game to tick it and open its armies
@@ -7601,7 +7680,7 @@ function welArmyBox(g, gi){
 function welGamesArmies(){
   const w = state.wel, q = w.q.trim().toLowerCase();
   const allNames = SYSTEMS.map(s => s.name).concat(w.games.filter(g => !SYSTEMS.some(s => s.name === g)));
-  let h = welHead('Your games and armies', 'What do you play?', 'Tap a game, then its armies. Or search.') +
+  let h = welHead(w.mode ? 'Add models' : 'Your games and armies', 'What do you play?', 'Tap a game, then its armies. Or search.') +
     `<div class="wsearch"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <label for="wq" class="sr-only">Find an army or game</label><input id="wq" type="search" placeholder="Find an army or game&hellip;" value="${esc(w.q)}" autocomplete="off"></div>`;
   if (q){
@@ -7630,12 +7709,12 @@ function welGamesArmies(){
 }
 function welModelsStep(){
   const w = state.wel, U = unitsData(), facs = welFacList();
-  if (!facs.length) return welHead('Models', 'Tick what you have', 'No factions chosen. Go back to choose some, or carry on and add models later.') + welFoot('Next');
+  if (!facs.length) return w.mode ? welHead('Add models', 'Tick what you have', 'Choose a game and an army first.') + `<div class="welfoot"><button class="btn gold" data-wel="gostep" data-s="3">Choose an army</button></div>` : welHead('Models', 'Tick what you have', 'No factions chosen. Go back to choose some, or carry on and add models later.') + welFoot('Next');
   if (!facs.some(([g, f]) => g + '|' + f === w.fac)) w.fac = facs[0][0] + '|' + facs[0][1];
   const [g, f] = w.fac.split('|'), D = (U[g] || {})[f];
   const nFor = k => welUnitCount().filter(u => u.game + '|' + u.fac === k).length;
-  let h = welHead(`Models &middot; ${esc(f)}`, 'Tick what you have') +
-    (facs.length > 1 ? `<div class="chips welsw" role="group" aria-label="Faction">${facs.map(([gg, ff]) => `<button class="chip" data-wmfac="${esc(gg + '|' + ff)}" aria-pressed="${w.fac === gg + '|' + ff}">${esc(ff)} <span class="n">${nFor(gg + '|' + ff)}</span></button>`).join('')}</div>` : '');
+  let h = welHead(w.mode ? 'Your armies' : `Models &middot; ${esc(f)}`, 'Tick what you have') +
+    (facs.length > 1 || w.mode ? `<div class="chips welsw" role="group" aria-label="Faction">${facs.map(([gg, ff]) => `<button class="chip" data-wmfac="${esc(gg + '|' + ff)}" aria-pressed="${w.fac === gg + '|' + ff}">${esc(ff)} <span class="n">${nFor(gg + '|' + ff)}</span></button>`).join('')}${w.mode ? '<button class="chip" data-wel="gostep" data-s="3">+ Another army</button>' : ''}</div>` : '');
   const custom = welUnitCount().filter(u => u.game === g && u.fac === f && u.own);
   const row = name => {
     const key = g + '|' + f + '|' + name, u = w.units[key], ex = w.ex === key;
@@ -7647,13 +7726,13 @@ function welModelsStep(){
       const chip = (st, i) => mixed
         ? `<button data-wstage="${esc(st)}" aria-pressed="${u.split[i] > 0}"${i === cur ? ' class="cur" aria-current="true"' : ''}>${esc(st)}${u.split[i] > 0 ? ` <span class="n">${u.split[i]}</span>` : ''}</button>`
         : `<button role="radio" data-wstage="${esc(st)}" aria-checked="${u.stage === st}">${esc(st)}</button>`;
-      r += `<li class="wexp" role="group" aria-label="${esc(name)}: how many and where they are"><div class="wline">
+      r += `<li class="wexp"><div role="group" aria-label="${esc(name)}: how many and where they are"><div class="wline">
         ${stepper('wQty', 'wqty', u.qty, `How many ${name}`, 1)}
         <div class="wstrip"${mixed ? ' role="group" aria-label="Stages"' : ' role="radiogroup" aria-label="Stage. Choosing one closes this."'}>${data.stages.map(chip).join('')}${mixed ? '' : '<button class="wmix" data-wmixed>Mixed&hellip;</button>'}</div></div>
         ${mixed ? `<div class="wline2">${cur >= 0 && cur !== bi
           ? `<span class="wcur"><b>${esc(data.stages[cur])}</b>${stepper('wSq', 'wsq', u.split[cur], `How many at ${data.stages[cur]}`, 0)}</span>`
           : `<span class="small muted">Tap a stage to put some there. The rest stay at ${esc(u.stage)}.</span>`}
-          <button class="btn sm gold" data-wsplitdone>Done</button></div>` : ''}</li>`;
+          <button class="btn sm gold" data-wsplitdone>Done</button></div>` : ''}</div></li>`;
     }
     return r;
   };
@@ -7670,6 +7749,7 @@ function welModelsStep(){
   h += `<div class="welown"><label for="wOwnUnit">Not listed? Type its name</label><div class="row"><input id="wOwnUnit" placeholder="Unit or model name" autocomplete="off" value="${q && D && !D.s.some(x => x[1].some(match)) ? esc(w.q) : ''}"><button class="btn ghost" data-wel="ownunit">Add</button></div></div>
     ${D ? `<p class="small muted welnote">Names only, so you can tick your own models. No points or rules are included. ${welUnitsCredit(g)}</p>` : ''}`;
   const n = welUnitCount().length;
+  if (w.mode) return h + welAddFoot(n ? welAddLabel() : 'Nothing ticked yet', !n);
   return h + welFoot(n ? `Next &middot; ${n} unit${n === 1 ? '' : 's'}, ${welModels()} model${welModels() === 1 ? '' : 's'}` : 'Next');
 }
 function welDone(){
@@ -7678,7 +7758,7 @@ function welDone(){
   return welHead('All set', 'Your shelf is ready') +
     `<dl class="welsum"><div><dt>Paints</dt><dd class="num">${m.paints.length}</dd></div><div><dt>Games</dt><dd class="num">${state.wel.games.length}</dd></div>
       <div><dt>Armies</dt><dd class="num">${welFacList().length}</dd></div><div><dt>Units</dt><dd class="num">${m.minis.length}</dd></div><div><dt>Models</dt><dd class="num">${models}</dd></div></dl>
-    <div class="card"><b>Whenever you like</b><p class="small muted" style="margin:.25rem 0 0">Recipes, photos, colour schemes and more detail can all be added later. You can run this again from the &middot;&middot;&middot; menu.</p></div>
+    <div class="card"><b>Whenever you like</b><p class="small muted" style="margin:.25rem 0 0">Recipes, photos, colour schemes and more detail can all be added later. Add more any time with the gold + button.</p></div>
     <div class="welfoot col"><button class="btn gold" data-wel="finish">Go to my Workbench</button>${m.paints.length + m.minis.length ? `<button class="btn ghost" data-wel="undo">Undo everything I just added</button>` : ''}</div>`;
 }
 
@@ -7700,12 +7780,17 @@ function welCommit(){
     data.minis.push(m); made.minis.push(m.id); });
   made.systems = arr(data.systems).filter(s => !sys0.has(s.id)).map(s => s.id);
   made.factions = arr(data.factions).filter(f => !fac0.has(f.id)).map(f => f.id);
-  data.settings.setupDone = true; data.settings.lastWelcome = made;
+  if (!w.mode){ data.settings.setupDone = true; data.settings.lastWelcome = made; }
   w.made = made; save(); welSave();
   return made;
 }
 function welUndo(){
   const m = state.wel.made; if (!m) return;
+  welUndoMade(m);
+  const msg = `Removed ${m.paints.length} paints and ${m.minis.length} units.`;
+  state.wel.made = { paints:[], minis:[], systems:[], factions:[] }; welSave(); render(); toast(msg); announce(msg);
+}
+function welUndoMade(m){
   const P = new Set(m.paints), M = new Set(m.minis);
   data.paints = data.paints.filter(p => !P.has(p.id));
   data.minis = data.minis.filter(x => !M.has(x.id));
@@ -7713,9 +7798,7 @@ function welUndo(){
   data.factions = arr(data.factions).filter(f => m.factions.indexOf(f.id) === -1 || data.minis.some(x => x.fac === f.id));
   data.systems = arr(data.systems).filter(s => m.systems.indexOf(s.id) === -1 || data.minis.some(x => x.sys === s.id) || data.factions.some(f => f.sys === s.id));
   if (typeof syncState !== 'undefined') syncState.allowMassDelete = true;
-  delete data.settings.lastWelcome; save();
-  const msg = `Removed ${m.paints.length} paints and ${m.minis.length} units.`;
-  state.wel.made = { paints:[], minis:[], systems:[], factions:[] }; welSave(); render(); toast(msg); announce(msg);
+  if (data.settings.lastWelcome === m) delete data.settings.lastWelcome; save();
 }
 function welEnd(){
   state.wel = null; try { localStorage.removeItem(WEL_KEY); } catch (e){}
@@ -7735,6 +7818,18 @@ document.addEventListener('click', e => {
   const w = state.wel, t = e.target.closest('[data-wel],[data-wbrand],[data-wpbrand],[data-wpaint],[data-wrange],[data-wrall],[data-wgame],[data-wfac],[data-wmfac],[data-wunit],[data-wedit],[data-wqty],[data-wstage],[data-wlegends],[data-wmixed],[data-wsplitdone],[data-wsq]');
   if (!t) return;
   const a = t.dataset.wel;
+  if (a === 'cancel'){
+    const n = w.mode === 'paints' ? Object.keys(w.picked).length : welUnitCount().length;
+    if (!n){ welAddEnd(null); return; }
+    const what = w.mode === 'paints' ? `${n} ticked paint${n === 1 ? '' : 's'}` : `${n} ticked unit${n === 1 ? '' : 's'}`;
+    openDialog(`Discard ${what}?`, `<p style="margin-top:0">Nothing has been added yet. If you leave now, the ${what} will not be saved.</p>`,
+      () => { welAddEnd(null); }, 'Discard', 'Keep ticking');
+    return; }
+  if (a === 'gostep'){ welGo(+t.dataset.s); return; }
+  if (a === 'add'){ if (w.mode === 'paints') w.units = {}; else w.picked = {};
+    if (!Object.keys(w.picked).length && !welUnitCount().length){ const m = w.mode === 'paints' ? 'Tick the paints you have first.' : 'Tick the models you have first.'; toast(m); announce(m); return; }
+    welAddEnd(welCommit()); return; }
+  if (w.mode && a === 'next' && (w.step === 2 || w.step === 4)) return;
   if (a === 'skipall'){ if (Object.keys(w.picked).length + welUnitCount().length + w.games.length){ welCommit(); welGo(WSTEPS); } else welEnd(); return; }
   if (a === 'next' || a === 'skip'){ if (w.step === WSTEPS - 1){ welCommit(); welGo(WSTEPS); } else welGo(w.step + 1); return; }
   if (a === 'back'){ welGo(Math.max(0, w.step - 1)); return; }
@@ -7799,6 +7894,7 @@ document.addEventListener('input', e => {
     else { u.qty = Math.max(1, v); if (u.split) welRebal(u); }
     if (u.split) document.querySelectorAll('.wstrip [data-wstage]').forEach((b, i) => { const k = u.split[i]; b.setAttribute('aria-pressed', String(k > 0)); b.innerHTML = esc(data.stages[i]) + (k > 0 ? ` <span class="n">${k}</span>` : ''); });
     const nx = document.querySelector('[data-wel="next"]'), n = welUnitCount().length; if (nx && n) nx.innerHTML = `Next &middot; ${n} unit${n === 1 ? '' : 's'}, ${welModels()} model${welModels() === 1 ? '' : 's'}`;
+    const ad = document.querySelector('[data-wel="add"]'); if (ad && n) ad.innerHTML = welAddLabel();
     welSave(); return; }
   if (e.target.dataset && e.target.dataset.wqtyin){ const u = state.wel.units[e.target.dataset.wqtyin]; if (u){ u.qty = Math.max(1, Math.min(9999, Math.round(Number(e.target.value)) || 1)); welSave(); } }
 });
@@ -7889,7 +7985,7 @@ gl_FragColor=vec4(color*alpha,alpha);}`;
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v057';
+const APP_VERSION = 'v060';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -9177,12 +9273,12 @@ function screenHome(){
   h += `<div class="wbhead"><h2 class="wbtitle">Your Workbench</h2><p class="greet">${greeting()}</p></div>`;
   /* v047: the project comes first; totals, Add and the dice follow it. */
   const after = c.entries !== 0 ? progStrip(c) + `<div class="wbacts">
-      <button class="btn" data-act="addMini">${PLUS_SVG}Add a miniature</button>
+      <button class="btn" data-act="addModels">${PLUS_SVG}Add models</button>
       <button class="btn ghost" data-act="dice">${DICE_SVG}Roll the dice</button></div>` : '';
   if (c.entries === 0){
     return h + emptyFrame(`${emptyPen('spare-navy')}<h3>Your bench is clear</h3>
       <p>Add your first miniature and it waits here, ready for the next brushstroke.</p>
-      <div class="gxacts"><button class="btn" data-act="addMini">Add a miniature</button>
+      <div class="gxacts"><button class="btn" data-act="addModels">Add models</button>
         <button class="btn ghost" data-act="addSys">Add a game system</button></div>`);
   }
   /* The Guild Workbench (v031). Three lists share one framed card: what you
@@ -9354,7 +9450,8 @@ const MED_ICON = {
   brush:'<path d="M19.5 3.5 11 12M9 14c-2 0-3.5 1.5-3.5 3.5 0 1-.5 2-1.5 2.5 3 .5 6.5-.5 6.5-4.5Z"/><path d="m10.5 11.5 2 2"/>',
   tools:'<path d="M4 20 14 10M14 10l2-6 4 4-6 2M20 20l-8-8M6.5 4.5a2.5 2.5 0 0 0 3 3l1 1-2 2-1-1a2.5 2.5 0 0 0-3-3l2-2Z"/>',
   pot:'<path d="M9.5 3h5v3h-5zM7.5 9a3 3 0 0 1 3-3h3a3 3 0 0 1 3 3v9.5A2.5 2.5 0 0 1 14 21h-4a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M7.5 13h9"/>',
-  cam:'<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>'
+  cam:'<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',
+  bag:'<path d="M5 8h14l-1 12H6zM9 8V6.5a3 3 0 0 1 6 0V8"/>'
 };
 /* Where you stand, first thing (v035): finished out of everything, as a bar,
    with the other counts in one quiet line underneath. */
@@ -10018,11 +10115,11 @@ function screenCollection(){
   let h = '';
   if (!data.minis.length)
     return h + `<div style="height:1.25rem"></div>` + emptyFrame(`${emptyPen('spare-green')}<h3>Raise your first banner</h3>
-      <p>Add a miniature and its army gets a pennant of its own here. A box of ten is one entry with a count of ten.</p>
-      <div class="gxacts"><button class="btn" data-act="addMini">Add a miniature</button><button class="btn ghost" data-act="openImport">Import a list</button></div>`) + collActs(true);
+      <p>Add models and each army gets a pennant of its own here. A box of ten is one entry with a count of ten.</p>
+      <div class="gxacts"><button class="btn" data-act="addModels">Add models</button><button class="btn ghost" data-act="openImport">Import a list</button></div>`) + collActs(true);
 
   const nOn = (state.fStage?1:0) + (state.sort?1:0);
-  h += addTop('addHere', 'Add a miniature') + collActs();
+  h += addTop('addModels', 'Add models') + collActs();
   h += `<div class="findrow" style="margin-top:.875rem"><div class="field">
       <label for="q" class="sr-only">Search every model</label>
       <input id="q" type="search" placeholder="Search every model" value="${esc(state.q)}">
@@ -10126,7 +10223,7 @@ function screenGame(){
   const x = gameGroups().find(g => g.id === state.openGame);
   let h = backLink('backGames', 'Collection');
   if (!x) return h + `<div class="empty"><p>Nothing is filed under that game any more.</p></div>`;
-  h += addTop('addHere', 'Add to this game');
+  h += addTop('addModels', 'Add to this game');
   const sysId = x.id === NO_SYS_ID ? '' : x.id;
   let loose = null;
   x.armies.forEach(g => {
@@ -10152,7 +10249,7 @@ function screenArmy(){
   const sysId = (state.openArmy || '').split('|')[0];
   let h = backLink('backGame', gameLabel(sysId || NO_SYS_ID));
   if (!g) return h + `<div class="empty"><p>That ${groupWord(sysId)} no longer has anything in it.</p></div>`;
-  h += addTop('addHere', 'Add to this ' + groupWord(sysId));
+  h += addTop('addModels', 'Add to this ' + groupWord(sysId));
 
   const s = armyStats(g.minis);
   h += `<div class="armyhead${g.fac ? ' penhead' : ''}">
@@ -10165,7 +10262,7 @@ function screenArmy(){
           s.priced ? ` &middot; ${esc(money(s.spent))} spent` : ''}</div></div>
     </div>
     <div class="armytools">
-      <button class="linkbtn" data-act="addMany">Add several</button>
+      <button class="linkbtn" data-act="addModels">Add models</button>
       ${g.minis.length > 1 ? `<button class="linkbtn" data-act="${state.selecting ? 'selectOff' : 'selectOn'}">${state.selecting ? 'Done selecting' : 'Select several'}</button>` : ''}
     </div>
     <hr class="keyline">`;
@@ -10924,12 +11021,27 @@ function paintList(){
   });
 }
 
+/* v058: the colour tools have their own tab. It opens on the studio with
+   your latest scheme (or a first one, made for you). */
+function screenColour(){
+  const s = state.sub;
+  if (s === 'hl') return screenHighlights();
+  if (s === 'shelf') return screenShelfColours();
+  if (s === 'swatchCompare') return screenCompare();
+  if (s === 'planner') return screenSchemes();
+  let sc = schemeOf(state.schemeId);
+  if (!sc){ sc = schemesList().slice().sort((a, b) => (b.updated || 0) - (a.updated || 0))[0];
+    if (!sc){ sc = newScheme('colour'); sc.name = 'My first scheme';
+      /* v060: start with a proper opposite-colour pair, from your paints if they allow it */
+      if (stShuffle(sc)){ sc.owned = false; stShuffle(sc); sc.owned = true; }
+      ST_HIST[sc.id] = []; sc.firstAuto = 1; save(); }
+    state.schemeId = sc.id; }
+  state.sub = 'scheme';
+  return screenScheme();
+}
 function screenPaints(){
-  if (state.sub === 'swatchCompare') return screenCompare();
-  if (state.sub === 'planner') return screenSchemes();
-  if (state.sub === 'scheme') return screenScheme();
-  if (state.sub === 'shelf') return screenShelfColours();
-  if (state.sub === 'hl') return screenHighlights();
+  /* colour tools reached from older links land in the Colour tab */
+  if (['swatchCompare', 'planner', 'scheme', 'shelf', 'hl'].includes(state.sub)){ state.tab = 'colour'; return screenColour(); }
   if (state.openPaint) return screenPaintDetail();
 
   /* Add is in the top bar. The planner, the swatch comparison and adding
@@ -10940,15 +11052,13 @@ function screenPaints(){
   if (!data.paints.length){
     return h + emptyPlain(`<h3>No paints yet</h3>
       <p>Add from <span class="num">${catalogue().rows.length.toLocaleString()}</span> paints in the catalogue, or enter your own. Your shelf, swatches and shopping list all start here.</p>
-      <div class="gxacts"><button class="btn" data-act="addPaint">Add a paint</button>
-      <button class="btn ghost" data-act="setupPaintsOnly">Add several at once</button></div>`);
+      <div class="gxacts"><button class="btn" data-act="addPaints">Add paints</button></div>`);
   }
 
   const F = pf(), nOn = pfOn();
-  h += addTop('addPaint', 'Add a paint');
-  /* v047: the tools for paints live with the paints, not in the ... menu. */
-  h += `<div class="colacts"><button class="btn ghost" data-act="setupPaintsOnly">${PLUS_SVG}Add several</button>
-    <button class="btn ghost" data-act="openPlanner">${PALETTE_SVG}Colour tools</button></div>`;
+  h += addTop('addPaints', 'Add paints');
+  /* v059: colour tools have their own tab; the shopping list sits here */
+  h += `<div class="colacts"><button class="btn ghost" data-act="openStudio">${PALETTE_SVG}Colour</button></div>`;
   h += `<div class="findrow" style="margin-top:.875rem"><div class="field">
       <label for="pq" class="sr-only">Search your paints</label>
       <input id="pq" type="search" placeholder="Search ${data.paints.length} paints" value="${esc(state.pq)}">
@@ -11088,7 +11198,7 @@ function screenPaintDetail(){
    Swatch comparison
    =========================================================================== */
 function screenCompare(){
-  let h = backBtn('paints','Paints') + colourToolsNav('compare');
+  let h = colourToolsNav('compare');
   h += `<h2 class="display" style="font-size:1.5rem">Compare colours</h2>`;
   /* v047: makers' colours can be compared without any photographs; swatch photos add the real thing. */
   if (!data.swatches.length || state.cmp.mode === 'est'){
@@ -11176,10 +11286,8 @@ function screenPlanner(){
 }
 
 function colourToolsNav(cur){
-  return `<div class="segbar ctnav" role="tablist" aria-label="Colour tools"><button role="tab" data-act="openPlanner" aria-selected="${cur === 'planner'}">Schemes</button>
-    <button role="tab" data-act="openShelfColours" aria-selected="${cur === 'shelf'}">Your shelf</button>
-    <button role="tab" data-act="openHighlights" aria-selected="${cur === 'hl'}">Highlights</button>
-    <button role="tab" data-act="openCompare" aria-selected="${cur === 'compare'}">Swatches</button></div>`;
+  const b = (act, on, label) => `<button data-act="${act}"${on ? ' aria-current="page"' : ''}>${label}</button>`;
+  return `<nav class="segbar ctnav" aria-label="Colour tools">${b('openStudio', cur === 'planner' || cur === 'scheme', 'Studio')}${b('openHighlights', cur === 'hl', 'Highlights')}${b('openShelfColours', cur === 'shelf', 'Your shelf')}${b('openCompare', cur === 'compare', 'Swatches')}</nav>`;
 }
 function wheelSvg(sch, baseHex){
   const cx = 110, cy = 110, r = 86;
@@ -11542,7 +11650,7 @@ function screenRecipeDetail(){
 /* ===========================================================================
    Render
    =========================================================================== */
-const TITLES = { inbox:'Photos to sort', home:'MiniManager', coll:'Collection', paints:'Paints', recipes:'Recipes', session:'Painting session' };
+const TITLES = { inbox:'Photos to sort', home:'MiniManager', coll:'Collection', paints:'Paints', colour:'Colour', recipes:'Recipes', session:'Painting session' };
 
 /* The one thing you most often do on each list screen, in the top bar beside
    its title. Detail screens and the setup flow have their own buttons. */
@@ -11594,6 +11702,7 @@ function render(){
   else if (state.tab === 'shop')     html = screenShop();
   else if (state.tab === 'home')     html = screenHome();
   else if (state.tab === 'coll')     html = state.openMini ? screenMini() : screenCollection();
+  else if (state.tab === 'colour')   html = screenColour();
   else if (state.tab === 'paints')   html = screenPaints();
   else                               html = screenRecipes();
   app.innerHTML = html;
@@ -13237,7 +13346,8 @@ document.addEventListener('click', e => {
     }
     /* --- getting started --- */
     if (a === 'setupStart'){ $('#dlg').close(); startWelcome(true); return; }
-    if (a === 'setupPaintsOnly'){ $('#dlg').close(); startSetup('paints'); return; }
+    if (a === 'setupPaintsOnly' || a === 'addPaints'){ if ($('#dlg').open) $('#dlg').close(); startAdd('paints'); return; }
+    if (a === 'addModels'){ if ($('#dlg').open) $('#dlg').close(); startAdd('models'); return; }
     if (a === 'setupSkip')  return endSetup();
     /* Finishing setup opens the army you just made, not the top of Collection. */
     if (a === 'setupGo'){ const k = state.setup.added && state.setup.added.key; endSetup('coll');
@@ -13368,13 +13478,14 @@ document.addEventListener('click', e => {
     if (a === 'addPhotos')  { $('#photoIn').click(); return; }
     if (a === 'newSwatch')  return startSwatch(state.openPaint);
     if (a === 'quickSwatch'){ if (!data.paints.length){ toast('Add a paint first.'); return; } return startSwatch(null); }
-    if (a === 'openPlanner'){ if ($('#dlg').open) $('#dlg').close(); if (act.dataset.id) state.planner.paintId = act.dataset.id; state.tab='paints'; state.sub='planner'; state.openPaint=null; render(); window.scrollTo(0,0); return; }
-    if (a === 'openHighlights'){ if ($('#dlg').open) $('#dlg').close(); state.tab='paints'; state.sub='hl'; state.openPaint=null; render(); window.scrollTo(0,0); return; }
+    if (a === 'openPlanner'){ if ($('#dlg').open) $('#dlg').close(); if (act.dataset.id) state.planner.paintId = act.dataset.id; state.tab='colour'; state.sub='planner'; state.openPaint=null; render(); window.scrollTo(0,0); return; }
+    if (a === 'openStudio'){ if ($('#dlg').open) $('#dlg').close(); state.tab='colour'; state.sub='scheme'; state.openPaint=null; render(); window.scrollTo(0,0); return; }
+    if (a === 'openHighlights'){ if ($('#dlg').open) $('#dlg').close(); state.tab='colour'; state.sub='hl'; state.openPaint=null; render(); window.scrollTo(0,0); return; }
     if (a === 'hlShop'){ dlgHlShop(); return; }
     if (a === 'hlView' || a === 'hlFam'){ if (a === 'hlView') state.hlv = act.dataset.v; else state.hlFam = act.dataset.v; render(); const b = document.querySelector(`[data-act="${a}"][data-v="${act.dataset.v}"]`); if (b) b.focus(); return; }
     if (a === 'hlFilter'){ state.hlf = act.dataset.v; render(); const b = document.querySelector(`[data-act="hlFilter"][data-v="${act.dataset.v}"]`); if (b) b.focus(); return; }
-    if (a === 'openShelfColours'){ if ($('#dlg').open) $('#dlg').close(); state.tab='paints'; state.sub='shelf'; state.openPaint=null; render(); window.scrollTo(0,0); return; }
-    if (a === 'openCompare'){ if ($('#dlg').open) $('#dlg').close(); state.tab='paints'; state.sub='swatchCompare'; state.openPaint=null; render(); window.scrollTo(0,0); return; }
+    if (a === 'openShelfColours'){ if ($('#dlg').open) $('#dlg').close(); state.tab='colour'; state.sub='shelf'; state.openPaint=null; render(); window.scrollTo(0,0); return; }
+    if (a === 'openCompare'){ if ($('#dlg').open) $('#dlg').close(); state.tab='colour'; state.sub='swatchCompare'; state.openPaint=null; render(); window.scrollTo(0,0); return; }
     if (a === 'clearq')     { state.q=''; render(); return; }
     if (a === 'clearpq')    { state.pq=''; render(); return; }
     if (a === 'clearFilters'){ state.q=''; state.fSys=''; state.fFac=''; state.fStage=''; state.sort=''; render(); return; }
@@ -14077,26 +14188,13 @@ document.addEventListener('change', e => {
    first; the rest keep their order. Each item runs the same action as the
    matching button elsewhere in the app. */
 function plusItems(){
-  const ic = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${MED_ICON[k]}</svg>`;
-  const I = {
-    mini:  ['addHere', state.tab === 'coll' && state.openArmy ? 'A miniature to this ' + groupWord((state.openArmy || '').split('|')[0]) : 'A miniature', 'laurel'],
-    many:  ['addMany', 'Several miniatures at once', 'laurel'],
-    paint: ['addPaint', 'A paint', 'pot'],
-    paints:['setupPaintsOnly', 'Several paints at once', 'pot'],
-    recipe:['newRecipe', 'A recipe', 'brush'],
-    sys:   ['addSys', 'A game system or army', 'tools'],
-    wish:  ['addWish', 'Something to my wishlist', 'pot'],
-    supply:['addSupply', 'A hobby supply', 'tools'],
-    cam:   ['inbCam', 'Take a photo to sort later', 'cam'],
-    pics:  ['inbPick', 'Photos to sort later', 'cam']
-  };
-  let first = ['mini'];
-  if (state.tab === 'coll' && state.openArmy && !state.openMini) first = ['mini', 'many'];
-  else if (state.tab === 'paints' || state.tab === 'shop') first = ['paint', 'paints'];
-  else if (state.tab === 'recipes') first = ['recipe'];
-  const rest = ['mini', 'paint', 'recipe', 'sys', 'wish', 'supply'].filter(k => first.indexOf(k) === -1);
-  const btn = k => `<button type="button" role="menuitem" data-act="${I[k][0]}">${ic(I[k][2])}<span>${esc(I[k][1])}</span></button>`;
-  return `<p class="pmh" aria-hidden="true">Add</p>${first.map(btn).join('')}<hr>${['cam', 'pics'].map(btn).join('')}<hr>${rest.map(btn).join('')}`;
+  /* v059: three big choices that open tick lists (like the quick start), then
+     the small things. Adding one by typing lives inside those lists. */
+  const ic = (k, n) => `<svg viewBox="0 0 24 24" width="${n || 20}" height="${n || 20}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${MED_ICON[k]}</svg>`;
+  const big = [['addModels', 'Models', 'laurel'], ['addPaints', 'Paints', 'pot'], ['newRecipe', 'Recipe', 'brush']];
+  const small = [['inbPick', 'Photos to sort later', 'cam'], ['addWish', 'Something to buy', 'bag'], ['addSupply', 'A hobby supply', 'tools']];
+  return `<p class="pmh" aria-hidden="true">Add</p><div class="pmbig">${big.map(([a, l, k]) => `<button type="button" role="menuitem" data-act="${a}">${ic(k, 26)}<span>${l}</span></button>`).join('')}</div>
+    <p class="pmnote">Tick them from lists, like the quick start.</p><hr>${small.map(([a, l, k]) => `<button type="button" role="menuitem" data-act="${a}">${ic(k)}<span>${esc(l)}</span></button>`).join('')}`;
 }
 function openPlus(){
   const m = $('#plusMenu'), b = $('#plusBtn'); if (!m || !b) return;
@@ -14129,9 +14227,9 @@ $('#moreBtn').addEventListener('click', () => {
   const c = counts();
   openDialog('More',
     `<p class="small muted">MiniManager <span class="num">${APP_VERSION}</span> &middot;
-       <span class="num">${c.entries}</span> units, <span class="num">${c.done} of ${c.total}</span> models finished,
-       <span class="num">${c.paints}</span> paints, <span class="num">${c.swatches}</span> swatches,
-       <span class="num">${c.recipes}</span> recipes</p>
+       ${[[c.entries, 'unit'], [c.paints, 'paint'], [c.swatches, 'swatch', 'swatches'], [c.recipes, 'recipe']].map(([n, one, many]) => `<span class="num">${n}</span> ${n === 1 ? one : (many || one + 's')}`).slice(0, 1).join('')},
+       <span class="num">${c.done} of ${c.total}</span> models finished,
+       ${[[c.paints, 'paint'], [c.swatches, 'swatch', 'swatches'], [c.recipes, 'recipe']].map(([n, one, many]) => `<span class="num">${n}</span> ${n === 1 ? one : (many || one + 's')}`).join(', ')}</p>
      <hr><h3 style="font-size:.9375rem">Your account</h3>
      ${guestMode ? `<p class="small muted">You are using MiniManager without an account. Everything is on this phone only:
        if the phone is lost or reset, it is gone. Signing in keeps it safe and on your other devices,
@@ -14146,12 +14244,6 @@ $('#moreBtn').addEventListener('click', () => {
      <div class="row wrapm" style="margin-top:.625rem">
        <button class="btn ghost sm" data-act="account">Account and sign out</button>
        <button class="btn ghost sm" data-act="privacy">What MiniManager keeps</button></div>`}
-     <hr><h3 style="font-size:.9375rem">Paints and shopping</h3>
-     <div class="row wrapm" style="margin-top:.625rem">
-       <button class="btn ghost sm" data-act="shop">Shopping list and wishlist</button>
-       <button class="btn ghost sm" data-act="openPlanner">Plan a colour scheme</button>
-       <button class="btn ghost sm" data-act="openCompare">Compare swatches</button>
-       <button class="btn ghost sm" data-act="setupPaintsOnly">Add several paints</button></div>
      <hr><h3 style="font-size:.9375rem">Reminders</h3>
      <p class="small muted">A nudge on Home when something has sat untouched for:</p>
      <div class="chips" role="group" aria-label="Nudge after">${[[0,'Off'],[14,'Two weeks'],[30,'A month']].map(([d,l]) =>
@@ -14161,10 +14253,6 @@ $('#moreBtn').addEventListener('click', () => {
      <p class="small muted">Rename, add, remove or reorder your stages, and choose which counts as battle ready.</p>
      <div class="row wrapm" style="margin-top:.625rem">
        <button class="btn ghost sm" data-act="editStages">Your painting stages</button></div>
-     <hr><h3 style="font-size:.9375rem">Getting started</h3>
-     <p class="small muted">Tick your paints, games and models instead of typing them. Anything already here stays as it is.</p>
-     <div class="row wrapm" style="margin-top:.625rem">
-       <button class="btn ghost sm" data-act="setupStart">Set up my collection</button></div>
      <hr><h3 style="font-size:.9375rem">Your data</h3>
      <p class="small muted">Take a copy whenever you like. The backup file is
        yours and works with no account at all.</p>
@@ -14172,7 +14260,7 @@ $('#moreBtn').addEventListener('click', () => {
        <button class="btn ghost sm" id="expBtn">Export a backup</button>
        <button class="btn ghost sm" id="csvBtn">Export as a spreadsheet</button>
        <button class="btn ghost sm" id="impBtn">Restore a backup</button></div>
-     <hr><h3 style="font-size:.9375rem">Acknowledgements</h3>
+     <hr><details class="moreack"><summary><h3 style="font-size:.9375rem;display:inline">Acknowledgements and licences</h3></summary>
      <p class="small muted">Paint catalogue data from
        <a href="https://github.com/PauloSalum/paint-equivalents">paint-equivalents</a>, derived from
        <a href="https://github.com/Arcturus5404/miniature-paints">miniature-paints</a>,
@@ -14204,7 +14292,7 @@ $('#moreBtn').addEventListener('click', () => {
        manufacturer or games publisher.</p>
      <p class="small muted">Army lists were checked against the publishers&rsquo; own material where it
        could be reached. They are a convenience, not an authority: every list in this app ends with
-       &ldquo;Type my own&rdquo;, and your own spelling always wins.</p>`,
+       &ldquo;Type my own&rdquo;, and your own spelling always wins.</p></details>`,
     /* Nothing to confirm here, so no Save button and no "Cancel": one
        honest Close at the foot, and the × pinned at the top. */
     null, null, 'Close');
