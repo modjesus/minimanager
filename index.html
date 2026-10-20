@@ -2183,24 +2183,29 @@ html:has(.welwrap){scroll-padding-bottom:7rem}
 .wres b{display:block;font-weight:600}.wres small{display:block;color:var(--text-2)}
 .wres button:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 @media (prefers-reduced-motion:reduce){.wgame:active{transform:none}}
-/* v055: highlight systems */
+/* v056: highlight systems (square tiles with a colour bar) */
 .ctnav{flex-wrap:nowrap}.ctnav button{flex:1 1 0;min-width:0;padding-left:.25rem;padding-right:.25rem;letter-spacing:.04em;font-size:.6875rem!important}
 @media(max-width:360px){.ctnav button{letter-spacing:0;font-size:.625rem!important}}
-.hlsum{display:flex;gap:.5rem;margin:0 0 .75rem}.hlsum>div{flex:1;background:var(--surface,#102c47);border:1px solid var(--border);border-radius:10px;padding:.5rem;text-align:center}
-.hlsum b{display:block;font-family:var(--f-display);font-size:1.5rem;color:var(--gold-ink)}.hlsum small{font-size:.75rem;color:var(--text-2)}
-.hlfill{border:1px solid var(--gold-line);border-radius:12px;padding:.75rem;margin:0 0 .75rem}.hlfill h3{margin:0;font-family:var(--f-display);font-size:1.125rem;color:var(--gold-ink)}.hlfill p{margin:.125rem 0 .5rem}
-.hlchips{list-style:none;margin:0 0 .5rem;padding:0;display:flex;flex-wrap:wrap;gap:.375rem}.hlchips li{display:flex;align-items:center;gap:.375rem;border:1px solid var(--border);border-radius:999px;padding:.25rem .625rem .25rem .25rem;font-size:.8125rem}
-.hlchips li{flex-wrap:nowrap;white-space:nowrap;max-width:100%}.hlchips .user-text{overflow:hidden;text-overflow:ellipsis}.hlfilt{flex-wrap:nowrap;margin:0 0 .75rem}.hlfilt button{flex:1 1 0;min-width:0;padding:0 .25rem}.hlfilt button[aria-pressed="true"]{background:linear-gradient(180deg,#D3B676,#B8964F);color:var(--ink-navy)}.hlfilt .num{opacity:.75;margin-left:.15rem}
-.hlchips .sw{width:1.25rem;height:1.25rem;border-radius:50%;box-shadow:inset 0 0 0 1px #ffffff33;flex:none}.hlchips small{color:var(--text-2)}
-.hlkey{display:flex;flex-wrap:wrap;gap:.875rem;align-items:center}.hlkey>span{display:inline-flex;align-items:center;gap:.3rem}.hlk{width:.75rem;height:.75rem;border-radius:3px;display:inline-block;background:var(--text-2)}.hlk.buy{background:none;outline:1.5px dashed var(--gold-ink)}
-.hlrow{padding:.625rem .5rem}.hlhd{display:flex;justify-content:space-between;align-items:center;gap:.5rem;padding:0 .25rem .375rem}.hlhd .linkbtn{font-family:var(--f-display);font-size:1.0625rem;font-weight:600;color:var(--text);text-decoration:none;text-align:left}
-.hlok{font-size:.75rem;color:#8fd3a4;flex:none}.hlgap{font-size:.75rem;color:var(--gold-ink);flex:none}
-.hllab,.hlsteps{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.25rem;text-align:center}.hllab span{font-size:.5625rem;letter-spacing:.06em;text-transform:uppercase;color:var(--text-2)}.hllab .g{color:var(--gold)}
-.hlsteps{list-style:none;margin:0;padding:0}.hlsteps li{display:flex;flex-direction:column;align-items:center;gap:.2rem;padding-top:.3rem;min-width:0}
-.hlsw{width:2.75rem;height:2.75rem;border-radius:10px;box-shadow:inset 0 0 0 1px #ffffff26;display:grid;place-items:center;color:#fff;font-weight:700;font-size:1.125rem;text-shadow:0 1px 3px #000}
-.hlself .hlsw{width:3.125rem;height:3.125rem;margin-top:-.2rem;box-shadow:0 0 0 2px var(--gold)}.hlbuy .hlsw{outline:2px dashed var(--gold-ink);outline-offset:2px}
+.hlview,.hlfilt{flex-wrap:nowrap;margin:0 0 .75rem}.hlview button,.hlfilt button{flex:1 1 0;min-width:0;padding:0 .25rem}
+.hlview button[aria-pressed="true"],.hlfilt button[aria-pressed="true"]{background:linear-gradient(180deg,#D3B676,#B8964F);color:var(--ink-navy)}.hlfilt .num{opacity:.75;margin-left:.15rem}
+.hlsum{margin:0 0 .75rem;color:var(--text-2)}.hlsum b{font-family:var(--f-display);font-size:1.25rem;color:var(--gold-ink)}
+.hlfill{border:1px solid var(--gold-line);border-radius:12px;padding:.75rem;margin:0 0 .75rem}.hlfill h3{margin:0;font-family:var(--f-display);font-size:1.125rem;color:var(--gold-ink)}.hlfill p{margin:.125rem 0 .5rem}.hlfill p b{color:var(--gold-ink)}
+.hlchips{list-style:none;margin:0 0 .5rem;padding:0;display:flex;flex-wrap:wrap;gap:.375rem}.hlchips li{display:flex;align-items:center;gap:.375rem;border:1px solid var(--border);border-radius:999px;padding:.25rem .625rem .25rem .25rem;font-size:.8125rem;white-space:nowrap;max-width:100%}
+.hlchips .sw{width:1.25rem;height:1.25rem;border-radius:50%;box-shadow:inset 0 0 0 1px #ffffff33;flex:none}.hlchips .user-text{overflow:hidden;text-overflow:ellipsis}
+#hlBrand{width:100%;margin-top:.25rem}
+.hlfams{display:flex;gap:.375rem;overflow-x:auto;padding:.125rem 0 .5rem;margin:0 0 .5rem;scrollbar-width:none}.hlfams .chip{flex:none;border:1px solid var(--border);border-radius:999px;background:none;color:var(--text-2);font:inherit;font-size:.8125rem;padding:.375rem .75rem;min-height:var(--tap);cursor:pointer}
+.hlfams .chip[aria-pressed="true"]{border-color:var(--gold);color:var(--gold-ink)}
+.hlrow{padding:.75rem .625rem .625rem}.hlhd{display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin:0 .125rem .375rem}
+.hlname{font-family:var(--f-display);font-size:1.125rem;font-weight:600;color:var(--text);text-decoration:none;text-align:left}
+.hlok{font-size:.75rem;color:#8fd3a4;flex:none}.hlgap{font-size:.75rem;color:var(--gold-ink);flex:none}.hlnone2{font-size:.75rem;color:var(--text-2);flex:none}
+.hlsteps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.25rem;text-align:center}
+.hlsteps li{display:flex;flex-direction:column;align-items:center;gap:.375rem;min-width:0}
+.hlsteps small{font-size:.5625rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-2)}.hlsteps .hlself small{color:var(--gold)}
+.hlsw{width:3.5rem;height:3.5rem;border-radius:10px;display:grid;place-items:center;color:#fff;font-weight:700;text-shadow:0 1px 3px #000;box-shadow:inset 0 0 0 1px #ffffff33}
+.hlself .hlsw{width:3.875rem;height:3.875rem;box-shadow:0 0 0 2px var(--gold)}.hlbuy .hlsw{outline:2px dashed var(--gold-ink);outline-offset:2px}
 .hlnone .hlsw{border:1.5px dashed var(--border);box-shadow:none}
-.hlsteps b{font-size:.6875rem;font-weight:600;line-height:1.15;overflow-wrap:anywhere}.hlsteps small{font-size:.625rem;line-height:1.2;color:var(--text-2)}.hlsteps .hlto{color:var(--gold-ink)}
+.hlsteps b{font-size:.75rem;font-weight:600;line-height:1.2;overflow-wrap:anywhere}.hlsub{font-size:.625rem;line-height:1.2;color:var(--text-2)}
+.hlbar{height:.5rem;border-radius:4px;margin-top:.625rem}
 /* v053: hearth component (hearth.css from the package, unchanged) */
 .guild-hearth{--hearth-size:320px;position:relative;width:var(--hearth-size);height:calc(var(--hearth-size)*1.85);isolation:isolate;pointer-events:none;user-select:none;flex:none}
 .guild-hearth__body{position:absolute;bottom:0;left:0;width:100%;height:auto;z-index:2;filter:drop-shadow(0 12px 16px #0005)}
@@ -6702,96 +6707,155 @@ document.addEventListener('click', e => {
   const c = e.target.closest && e.target.closest('[data-act="convertRecipe"]'); if (c){ dlgConvertRecipe(); return; }
 });
 
-/* --- highlight systems (v055) ---------------------------------------------------
-   For each base paint you own: two steps darker and two lighter, picked from
-   paints you already have. A step with nothing close becomes a paint to buy
-   (same brand first); a shade step with nothing darker suggests one of your
-   washes. "Fill the gaps" lists the paints that complete the most systems.
-   Estimates from makers' colours, like the rest of the colour tools. */
-const HL_STEPS = [[-24, 'Shade 2'], [-12, 'Shade 1'], [0, 'Base'], [12, 'Highlight 1'], [24, 'Highlight 2']];
-function hlAnchors(){
-  const own = data.paints.filter(p => OWNED_STOCK(p.stock) && validHex(p.hex) && !NOT_COLOUR.test(p.range || '') && !NOT_COLOUR.test(p.name || '') && ['', 'metal'].includes(finOf(p)));
-  const base = own.filter(p => /^(base|foundation)\b/i.test(p.range || ''));
-  const list = (base.length >= 3 ? base : own).slice();
-  const fi = p => finOf(p) === 'metal' ? FAMS.length : FAMS.indexOf(colourFam(p.hex));
-  return list.sort((a, b) => fi(a) - fi(b) || hexLab(b.hex)[0] - hexLab(a.hex)[0]).slice(0, 150);
-}
-const hlBrands = () => [...new Set(data.paints.filter(p => OWNED_STOCK(p.stock)).map(p => p.brand).filter(Boolean))];
+/* --- highlight systems (v056) ---------------------------------------------------
+   Three steps for a colour: a shade, the base and a highlight.
+   My paints: one row per base paint you own, filled from your own paints first
+   (your washes first for the shade), then a paint to buy. All colours: every
+   base colour of a brand, filled from that brand, with yours ticked.
+   A wash is shown as it would look over the base (an estimate). Fill the gaps
+   picks up to three paints that finish the most rows. */
+const HL_LABELS = ['Shade', 'Base', 'Highlight'];
 const hlKey = x => x.mine ? x.mine.name + '|' + x.mine.brand : x.row.n + '|' + x.row.b;
-function hlSystem(a){
-  const fin = finOf(a), L0 = hexLab(a.hex)[0], used = new Set([a.name + '|' + a.brand]), got = {};
-  [[-12, -24], [12, 24]].forEach(side => {
-    let last = L0;
-    side.forEach(dL => {
-      const t = shiftL(a.hex, dL);
-      const ok = h => { const L = hexLab(h)[0]; return dL < 0 ? L < last - (last === L0 ? 4 : 3) : L > last + (last === L0 ? 4 : 3); };
-      const mine = matchColour(t, { owned:true, finish:fin }).filter(x => !used.has(hlKey(x)) && ok(x.mine.hex));
-      let pick = mine[0] && mine[0].de <= 10 ? Object.assign({ own:true }, mine[0]) : null;
-      if (!pick){
-        /* to buy: the base paint's brand first, then other brands on your shelf, then any brand */
-        const cand = o => matchColour(t, Object.assign({ finish:fin, air:LESSER.test(a.range || '') }, o)).filter(x => !used.has(hlKey(x)) && ok(choiceHex(x)) && (!x.mine || !OWNED_STOCK(x.mine.stock)));
-        let c = cand({ brand:a.brand });
-        if (!c.length || c[0].de > 12) c = hlBrands().filter(b => b !== a.brand).map(b => cand({ brand:b })[0]).filter(x => x && x.de <= 12).sort((x, y) => x.de - y.de);
-        if (!c.length) c = cand({});
-        if (c[0] && c[0].de <= 14) pick = Object.assign({ buy:true }, c[0]);
-      }
-      if (pick){ used.add(hlKey(pick)); last = hexLab(choiceHex(pick))[0]; got[dL] = pick; }
-      else if (dL < 0){ const w = matchColour(t, { owned:true, finish:'thin' })[0]; got[dL] = { none:true, wash:w ? w.mine : null }; }
-      else got[dL] = { none:true, top:true };
-    });
-  });
-  got[0] = { own:true, self:true, mine:a };
-  const steps = HL_STEPS.map(([dL, label]) => Object.assign({ label }, got[dL]));
-  return { a, steps, buys:steps.filter(s => s.buy).length };
+const hlBrands = () => [...new Set(data.paints.filter(p => OWNED_STOCK(p.stock)).map(p => p.brand).filter(Boolean))];
+const hlRg = x => (x.mine ? x.mine.range : x.row.rg) || '';
+const hlSkip = rg => LESSER.test(rg) || /^dry\b/i.test(rg) || /glaze/i.test(rg) || NOT_COLOUR.test(rg);
+function hlMultiply(a, b){ const A = hexRgb(a), B = hexRgb(b); return '#' + A.map((v, i) => Math.round(v * B[i] / 255).toString(16).padStart(2, '0')).join('').toUpperCase(); }
+/* The wash whose colour is closest in hue to the paint (neutral paints get the most neutral, darkest wash). */
+function hlWash(hex, brand, ownedOnly){
+  const [, A, B] = hexLab(hex), C = Math.hypot(A, B), rows = catalogue().rows; let best = null;
+  const score = h => { const [l, a, b] = hexLab(h), c = Math.hypot(a, b);
+    return C < 10 ? c + Math.max(0, l - 40) * .3 : Math.hypot(A / C * 30 - a / Math.max(c, 1) * 30, B / C * 30 - b / Math.max(c, 1) * 30) + Math.abs(Math.min(c, 40) - Math.min(C, 40)) * .25; };
+  const consider = (x, h) => { const d = score(h); if (!best || d < best.d) best = Object.assign({ d }, x); };
+  if (ownedOnly){ data.paints.forEach(p => { if (OWNED_STOCK(p.stock) && validHex(p.hex) && finOf(p) === 'thin' && !/gloss/i.test(p.name) && !hlSkip(p.range || '') && (!brand || p.brand === brand)) consider({ mine:p }, p.hex); }); }
+  else rows.forEach((r, i) => { if (r.b !== brand || /gloss/i.test(r.n) || hlSkip(r.rg || '') || finOf({ name:r.n, brand:r.b, range:r.rg }) !== 'thin') return;
+    const mine = data.paints.find(p => p.name === r.n && p.brand === r.b);
+    consider(mine && validHex(mine.hex) ? { mine } : { row:r, ci:i }, r.hex); });
+  return best && best.d <= 14 ? best : null;
 }
-function hlStepHtml(s){
-  if (s.none) return `<li class="hlnone"><span class="hlsw"></span><b>&mdash;</b><small>${s.top ? 'Already lightest' : s.wash ? 'Shade with <span class="user-text">' + esc(s.wash.name) + '</span> (yours)' : 'Use a dark wash'}</small></li>`;
-  const p = s.mine || { name:s.row.n, brand:s.row.b, range:s.row.rg }, hex = choiceHex(s);
+const hlOwnWord = x => x.mine && OWNED_STOCK(x.mine.stock);
+/* One step: darker (dL < 0) or lighter. ownFirst = My paints; otherwise the brand's own paints. */
+function hlStep(a, dL, used, ownFirst){
+  const hex = choiceHex(a), fin = finOf(a.mine || { name:a.row.n, brand:a.row.b, range:a.row.rg }), brand = a.mine ? a.mine.brand : a.row.b;
+  const L0 = hexLab(hex)[0], t = shiftL(hex, dL), ok = h => { const L = hexLab(h)[0]; return dL < 0 ? L < L0 - 5 : L > L0 + 5; };
+  const fresh = x => !used.has(hlKey(x)) && !hlSkip(hlRg(x));
+  const mk = (x, o) => Object.assign({ own:hlOwnWord(x), buy:!hlOwnWord(x) }, x, o);
+  const washOf = w => mk(w, { wash:true, show:hlMultiply(hex, choiceHex(w)) });
+  if (ownFirst){
+    if (dL < 0 && fin !== 'metal'){ const w = hlWash(hex, null, true); if (w) return washOf(w); }
+    const m = matchColour(t, { owned:true, finish:fin }).filter(x => fresh(x) && ok(x.mine.hex))[0];
+    if (m && m.de <= 12) return mk(m);
+  }
+  if (dL < 0 && fin !== 'metal'){ const w = hlWash(hex, brand, false); if (w) return washOf(w); }
+  const cand = o => matchColour(t, Object.assign({ finish:fin }, o)).filter(x => fresh(x) && ok(choiceHex(x)) && (!ownFirst || !hlOwnWord(x)));
+  let c = cand({ brand });
+  if (ownFirst && (!c.length || c[0].de > 12)){ const other = hlBrands().filter(b => b !== brand).map(b => cand({ brand:b })[0]).filter(x => x && x.de <= 12).sort((x, y) => x.de - y.de); if (other.length) c = other; }
+  if (c[0] && c[0].de <= 14) return mk(c[0]);
+  return { none:true, top:dL > 0, metal:fin === 'metal' };
+}
+function hlRow(a, ownFirst){
+  const used = new Set([hlKey(a)]);
+  const sh = hlStep(a, -14, used, ownFirst); if (!sh.none) used.add(hlKey(sh));
+  const hi = hlStep(a, 14, used, ownFirst);
+  const base = Object.assign({ own:hlOwnWord(a), buy:!hlOwnWord(a), self:true }, a);
+  const steps = [sh, base, hi];
+  return { a, steps, buys:steps.filter(s => s.buy) };
+}
+function hlAnchorsMine(){
+  const own = data.paints.filter(p => OWNED_STOCK(p.stock) && validHex(p.hex) && !hlSkip(p.range || '') && !NOT_COLOUR.test(p.name || '') && ['', 'metal'].includes(finOf(p)));
+  const base = own.filter(p => /^(base|foundation)\b/i.test(p.range || ''));
+  return (base.length >= 3 ? base : own).slice(0, 150).map(p => ({ mine:p }));
+}
+const HLCACHE = {};
+function hlBrandRows(brand){
+  if (HLCACHE[brand]) return HLCACHE[brand];
+  const rows = catalogue().rows, list = [];
+  rows.forEach((r, i) => { if (r.b !== brand || hlSkip(r.rg || '') || NOT_COLOUR.test(r.n || '') || finOf({ name:r.n, brand:r.b, range:r.rg }) !== '') return; list.push({ row:r, ci:i }); });
+  const base = list.filter(x => /^base$/i.test(x.row.rg || ''));
+  return (HLCACHE[brand] = (base.length >= 6 ? base : list).slice(0, 400));
+}
+const hlFamOf = x => colourFam(choiceHex(x));
+/* Up to three paints that finish the most rows; ties go to paints that fill the most steps. */
+function hlPicks(sys){
+  const chosen = [];
+  for (let k = 0; k < 3; k++){
+    const cnt = new Map();
+    sys.forEach(S => { const left = S.buys.filter(b => !chosen.some(c => hlKey(c) === hlKey(b))); if (!left.length) return;
+      left.forEach(b => { const e = cnt.get(hlKey(b)) || { s:b, c:0, f:0 }; e.f++; if (left.length === 1) e.c++; cnt.set(hlKey(b), e); }); });
+    const best = [...cnt.values()].sort((x, y) => y.c - x.c || y.f - x.f || choiceName(x.s).localeCompare(choiceName(y.s)))[0];
+    if (!best) break; chosen.push(best.s);
+  }
+  const ready = sys.filter(S => !S.buys.length).length, after = sys.filter(S => S.buys.every(b => chosen.some(c => hlKey(c) === hlKey(b)))).length;
+  return { chosen, ready, after };
+}
+function hlTile(s, i){
+  const lab = HL_LABELS[i];
+  if (s.none) return `<li class="hlnone"><small>${lab}</small><span class="hlsw"></span><b>&mdash;</b><span class="hlsub">${s.top ? 'Already lightest' : s.metal ? 'Nothing darker' : 'Use a dark wash'}</span></li>`;
   const onList = s.mine && s.mine.stock === 'Wishlist';
-  return `<li class="${s.self ? 'hlself' : s.buy ? 'hlbuy' : ''}"><span class="hlsw" style="background:${esc(hex)}">${s.buy ? '<span aria-hidden="true">+</span>' : ''}</span>
-    <b class="user-text">${esc(p.name)}</b>${s.buy ? `<small class="hlto">${onList ? 'On your list' : 'Buy'}</small>` : ''}<span class="sr-only">${esc(s.label)}${s.buy ? ', ' + (onList ? 'on your shopping list' : 'to buy') : s.self ? '' : ', yours'}</span></li>`;
+  return `<li class="${i === 1 ? 'hlself' : ''}${s.buy ? ' hlbuy' : ''}"><small>${lab}</small><span class="hlsw" style="background:${esc(s.show || choiceHex(s))}"><span aria-hidden="true">${s.own ? '&#10003;' : '+'}</span></span>
+    <b class="user-text">${esc(choiceName(s))}</b>${s.wash ? '<span class="hlsub">Wash</span>' : ''}<span class="sr-only">, ${s.own ? 'yours' : onList ? 'on your shopping list' : 'missing'}</span></li>`;
 }
-function hlGaps(sys){
-  const m = new Map();
-  sys.forEach(S => S.steps.forEach(s => { if (!s.buy) return; const k = hlKey(s); const e = m.get(k) || { s, n:0 }; e.n++; m.set(k, e); }));
-  const bs = hlBrands(), mineBrand = g => bs.includes(g.s.mine ? g.s.mine.brand : g.s.row.b) ? 0 : 1;
-  return [...m.values()].sort((x, y) => y.n - x.n || mineBrand(x) - mineBrand(y) || choiceName(x.s).localeCompare(choiceName(y.s)));
+function hlCard(S, status){
+  const name = choiceName(S.a), cols = S.steps.filter(s => !s.none).map(s => s.show || choiceHex(s));
+  const title = S.a.mine ? `<button class="linkbtn hlname user-text" data-openpaint="${esc(S.a.mine.id)}">${esc(name)}</button>` : `<span class="hlname user-text">${esc(name)}</span>`;
+  return `<section class="card hlrow" aria-label="${esc(name)}"><div class="hlhd">${title}${status}</div>
+    <ol class="hlsteps">${S.steps.map(hlTile).join('')}</ol>
+    <div class="hlbar" aria-hidden="true" style="background:linear-gradient(90deg,${cols.map(esc).join(',')})"></div></section>`;
 }
 function screenHighlights(){
+  const v = state.hlv === 'all' ? 'all' : 'mine';
   let h = backBtn('paints', 'Paints') + colourToolsNav('hl');
   h += `<h2 class="display" style="font-size:1.5rem;margin:0">Highlight systems</h2>
-    <p class="muted" style="margin:.25rem 0 .75rem">Two steps darker and two lighter for each base paint, using paints you already have.</p>`;
-  const A = hlAnchors();
-  if (!A.length) return h + `<p class="small muted">Add some paints to your shelf first. Highlight systems are worked out from the paints you have.</p>`;
-  const sys = A.map(hlSystem), full = sys.filter(S => !S.buys).length, one = sys.filter(S => S.buys === 1).length;
-  h += `<div class="hlsum"><div><b class="num">${full}</b><small>complete</small></div><div><b class="num">${one}</b><small>one paint short</small></div><div><b class="num">${sys.length - full - one}</b><small>need more</small></div></div>`;
-  const gaps = hlGaps(sys), top = gaps.slice(0, 3), toAdd = top.filter(g => !(g.s.mine && g.s.mine.stock === 'Wishlist'));
-  if (top.length) h += `<div class="hlfill"><h3>Fill the gaps</h3><p class="small muted">These would complete the most systems.</p>
-    <ul class="hlchips">${top.map(g => `<li><span class="sw" style="background:${esc(choiceHex(g.s))}"></span><span class="user-text">${esc(choiceName(g.s))}</span><small>fills ${g.n}</small><span class="sr-only">, ${esc(choiceSub(g.s))}</span></li>`).join('')}</ul>
+    <p class="muted" style="margin:.25rem 0 .75rem">${v === 'mine' ? 'A shade, base and highlight for each paint you own, from your paints first.' : 'A shade, base and highlight for every base colour. Ticks are paints you have.'}</p>
+    <div class="segbar hlview" role="group" aria-label="View">${[['mine', 'My paints'], ['all', 'All colours']].map(([k, l]) => `<button data-act="hlView" data-v="${k}" aria-pressed="${v === k}">${l}</button>`).join('')}</div>`;
+  return h + (v === 'mine' ? hlMineHtml() : hlAllHtml());
+}
+function hlMineHtml(){
+  const A = hlAnchorsMine();
+  if (!A.length) return `<p class="small muted">Add some paints first. Or look at <button class="linkbtn" data-act="hlView" data-v="all">All colours</button>.</p>`;
+  const sys = A.map(a => hlRow(a, true)), P = hlPicks(sys);
+  let h = `<p class="hlsum"><b class="num">${P.ready}</b> ready to paint now &middot; <b class="num">${sys.length - P.ready}</b> need a paint</p>`;
+  const toAdd = P.chosen.filter(c => !(c.mine && c.mine.stock === 'Wishlist'));
+  if (P.chosen.length) h += `<div class="hlfill"><h3>Fill the gaps</h3><p class="small">${P.after > P.ready
+      ? `Buy ${P.chosen.length === 1 ? 'this' : 'these ' + P.chosen.length} and <b>${P.after - P.ready} more</b> ${P.after - P.ready === 1 ? 'is' : 'are'} ready to paint (${P.after} in all).`
+      : `${P.chosen.length === 1 ? 'This fills' : 'These fill'} the most steps, though no row is finished by ${P.chosen.length === 1 ? 'it' : 'them'} alone.`}</p>
+    <ul class="hlchips">${P.chosen.map(c => `<li><span class="sw" style="background:${esc(choiceHex(c))}"></span><span class="user-text">${esc(choiceName(c))}</span><span class="sr-only">, ${esc(choiceSub(c))}</span></li>`).join('')}</ul>
     ${toAdd.length ? `<button class="btn ghost" data-act="hlShop">Add ${toAdd.length === 1 ? 'it' : toAdd.length} to my shopping list&hellip;</button>` : '<p class="small muted" style="margin:.5rem 0 0">They are all on your shopping list.</p>'}</div>`;
-  const f = ['gaps', 'done'].includes(state.hlf) ? state.hlf : 'all', nGap = sys.length - full;
-  h += `<div class="segbar hlfilt" role="group" aria-label="Show">${[['all', 'All', sys.length], ['gaps', 'Gaps', nGap], ['done', 'Complete', full]].map(([v, l, n]) =>
-    `<button data-act="hlFilter" data-v="${v}" aria-pressed="${f === v}">${l} <span class="num">${n}</span></button>`).join('')}</div>`;
-  const shown = sys.filter(S => f === 'all' || (f === 'gaps' ? S.buys : !S.buys));
-  h += `<p class="small muted hlkey"><span><span class="hlk own"></span>Yours</span><span><span class="hlk buy"></span>To buy</span><span>&mdash; Nothing further</span></p>`;
-  if (!shown.length) h += `<p class="small muted">${f === 'done' ? 'No complete systems yet. Fill the gaps above to finish some.' : 'No gaps: every system is complete.'}</p>`;
-  h += shown.map(S => `<section class="card hlrow" aria-label="${esc(S.a.name)}"><div class="hlhd"><button class="linkbtn user-text" data-openpaint="${esc(S.a.id)}">${esc(S.a.name)}</button>${S.buys ? `<span class="hlgap">${S.buys} to buy</span>` : '<span class="hlok">Complete</span>'}</div>
-    <div class="hllab" aria-hidden="true">${HL_STEPS.map(([d, l]) => `<span${d ? '' : ' class="g"'}>${l}</span>`).join('')}</div>
-    <ol class="hlsteps">${S.steps.map(hlStepHtml).join('')}</ol></section>`).join('');
-  h += `<p class="small muted"><b>Estimates</b> from makers&rsquo; published colours, picked by lightness and keeping the hue. Open a paint to see other choices.</p>`;
-  return h;
+  const f = ['ready', 'gaps'].includes(state.hlf) ? state.hlf : 'all';
+  h += `<div class="segbar hlfilt" role="group" aria-label="Show">${[['all', 'All', sys.length], ['ready', 'Ready', P.ready], ['gaps', 'Gaps', sys.length - P.ready]].map(([k, l, n]) =>
+    `<button data-act="hlFilter" data-v="${k}" aria-pressed="${f === k}">${l} <span class="num">${n}</span></button>`).join('')}</div>`;
+  const shown = sys.filter(S => f === 'all' || (f === 'ready' ? !S.buys.length : S.buys.length)).sort((x, y) => x.buys.length - y.buys.length);
+  if (!shown.length) h += `<p class="small muted">${f === 'ready' ? 'None ready yet. Fill the gaps above to finish some.' : 'No gaps: every row is ready.'}</p>`;
+  h += shown.map(S => hlCard(S, S.buys.length ? `<span class="hlgap">${S.buys.length} to buy</span>` : '<span class="hlok">Ready</span>')).join('');
+  return h + `<p class="small muted"><b>Estimates</b> from makers&rsquo; published colours. Washes are shown as they would look over the base. Open a paint to see other choices.</p>`;
+}
+function hlAllHtml(){
+  const cat = catalogue().rows, counts = new Map();
+  cat.forEach(r => counts.set(r.b, (counts.get(r.b) || 0) + 1));
+  const mine = hlBrands(), all = [...counts.keys()].sort((x, y) => x.localeCompare(y));
+  let brand = state.hlBrand && counts.has(state.hlBrand) ? state.hlBrand : null;
+  if (!brand){ const own = mine.map(b => [b, data.paints.filter(p => p.brand === b && OWNED_STOCK(p.stock)).length]).sort((x, y) => y[1] - x[1]); brand = own.length ? own[0][0] : (counts.has('Citadel') ? 'Citadel' : all[0]); }
+  const anchors = hlBrandRows(brand), fams = FAMS.filter(f => anchors.some(a => hlFamOf(a) === f));
+  const fam = fams.includes(state.hlFam) ? state.hlFam : '';
+  let h = `<label for="hlBrand" class="small muted">Brand</label><select id="hlBrand" data-hlbrand>${(mine.length ? `<optgroup label="Brands you use">${mine.sort().map(b => `<option${b === brand ? ' selected' : ''}>${esc(b)}</option>`).join('')}</optgroup><optgroup label="All brands">` : '') +
+    all.filter(b => !mine.includes(b)).map(b => `<option${b === brand ? ' selected' : ''}>${esc(b)}</option>`).join('') + (mine.length ? '</optgroup>' : '')}</select>
+    <p class="small muted" style="margin:.375rem 0 .5rem">${anchors.length} ${anchors.length === 1 ? 'colour' : 'colours'}</p>`;
+  h += `<div class="hlfams" role="group" aria-label="Colour">${[''].concat(fams).map(f => `<button class="chip" data-act="hlFam" data-v="${esc(f)}" aria-pressed="${f === fam}">${f ? esc(f) : 'All'}</button>`).join('')}</div>`;
+  const shown = anchors.filter(a => !fam || hlFamOf(a) === fam);
+  h += shown.map(a => { const S = hlRow(a, false), have = S.steps.filter(s => s.own).length, n = S.steps.filter(s => !s.none).length;
+    return hlCard(S, have ? `<span class="${have === n ? 'hlok' : 'hlgap'}">${have === n ? 'All yours' : `You have ${have} of ${n}`}</span>` : '<span class="hlnone2">None yet</span>'); }).join('');
+  return h + `<p class="small muted"><b>Estimates</b> from ${esc(brand)}&rsquo;s published colours. Washes are shown as they would look over the base.</p>`;
 }
 function dlgHlShop(){
-  const top = hlGaps(hlAnchors().map(hlSystem)).slice(0, 3).filter(g => !(g.s.mine && g.s.mine.stock === 'Wishlist'));
+  const P = hlPicks(hlAnchorsMine().map(a => hlRow(a, true))), top = P.chosen.filter(c => !(c.mine && c.mine.stock === 'Wishlist'));
   if (!top.length){ toast('Nothing to add.'); return; }
   openDialog('Add to my shopping list',
-    `<p style="margin-top:0">These paints would fill the most gaps. Untick any you do not want.</p>
-     <ul class="schshop">${top.map((g, i) => `<li><label class="checkrow"><input type="checkbox" data-hlshop="${i}" checked><span class="ctext">${swChip(choiceHex(g.s), g.s.mine || { name:g.s.row.n, brand:g.s.row.b, range:g.s.row.rg })}<span><b class="user-text">${esc(choiceName(g.s))}</b><small>${esc(choiceSub(g.s))} &middot; fills ${g.n}</small></span></span></label></li>`).join('')}</ul>`,
+    `<p style="margin-top:0">These paints would finish the most rows. Untick any you do not want.</p>
+     <ul class="schshop">${top.map((c, i) => `<li><label class="checkrow"><input type="checkbox" data-hlshop="${i}" checked><span class="ctext">${swChip(choiceHex(c), c.mine || { name:c.row.n, brand:c.row.b, range:c.row.rg })}<span><b class="user-text">${esc(choiceName(c))}</b><small>${esc(choiceSub(c))}</small></span></span></label></li>`).join('')}</ul>`,
     () => {
       let n = 0;
-      top.forEach((g, i) => { if (!$(`[data-hlshop="${i}"]`).checked) return;
-        if (g.s.mine){ if (g.s.mine.stock !== 'Wishlist'){ g.s.mine.stock = 'Wishlist'; n++; } return; }
-        if (pickedIds({ items:[{ ci:g.s.ci }] }).length) n++; });
+      top.forEach((c, i) => { if (!$(`[data-hlshop="${i}"]`).checked) return;
+        if (c.mine){ if (c.mine.stock !== 'Wishlist'){ c.mine.stock = 'Wishlist'; n++; } return; }
+        if (pickedIds({ items:[{ ci:c.ci }] }).length) n++; });
       save(); render(); const m = n ? `${n} paint${n === 1 ? '' : 's'} added to your shopping list.` : 'They were already on your list.'; toast(m); announce(m);
     }, 'Add the ticked paints');
 }
@@ -7414,7 +7478,7 @@ gl_FragColor=vec4(color*alpha,alpha);}`;
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v055';
+const APP_VERSION = 'v056';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -8381,6 +8445,7 @@ function offerStageUndo(snap, msg){
 }
 document.addEventListener('change', e => {
   const t = e.target;
+  if (t.matches && t.matches('[data-hlbrand]')){ state.hlBrand = t.value; state.hlFam = ''; render(); const b = document.getElementById('hlBrand'); if (b) b.focus(); return; }
   if (t.matches && (t.matches('[data-rtunit]') || t.matches('[data-rtmodel]'))){
     const r = data.recipes.find(x => x.id === state.openRecipe); if (!r) return;
     const cur = (data.settings.rsel || {})[r.id] || {};
@@ -12894,6 +12959,7 @@ document.addEventListener('click', e => {
     if (a === 'openPlanner'){ if ($('#dlg').open) $('#dlg').close(); if (act.dataset.id) state.planner.paintId = act.dataset.id; state.tab='paints'; state.sub='planner'; state.openPaint=null; render(); window.scrollTo(0,0); return; }
     if (a === 'openHighlights'){ if ($('#dlg').open) $('#dlg').close(); state.tab='paints'; state.sub='hl'; state.openPaint=null; render(); window.scrollTo(0,0); return; }
     if (a === 'hlShop'){ dlgHlShop(); return; }
+    if (a === 'hlView' || a === 'hlFam'){ if (a === 'hlView') state.hlv = act.dataset.v; else state.hlFam = act.dataset.v; render(); const b = document.querySelector(`[data-act="${a}"][data-v="${act.dataset.v}"]`); if (b) b.focus(); return; }
     if (a === 'hlFilter'){ state.hlf = act.dataset.v; render(); const b = document.querySelector(`[data-act="hlFilter"][data-v="${act.dataset.v}"]`); if (b) b.focus(); return; }
     if (a === 'openShelfColours'){ if ($('#dlg').open) $('#dlg').close(); state.tab='paints'; state.sub='shelf'; state.openPaint=null; render(); window.scrollTo(0,0); return; }
     if (a === 'openCompare'){ if ($('#dlg').open) $('#dlg').close(); state.tab='paints'; state.sub='swatchCompare'; state.openPaint=null; render(); window.scrollTo(0,0); return; }
