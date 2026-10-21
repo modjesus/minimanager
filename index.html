@@ -2514,6 +2514,11 @@ button.stchip{border-color:var(--gold-line);background:none;font:inherit;font-si
 }
 @keyframes pnext{from{transform:translateY(6px);opacity:.6}to{transform:none;opacity:1}}
 @keyframes sgrow{0%{filter:brightness(1.7);transform:scaleY(1.5)}100%{filter:none;transform:none}}
+/* v073 tidy: plain-case group headings, no repeated finish word, army summary on the page */
+.pgh{text-transform:none;letter-spacing:0;font-size:1rem;color:var(--text);font-weight:700}
+.finword{text-transform:none;letter-spacing:0}
+.penhead{border:0;border-bottom:1px solid color-mix(in srgb,var(--gold-ink) 35%,transparent);border-radius:0;background:none;padding:.5rem 0 1rem}
+.sesslink{padding:.75rem;margin-top:.5rem}
 .ctnav.pseg button,.ctnav.stseg button{font-size:.75rem!important;letter-spacing:.02em}
 .sthlrow.pdhl{grid-template-columns:repeat(3,minmax(0,1fr))}.pdpanel .sthlhead{grid-template-columns:repeat(3,minmax(0,1fr))}
 button.sthl{background:none;border:0;color:inherit;font:inherit;cursor:pointer;padding:0}.sthlown{font-size:.75rem!important;opacity:.9}
@@ -6299,7 +6304,7 @@ function wirePicker(id, start){
     : (r => ({ name:r.n, sub:[r.b, r.rg, r.c].filter(Boolean).join(' · '), hex:r.hex, p:{ name:r.n, brand:r.b, range:r.rg }, tag:'Not yours yet' }))(cat[it.ci]);
   const drawSel = () => {
     sel.innerHTML = P.items.map((it, i) => { const v = view(it);
-      return `<li>${swChip(v.hex, v.p)}<span class="grow"><b class="user-text">${esc(v.name)}</b><small>${esc(v.sub)}${it.ci != null ? ' · goes on your wishlist' : ''}</small></span>
+      return `<li>${swChip(v.hex, v.p)}<span class="grow"><b class="user-text">${esc(v.name)}</b><small>${esc(v.sub)}${it.ci != null ? ' · not one of yours yet' : ''}</small></span>
         ${P.items.length > 1 ? `<button type="button" class="iconbtn sm" data-ppup="${i}" aria-label="Move ${esc(v.name)} earlier"${i ? '' : ' disabled'}>&uarr;</button>` : ''}
         <button type="button" class="iconbtn sm" data-ppx="${i}" aria-label="Remove ${esc(v.name)}">&times;</button></li>`; }).join('')
       || `<li class="none small muted">No paints yet. Search below to add one or more.</li>`;
@@ -6362,6 +6367,10 @@ function dlgQuickRecipe(){
       const ids = pickedIds(P);
       const r = { id:uid(), title:t, category:'', tags:'', desc:$('#qrNotes').value.trim(), visibility:'private', created:Date.now(),
         steps: ids.map(id => ({ id:uid(), technique:'', paintIds:[id], paintNames:namesFor([id]), mix:'', dry:'', notes:'' })) };
+      /* v073: made from a painting session, it is linked to that unit and you stay in the session */
+      const lk = state.qrLinkTo && data.minis.find(m => m.id === state.qrLinkTo); state.qrLinkTo = null;
+      if (lk){ data.recipes.push(r); data.links.push({ id:uid(), miniId:lk.id, recipeId:r.id, area:'', notes:'' }); const ss = sessNow(); if (ss) ss.recipeId = r.id; save(); render();
+        const m2 = `${t} saved and linked to ${lk.name}.`; toast(m2); announce(m2); return; }
       data.recipes.push(r); save(); state.tab = 'recipes'; state.openRecipe = r.id; state.editRecipe = null; state.recipeMode = 'overview'; render(); window.scrollTo(0, 0);
       const msg = `${t} saved with ${ids.length} paint${ids.length === 1 ? '' : 's'}.`; toast(msg); announce(msg);
     }, 'Save recipe');
@@ -8853,7 +8862,7 @@ gl_FragColor=vec4(color*alpha,alpha);}`;
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v072';
+const APP_VERSION = 'v073';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -9608,7 +9617,14 @@ function screenSession(){
       ${s.mode === 'single' && (s.model || 1) < n ? `<button class="btn ghost sm" data-sessmodel="1">Next model</button>` : ''}<button class="linkbtn" data-act="sessClear">Clear ticks</button></p>`;
     else if (ticks.length) h += `<p class="ctr" style="margin:.5rem 0 0"><button class="linkbtn" data-act="sessClear">Clear ticks</button></p>`;
   } else {
-    h += `<p class="small muted ctr">No recipe linked to this unit. You can link one from the unit&rsquo;s page.</p>`;
+    /* v073: link a recipe without leaving the session; the same army's recipes first */
+    const same = r => data.links.some(l => l.recipeId === r.id && (data.minis.find(x => x.id === l.miniId) || {}).fac === m.fac) || arr(r.armies).includes(m.fac);
+    const recs = data.recipes.slice().sort((a, b) => (same(b) - same(a)) || (b.updated || 0) - (a.updated || 0)), top = recs.slice(0, 6);
+    h += `<div class="card sesslink"><p style="margin:0 0 .25rem"><b>No recipe linked yet</b></p>
+      <p class="small muted" style="margin:0 0 .5rem">${recs.length ? 'Pick one to follow while you paint. It stays linked to <span class="user-text">' + esc(m.name) + '</span>.' : 'Make a quick one: its paints in order. It stays linked to <span class="user-text">' + esc(m.name) + '</span>.'}</p>
+      <div class="chips">${top.map(r => `<button class="chip" data-sesslink="${esc(r.id)}"><span class="user-text">${esc(r.title)}</span></button>`).join('')}
+        ${recs.length > top.length ? `<button class="linkbtn" data-act="linkRecipe">All ${recs.length} recipes</button>` : ''}
+        <button class="chip addchip" data-act="sessQuickRec">+ New quick recipe</button></div></div>`;
   }
   h += `<div class="row" style="margin-top:1.25rem"><button class="btn gold wide" data-act="sessFinish">Finish session</button></div>
     <p class="ctr" style="margin-top:.75rem"><button class="linkbtn" data-act="sessCancel">Stop without saving</button></p>`;
@@ -11257,20 +11273,37 @@ function dlgBulkStage(){
   if (new Set(ms.map(m => wfName(m))).size > 1){
     toast('These units use different painting stages. Select units from one workflow at a time.'); return; }
   const L = stagesOf(ms[0]);
-  let pick = '';
+  let pick = '', from = '';
+  /* v073: optionally move only the models at one stage; the rest stay where they are */
+  const at = L.filter((s, i) => ms.some(m => stageCounts(m)[i] > 0));
+  const plan = () => { if (!pick) return null; const iP = L.indexOf(pick), iF = from ? L.indexOf(from) : -1;
+    return ms.map(m => { const c = stageCounts(m), tot = c.reduce((a, b) => a + b, 0);
+      const moving = iF < 0 ? tot - c[iP] : (iF === iP ? 0 : c[iF]); return { m, moving, staying:tot - moving - (iF < 0 ? c[iP] : 0) }; }); };
+  const summary = () => { const P = plan(); if (!P) return from ? `Pick where the models at ${esc(from)} go.` : ''; const n = P.reduce((a, x) => a + x.moving, 0);
+    return P.map(x => `<span class="user-text">${esc(x.m.name)}</span>: ${x.moving ? `${x.moving} move${from ? '' : ''}` : 'nothing moves'}${from && x.staying ? `, ${x.staying} stay` : ''}`).join('. ') + `. <b>${n} model${n === 1 ? '' : 's'} in all.</b>`; };
   openDialog(`Move ${ms.length} unit${ms.length===1?'':'s'}`,
-    `<p class="small muted" style="margin-top:0">Every model in ${ms.length === 1 ? 'it' : 'them'} moves to the stage you pick.</p>
-     <div class="chips" id="bsChips">${L.map(s => `<button class="chip" data-bstage="${esc(s)}" aria-pressed="false">${esc(s)}</button>`).join('')}</div>`,
+    `<p class="small muted" style="margin-top:0">Move to:</p>
+     <div class="chips" id="bsChips">${L.map(s => `<button class="chip" data-bstage="${esc(s)}" aria-pressed="false">${esc(s)}</button>`).join('')}</div>
+     ${at.length > 1 ? `<p class="small" style="margin:.875rem 0 .375rem"><b>Only models that are at</b></p>
+     <div class="chips" id="bsFrom"><button class="chip" data-bfrom="" aria-pressed="true">Any stage</button>${at.map(s => `<button class="chip" data-bfrom="${esc(s)}" aria-pressed="false">${esc(s)}</button>`).join('')}</div>` : ''}
+     <p class="small muted" id="bsSum" role="status" style="margin:.625rem 0 0">Every model in ${ms.length === 1 ? 'it' : 'them'} moves to the stage you pick.</p>`,
     () => { if (!pick){ toast('Pick a stage first.'); return false; }
-      const was = new Map(ms.map(m => [m.id, isDone(m)])), snap = stageSnap(ms);
-      ms.forEach(m => { logAllTo(m, stageCounts(m), L, pick); setCounts(m, L.map((_, i) => i === L.indexOf(pick) ? (Number(m.total)||1) : 0)); m.updated = Date.now(); });
-      endSelecting(`Moved ${ms.length} to ${pick}.`);
-      offerStageUndo(snap, `Moved ${ms.length} unit${ms.length === 1 ? '' : 's'} to ${pick}.`);
+      const P = plan(), n = P.reduce((a, x) => a + x.moving, 0); if (!n){ toast('Nothing to move: none of them are at ' + from + '.'); return false; }
+      const was = new Map(ms.map(m => [m.id, isDone(m)])), snap = stageSnap(ms), iP = L.indexOf(pick), iF = from ? L.indexOf(from) : -1;
+      ms.forEach(m => { const c = stageCounts(m);
+        if (iF < 0){ logAllTo(m, c, L, pick); setCounts(m, L.map((_, i) => i === iP ? (Number(m.total)||1) : 0)); }
+        else { const k = c[iF]; if (!k || iF === iP) return; logMove(m, from, pick, k); c[iF] -= k; c[iP] += k; setCounts(m, c); }
+        m.updated = Date.now(); });
+      const msg = from ? `Moved ${n} model${n === 1 ? '' : 's'} from ${from} to ${pick}.` : `Moved ${ms.length} unit${ms.length === 1 ? '' : 's'} to ${pick}.`;
+      endSelecting(msg); offerStageUndo(snap, msg);
       askUnpin(ms.filter(m => !was.get(m.id))); }, 'Move');
+  const upd = () => { const ok = $('#dlg [data-dlg="ok"]'), P = plan();
+    if (ok) ok.textContent = !pick ? 'Move' : from ? `Move ${P.reduce((a, x) => a + x.moving, 0)}` : 'Move to ' + pick;
+    $('#bsSum').innerHTML = pick || from ? summary() : `Every model in ${ms.length === 1 ? 'it' : 'them'} moves to the stage you pick.`; };
   $('#bsChips').addEventListener('click', e => { const c = e.target.closest('[data-bstage]'); if (!c) return;
-    pick = c.dataset.bstage;
-    $$('#bsChips [data-bstage]').forEach(b => b.setAttribute('aria-pressed', String(b === c)));
-    const ok = $('#dlg [data-dlg="ok"]'); if (ok) ok.textContent = 'Move to ' + pick; });
+    pick = c.dataset.bstage; $$('#bsChips [data-bstage]').forEach(b => b.setAttribute('aria-pressed', String(b === c))); upd(); });
+  const bf = $('#bsFrom'); if (bf) bf.addEventListener('click', e => { const c = e.target.closest('[data-bfrom]'); if (!c) return;
+    from = c.dataset.bfrom; $$('#bsFrom [data-bfrom]').forEach(b => b.setAttribute('aria-pressed', String(b === c))); upd(); });
 }
 function dlgBulkMove(){
   const ms = selectedUnits(); if (!ms.length) return;
@@ -11402,6 +11435,17 @@ function collTitle(){
    button at the foot says how many will show. Nothing here is new: these are
    the same filters that used to sit on the screen, moved one tap away. */
 function filterSheetBody(){
+  if (state.sheet === 'recipes'){
+    const cats = [...new Set(data.recipes.map(r => String(r.category || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+    const facs = arr(data.factions).filter(f => data.recipes.some(r => recLinks(r).facs.some(x => x.id === f.id))).sort((a, b) => a.name.localeCompare(b.name));
+    const ready = data.recipes.filter(r => availWords(r).ok).length;
+    let h = '';
+    if (cats.length) h += `<p class="fsec">Category</p><div class="chips">${cats.map(c => `<button class="chip" data-frcat="${esc(c)}" aria-pressed="${state.rCat === c}"><span class="user-text">${esc(cap(c))}</span> <span class="n">${data.recipes.filter(r => String(r.category || '').trim() === c).length}</span></button>`).join('')}</div>`;
+    if (facs.length) h += `<p class="fsec">Used for</p><div class="chips">${facs.map(f => `<button class="chip" data-frarmy="${esc(f.id)}" aria-pressed="${state.rArmy === f.id}"><span class="user-text">${esc(f.name)}</span></button>`).join('')}</div>`;
+    h += `<p class="fsec">Paints</p><div class="chips"><button class="chip" data-frready="1" aria-pressed="${!!state.rReady}">All paints yours <span class="n">${ready}</span></button></div>`;
+    if (rfOn()) h += `<button class="fclear" data-act="clearRecFilters">Clear all filters</button>`;
+    return h;
+  }
   if (state.sheet === 'paints'){
     const f = pf(), stockCount = {}, cnt = (k, v) => data.paints.filter(p => (k === 'fam' ? colourFam(p.hex) : (p[k] || '')) === v).length;
     data.paints.forEach(p => { stockCount[p.stock] = (stockCount[p.stock]||0)+1; });
@@ -11450,6 +11494,7 @@ function filterSheetBody(){
   return h;
 }
 function sheetCountLabel(){
+  if (state.sheet === 'recipes'){ const n = recipeFiltered().length; return `Show ${n} recipe${n === 1 ? '' : 's'}`; }
   if (state.sheet === 'paints'){
     const n = paintList().length;
     return `Show ${n} paint${n===1?'':'s'}`;
@@ -12040,7 +12085,7 @@ function screenPaints(){
   const nOut = data.paints.filter(p => p.stock === 'Out').length;
   h += `<div class="pshown"><p class="small muted"><span class="num">${shown.reduce((a, g) => a + g.ps.length, 0)}</span> of <span class="num">${state.pStock ? data.paints.filter(p => p.stock === state.pStock).length : shelfPaints().length}</span> ${state.pStock ? esc(state.pStock.toLowerCase()) : 'owned'} shown${!state.pStock && nOut ? ` &middot; <button class="linkbtn" data-act="pOut">${nOut} out</button>` : ''}</p>
     <button class="linkbtn" data-act="pCompact" aria-pressed="${F.compact}">Compact list</button></div>`;
-  return h + shown.map(g => `<h2 class="pgh">${g.label} <span class="num">${g.ps.length}</span></h2><div class="paintlist${F.compact ? ' compact' : ''}">${paintTiles(g.ps)}</div>`).join('');
+  return h + shown.map(g => `<h2 class="pgh">${g.label} <span class="num">${g.ps.length}</span></h2><div class="paintlist${F.compact ? ' compact' : ''}">${paintTiles(g.ps, true)}</div>`).join('');
 }
 /* v062: "do I own it?" always gets an answer. A paint you don't have is
    shown from the catalogue, with the closest one you do have. */
@@ -12064,14 +12109,15 @@ function catToPaint(ci, stock){
   return p;
 }
 const STOCK_PILL = { 'Have it':['have','Have it'], 'Running low':['low','Low'], 'Out':['out','Out'], 'Wishlist':['wish','Wishlist'], 'Not owned':['wish','Not owned'] };
-function paintTiles(list){
+/* v073: under a heading that already says Metallic or Shade & wash, the tile doesn't repeat it */
+function paintTiles(list, grouped){
   let h = '';
   list.forEach(p => {
     const sw = data.swatches.filter(s => s.paintId === p.id).length;
     h += `<button class="paintrow" data-openpaint="${esc(p.id)}" style="margin-bottom:.5rem">
       ${swChip(p.hex, p)}
       <span class="grow"><span class="nm user-text">${esc(p.name)}</span><br>
-        <span class="br">${esc([p.brand,p.range].filter(Boolean).join(' · '))}${p.code?' · '+esc(p.code):''}${paintFinish(p) && !/metal|contrast|wash|shade|ink|glaze|speedpaint|xpress|transparent/i.test(p.range || '') ? ` · <span class="finword">${FINISH_WORD[paintFinish(p)]}</span>` : ''}</span></span>
+        <span class="br">${esc([p.brand,p.range].filter(Boolean).join(' · '))}${p.code?' · '+esc(p.code):''}${!grouped && paintFinish(p) && !/metal|contrast|wash|shade|ink|glaze|speedpaint|xpress|transparent/i.test(p.range || '') ? ` · <span class="finword">${FINISH_WORD[paintFinish(p)]}</span>` : ''}</span></span>
       ${sw?`<span class="tagmini">${sw} swatch${sw>1?'es':''}</span>`:''}${STOCK_PILL[p.stock] ? `<span class="stockpill ${STOCK_PILL[p.stock][0]}">${STOCK_PILL[p.stock][1]}</span>` : ''}</button>`;
   });
   return h;
@@ -12272,6 +12318,16 @@ function paintsSeg(cur){
 /* ===========================================================================
    Recipes
    =========================================================================== */
+/* v073: recipe filters: category, army, and whether you have every paint */
+const rfOn = () => (state.rCat ? 1 : 0) + (state.rArmy ? 1 : 0) + (state.rReady ? 1 : 0);
+function recipeFiltered(){
+  const rq = String(state.rq || '').trim().toLowerCase();
+  const cats = new Set(data.recipes.map(r => String(r.category || '').trim()).filter(Boolean)); if (state.rCat && !cats.has(state.rCat)) state.rCat = '';
+  return data.recipes.filter(r => (!state.rCat || String(r.category || '').trim() === state.rCat)
+    && (!state.rArmy || recLinks(r).facs.some(f => f.id === state.rArmy))
+    && (!state.rReady || availWords(r).ok)
+    && recipeMatches(r, rq));
+}
 function screenRecipes(){
   if (state.openRecipe) return screenRecipeDetail();
   let h = `<div style="height:.875rem"></div>`;
@@ -12282,16 +12338,17 @@ function screenRecipes(){
       <div class="gxacts"><button class="btn" data-act="newRecipe">Write your first recipe</button><button class="btn ghost" data-act="importRecipe">Import a recipe</button></div>`);
   /* v047: search the recipe book: names, notes, techniques and paints. */
   const rq = String(state.rq || '').trim().toLowerCase();
+  /* v073: the same search + Filter as Paints and Collection; what is on shows as chips to clear */
+  const nOn = rfOn();
   h += `<div class="findrow"><div class="field"><label for="rq" class="sr-only">Search recipes</label>
     <input id="rq" type="search" placeholder="Search ${data.recipes.length} recipes, paints, techniques" value="${esc(state.rq || '')}">
-    ${rq ? `<button class="clearq" data-act="clearrq" aria-label="Clear search">&times;</button>` : ''}</div></div>`;
-  /* v040: each recipe shows its colours; categories along the top. */
-  const cats = [...new Set(data.recipes.map(r => String(r.category || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b));
-  if (state.rCat && cats.indexOf(state.rCat) === -1) state.rCat = '';
-  if (cats.length) h += `<div class="pchips" role="group" aria-label="Recipe category"><button type="button" data-act="rCat" data-c="" aria-pressed="${!state.rCat}">All <b class="num">${data.recipes.length}</b></button>${cats.map(c =>
-    `<button type="button" data-act="rCat" data-c="${esc(c)}" aria-pressed="${state.rCat === c}"><span class="user-text">${esc(cap(c))}</span> <b class="num">${data.recipes.filter(r => String(r.category || '').trim() === c).length}</b></button>`).join('')}</div>`;
-  const shownR = data.recipes.filter(r => (!state.rCat || String(r.category || '').trim() === state.rCat) && recipeMatches(r, rq));
-  if (!shownR.length) return h + `<div class="empty"><p>No recipes match${rq ? ` &ldquo;${esc(state.rq)}&rdquo;` : ''}.</p><button class="btn ghost" data-act="clearrq">Clear search</button></div>`;
+    ${rq ? `<button class="clearq" data-act="clearrq" aria-label="Clear search">&times;</button>` : ''}</div>
+    <button class="fopen" data-act="openRecipeFilter" aria-haspopup="dialog">Filter${nOn ? ` <span class="fc">${nOn}</span>` : ''}</button></div>`;
+  if (nOn){ const chip = (k, v) => `<button class="chip on-x" data-act="rfx" data-k="${k}" aria-label="Remove filter ${esc(v)}">${esc(v)} &times;</button>`;
+    h += `<div class="chips">${state.rCat ? chip('cat', cap(state.rCat)) : ''}${state.rArmy ? chip('army', facName(state.rArmy)) : ''}${state.rReady ? chip('ready', 'All paints yours') : ''}
+      <button class="linkbtn" data-act="clearRecFilters">Clear filters</button></div>`; }
+  const shownR = recipeFiltered();
+  if (!shownR.length) return h + `<div class="empty"><p>No recipes match${rq ? ` &ldquo;${esc(state.rq)}&rdquo;` : ''}.</p><button class="btn ghost" data-act="clearRecFilters">Clear search and filters</button></div>`;
   h += `<div class="rcards">`;
   shownR.forEach(r => {
     const used = data.links.filter(l => l.recipeId === r.id).length;
@@ -14345,7 +14402,8 @@ function dlgLinkRecipe(){
      ${chips('lkArea', CHIPS.area, { label:'Which part of the model?',
         ownPlaceholder:'Which part?' })}`,
     () => {
-      data.links.push({ id:uid(), miniId:state.openMini, recipeId:$('#lkRec').value, area:$('#lkArea').value.trim(), notes:'' });
+      const mid = state.openMini || (state.tab === 'session' && sessNow() ? sessNow().miniId : null); if (!mid) return;
+      data.links.push({ id:uid(), miniId:mid, recipeId:$('#lkRec').value, area:$('#lkArea').value.trim(), notes:'' });
       save(); render(); toast('Recipe attached.');
     }, 'Attach');
 }
@@ -14451,6 +14509,10 @@ document.addEventListener('click', e => {
     const f = document.querySelector('.sessmode .grow'); if (f){ f.setAttribute('tabindex', '-1'); f.focus(); } return; }
   const srec = t.closest('[data-sessrec]');
   if (srec){ const s = sessNow(); if (!s) return; s.recipeId = srec.dataset.sessrec; save(); render(); return; }
+  const slk = t.closest('[data-sesslink]');
+  if (slk){ const s = sessNow(); if (!s) return; const m = data.minis.find(x => x.id === s.miniId), r = data.recipes.find(x => x.id === slk.dataset.sesslink); if (!m || !r) return;
+    if (!data.links.some(l => l.miniId === m.id && l.recipeId === r.id)) data.links.push({ id:uid(), miniId:m.id, recipeId:r.id, area:'', notes:'' });
+    s.recipeId = r.id; save(); render(); const msg = `${r.title} linked to ${m.name}.`; toast(msg); announce(msg); const f = document.querySelector('.sstep'); if (f) f.focus({ preventScroll:true }); return; }
   const hs = t.closest('[data-hero]');
   if (hs && !hs.disabled){ state.heroIdx = (state.heroIdx || 0) + Number(hs.dataset.hero); render(); return; }
   const go = t.closest('[data-tab-go]');
@@ -14647,6 +14709,7 @@ document.addEventListener('click', e => {
     if (a === 'guestHide'){ try { localStorage.setItem('mm.guestHide', '1'); } catch (e){} render(); announce('Hidden. Account still shows where your things are saved.'); return; }
     if (a === 'ptChange'){ state.ptOpen = !state.ptOpen; render(); const f = document.getElementById(state.ptOpen ? 'rtUnit' : 'ptChange'); if (f) f.focus(); return; }
     if (a === 'pUndo'){ const u = state.pUndo; if (!u) return; setTicksAt(u.key, u.prev); state.pUndo = null; save(); render(); const f = document.querySelector(`.pmark[data-rtick="${CSS.escape(u.id)}"]`); if (f) f.focus({ preventScroll:true }); announce('Undone.'); return; }
+    if (a === 'sessQuickRec'){ const s = sessNow(); if (!s || !s.miniId) return; state.qrLinkTo = s.miniId; return dlgQuickRecipe(); }
     if (a === 'pOut'){ state.pStock = 'Out'; pfSave(); render(); return; }
     if (a === 'pView'){ state.pView = act.dataset.v; render(); const b = document.querySelector(`[data-act="pView"][data-v="${act.dataset.v}"]`); if (b) b.focus(); return; }
     if (a === 'pdHlBuy'){ const p = paintOf(state.openPaint); if (!p) return; const S = hlRow({ mine:p }, true);
@@ -14671,6 +14734,9 @@ document.addEventListener('click', e => {
     if (a === 'clearFilters'){ state.q=''; state.fSys=''; state.fFac=''; state.fStage=''; state.sort=''; render(); return; }
     if (a === 'openFilter'){ openFilterSheet('coll'); return; }
     if (a === 'openPaintFilter'){ openFilterSheet('paints'); return; }
+    if (a === 'openRecipeFilter'){ openFilterSheet('recipes'); return; }
+    if (a === 'rfx'){ const k = act.dataset.k; if (k === 'cat') state.rCat = ''; if (k === 'army') state.rArmy = ''; if (k === 'ready') state.rReady = false; render(); const f = $('[data-act="openRecipeFilter"]'); if (f) f.focus(); return; }
+    if (a === 'clearRecFilters'){ state.rq = ''; state.rCat = ''; state.rArmy = ''; state.rReady = false; render(); refreshFilterSheet(); return; }
     if (a === 'unfilter'){ const k = act.dataset.k;
       if (k==='sys'){ state.fSys=''; state.fFac=''; } else if (k==='fac') state.fFac=''; else if (k==='stage') state.fStage='';
       else if (k==='sort') state.sort=''; else if (k==='stock') state.pStock='';
@@ -14708,6 +14774,9 @@ document.addEventListener('click', e => {
   const fs = t.closest('[data-fsys]'); if (fs){ state.fSys = state.fSys===fs.dataset.fsys?'':fs.dataset.fsys; state.fFac=''; render(); return; }
   const ff = t.closest('[data-ffac]'); if (ff){ state.fFac = state.fFac===ff.dataset.ffac?'':ff.dataset.ffac; render(); return; }
   const ft = t.closest('[data-fstage]'); if (ft){ state.fStage = state.fStage===ft.dataset.fstage?'':ft.dataset.fstage; render(); return; }
+  const frc = t.closest('[data-frcat]'); if (frc){ state.rCat = state.rCat === frc.dataset.frcat ? '' : frc.dataset.frcat; render(); refreshFilterSheet(); return; }
+  const fra = t.closest('[data-frarmy]'); if (fra){ state.rArmy = state.rArmy === fra.dataset.frarmy ? '' : fra.dataset.frarmy; render(); refreshFilterSheet(); return; }
+  if (t.closest('[data-frready]')){ state.rReady = !state.rReady; render(); refreshFilterSheet(); return; }
   const fk = t.closest('[data-fstock]'); if (fk){ state.pStock = state.pStock===fk.dataset.fstock?'':fk.dataset.fstock; pfSave(); render(); refreshFilterSheet(); return; }
   const ps = t.closest('[data-pdstock]'); if (ps){ const p = paintOf(state.openPaint); if (p && p.stock !== ps.dataset.pdstock){ const was = p.stock; p.stock = ps.dataset.pdstock; p.updated = Date.now(); save(); render();
       const f = document.querySelector(`[data-pdstock="${CSS.escape(p.stock)}"]`); if (f) f.focus();
