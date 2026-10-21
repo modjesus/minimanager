@@ -2470,6 +2470,10 @@ button.stchip{border-color:var(--gold-line);background:none;font:inherit;font-si
 .stsl{display:grid;grid-template-columns:7.5rem minmax(0,1fr) 2.75rem;align-items:center;gap:.5rem;margin:.375rem 0;font-size:.875rem}
 .stsl input{width:100%;min-height:var(--tap);accent-color:#C4A461}.stsl input:disabled{opacity:.45}.stsl output{text-align:right;font-variant-numeric:tabular-nums;color:var(--text-2)}
 .bigtext .stsl{grid-template-columns:1fr 2.75rem}.bigtext .stsl span{grid-column:1/-1}
+.uschpic{width:3.25rem;height:3.25rem;border-radius:8px;overflow:hidden;flex:none;display:block;background:var(--deep)}.uschpic img{width:100%;height:100%;object-fit:cover;display:block}
+.uscheme .grow{display:grid;text-align:left;min-width:0}.uscheme .grow small{font-size:.75rem}
+.sslevel{margin:.5rem 0}
+.wtile .wrg{display:block;color:var(--text-2);font-size:.75rem;line-height:1.2;margin-top:.125rem}
 .ctnav.pseg button,.ctnav.stseg button{font-size:.75rem!important;letter-spacing:.02em}
 .sthlrow.pdhl{grid-template-columns:repeat(3,minmax(0,1fr))}.pdpanel .sthlhead{grid-template-columns:repeat(3,minmax(0,1fr))}
 button.sthl{background:none;border:0;color:inherit;font:inherit;cursor:pointer;padding:0}.sthlown{font-size:.75rem!important;opacity:.9}
@@ -6289,12 +6293,14 @@ function wirePicker(id, start){
   return P;
 }
 /* Shelf ids for the picked items; catalogue paints are added as Wishlist. */
-function pickedIds(P){
+/* v069: a catalogue paint brought in by a recipe is "Not owned": it waits off the shelf
+   and off the shopping list until you say you have it or want it. */
+function pickedIds(P, stock){
   const cat = catalogue().rows, now = Date.now();
   return P.items.map(it => {
     if (it.id) return paintOf(it.id) ? it.id : null;
     const r = cat[it.ci]; let p = data.paints.find(x => x.name === r.n && x.brand === r.b);
-    if (!p){ p = { id:uid(), name:r.n, brand:r.b, range:r.rg, code:r.c, hex:r.hex, type:'', stock:'Wishlist', notes:'', created:now }; data.paints.push(p); }
+    if (!p){ p = { id:uid(), name:r.n, brand:r.b, range:r.rg, code:r.c, hex:r.hex, type:'', stock:stock || 'Not owned', notes:'', created:now }; data.paints.push(p); }
     return p.id;
   }).filter(Boolean);
 }
@@ -6432,7 +6438,7 @@ const ROLE_NAMES = ['Main colour', 'Second colour', 'Trim and detail', 'Metal', 
 const FINISH_LABEL = { '':'Opaque', metal:'Metallic', thin:'Wash or glaze', contrast:'Contrast' };
 
 /* --- status words, always with text as well as colour ---------------------- */
-const stockStat = p => !p ? 'Missing' : p.stock === 'Running low' ? 'Low' : p.stock === 'Out' ? 'Out' : p.stock === 'Wishlist' ? 'Missing' : 'Have';
+const stockStat = p => !p ? 'Missing' : p.stock === 'Running low' ? 'Low' : p.stock === 'Out' ? 'Out' : p.stock === 'Wishlist' || p.stock === 'Not owned' ? 'Missing' : 'Have';
 const STAT_WORD = { Have:'You have it', Low:'Running low', Out:'Out', Missing:'Missing' };
 
 /* --- neutral colours ---------------------------------------------------------
@@ -6747,7 +6753,7 @@ function dlgSchemeShop(){
       let n = 0;
       rows.forEach((x, i) => { if (!$(`[data-shopi="${i}"]`).checked) return;
         if (x.c.mine){ if (x.c.mine.stock !== 'Out' && x.c.mine.stock !== 'Wishlist'){ x.c.mine.stock = 'Wishlist'; n++; } return; }
-        const ids = pickedIds({ items:[{ ci:x.c.ci }] }); if (ids.length){ n++; if (!x.r.pick) x.r.pick = { id:ids[0] }; } });
+        const ids = pickedIds({ items:[{ ci:x.c.ci }] }, 'Wishlist'); if (ids.length){ n++; if (!x.r.pick) x.r.pick = { id:ids[0] }; } });
       schSave(sc); const m = n ? `${n} paint${n === 1 ? '' : 's'} added to your shopping list.` : 'They were already on your list.'; toast(m); announce(m);
     }, 'Add the ticked paints');
 }
@@ -6763,7 +6769,7 @@ function dlgSchemeRecipe(){
      <p class="small muted">Paints you do not have go on your shopping list as Wishlist.</p>`,
     () => {
       const t = $('#srName').value.trim(); if (!t){ fieldErr('srName', NAME_REQUIRED); return false; }
-      const steps = stRecipeSteps(sc, !!($('#srHl') && $('#srHl').checked));
+      const steps = stRecipeSteps(sc, $('#srHl') && $('#srHl').checked ? 'detailed' : 'simple');
       const rec = { id:uid(), title:t, category:'', tags:'', desc:`Made from the colour scheme "${sc.name}".`, steps, visibility:'private', created:Date.now(), scheme:sc.id, photos: sc.pic ? [sc.pic] : [], stepsSig:stStepsSig(steps) };
       data.recipes.push(rec);
       if ($('#srLink') && $('#srLink').checked) us.forEach(m => { if (!data.links.some(l => l.miniId === m.id && l.recipeId === rec.id)) data.links.push({ miniId:m.id, recipeId:rec.id, area:'' }); });
@@ -7113,7 +7119,7 @@ function dlgHlShop(){
       let n = 0;
       top.forEach((c, i) => { if (!$(`[data-hlshop="${i}"]`).checked) return;
         if (c.mine){ if (c.mine.stock !== 'Wishlist'){ c.mine.stock = 'Wishlist'; n++; } return; }
-        if (pickedIds({ items:[{ ci:c.ci }] }).length) n++; });
+        if (pickedIds({ items:[{ ci:c.ci }] }, 'Wishlist').length) n++; });
       save(); render(); const m = n ? `${n} paint${n === 1 ? '' : 's'} added to your shopping list.` : 'They were already on your list.'; toast(m); announce(m);
     }, 'Add the ticked paints');
 }
@@ -7177,7 +7183,7 @@ const stKindFinish = k => k === 'trim' || k === 'steel' ? 'metal' : '';
 const stModel = sc => ST_MODELS.find(M => M.id === (sc && sc.model)) || ST_MODELS[0];
 const stKindOf = (sc, r) => { const M = stModel(sc), m = M.mats.find(x => x[0] === r.mat); return m ? m[2] : ST_MAT_KIND[r.mat] || 'main'; };
 const ST_DATA = {}, ST_LOADS = {};
-const ST_HIST = {}, ST_LAST = {};
+const ST_HIST = {}, ST_LAST = {}, ST_NOTE = {};
 const ST_CACHE = { key:'', img:null };
 let ST = null; /* the decoded picture of the model last drawn (kept for taps) */
 
@@ -7368,6 +7374,17 @@ function stShuffle(sc){
   else if (lockedA || lockedC){ const fix = lockedA ? curA : curC, fh = hueOf(fix);
     colours.forEach(x => { if (stGap(x.h, fh) >= 145) pairs.push(lockedA ? [fix, x] : [x, fix]); }); }
   else colours.forEach(a => colours.forEach(b => { if (a !== b && stGap(a.h, b.h) >= 145) pairs.push([a, b]); }));
+  /* v069: a small shelf still gets a scheme. No opposite pair: the two colours furthest
+     apart; one colour: it with a neutral or brown second colour. Never a paint you lack. */
+  let note = '';
+  if (!pairs.length && sc.owned && !lockedA && !lockedC){
+    const pool2 = colours.length ? colours : pool.filter(x => x.k === 'colour');
+    let best = 0; pool2.forEach(a => pool2.forEach(b => { if (a !== b) best = Math.max(best, stGap(a.h, b.h)); }));
+    if (best > 0){ pool2.forEach(a => pool2.forEach(b => { if (a !== b && stGap(a.h, b.h) >= best - 15) pairs.push([a, b]); }));
+      note = `Using the ${shelfPaints().length} paints on your shelf. There is no opposite pair on your shelf, so this uses the colours furthest apart.`; }
+    else if (pool2.length){ const second = pool.filter(x => x !== pool2[0] && x.k !== 'metal').sort((x, y) => Math.abs(y.l - pool2[0].l) - Math.abs(x.l - pool2[0].l))[0];
+      if (second){ pool2.forEach(a => pairs.push([a, second])); note = `Using the ${shelfPaints().length} paints on your shelf. Your shelf has one strong colour, so it is paired with a neutral.`; } }
+  }
   if (!pairs.length) return lockedA || lockedC ? 'The locked colour has no opposite colour in these paints. Unlock it, or choose All paints under Which paints.'
     : sc.owned ? 'Your shelf needs two coloured paints that are opposite each other on the colour wheel. Choose All paints under Which paints to use the catalogue.' : 'No opposite colours found for this brand.';
   const metals = pool.filter(x => x.k === 'metal'), earth = pool.filter(x => x.k === 'earth'), neutral = pool.filter(x => x.k === 'neutral').sort((x, y) => x.l - y.l);
@@ -7375,25 +7392,30 @@ function stShuffle(sc){
   if (!metals.length && (free('trim') || free('steel'))) need.push('a metallic');
   if (!earth.length && (free('leather') || free('ground') || free('wood'))) need.push('a brown');
   if (!neutral.length && (free('dark') || free('rim'))) need.push('a black or dark grey');
+  if (need.length && sc.owned){ need.length = 0; note = note || `Using the ${shelfPaints().length} paints on your shelf.`; note += ' Some parts use the closest paint you have, as your shelf has no ' + [!metals.length ? 'metallic' : '', !earth.length ? 'brown' : '', !neutral.length ? 'black' : ''].filter(Boolean).join(', ').replace(/, ([^,]*)$/, ' or $1') + '.'; }
   if (need.length) return `${sc.owned ? 'Your shelf' : 'This brand'} also needs ${need.join(', ').replace(/, ([^,]*)$/, ' and $1')} to finish a scheme.${sc.owned ? ' Or choose All paints under Which paints.' : ''}`;
   const last = ST_LAST[sc.id], fresh = pairs.filter(([a, b]) => stKey(a) + '|' + stKey(b) !== last);
   const [main, accent] = stRand(fresh.length ? fresh : pairs);
   const mh = hueOf(main), cool = mh > 130 && mh < 290;
   const warmM = metals.filter(x => x.h < 80 && x.s > .15), coolM = metals.filter(x => x.s <= .15);
-  const trim = stRand((cool ? warmM : coolM).length ? (cool ? warmM : coolM) : metals);
-  const steel = (coolM.length ? coolM : metals).slice().sort((x, y) => Math.abs(x.l - .6) - Math.abs(y.l - .6))[0];
-  const leather = stRand(earth), groundPool = earth.filter(x => x !== leather), ground = stRand(groundPool.length ? groundPool : earth);
-  const dark = neutral[0], rim = neutral[1] && neutral[1].l < .3 ? neutral[1] : neutral[0];
+  const trim0 = metals.length ? stRand((cool ? warmM : coolM).length ? (cool ? warmM : coolM) : metals) : null;
+  const steel0 = metals.length ? (coolM.length ? coolM : metals).slice().sort((x, y) => Math.abs(x.l - .6) - Math.abs(y.l - .6))[0] : null;
+  const leather0 = earth.length ? stRand(earth) : null, groundPool = earth.filter(x => x !== leather0), ground0 = earth.length ? stRand(groundPool.length ? groundPool : earth) : null;
+  const dark0 = neutral[0] || null, rim0 = neutral[1] && neutral[1].l < .3 ? neutral[1] : (neutral[0] || null);
   /* natural colours: the closest paints in the pool to a skin, bone, wood or mouth colour */
   const near = (hex, test) => { const t = hexLab(hex), c = pool.filter(x => x.k !== 'metal' && (!test || test(x))); if (!c.length) return null;
     const sorted = c.map(x => [deltaE(t, hexLab(choiceHex(x))), x]).sort((p, q) => p[0] - q[0]); return stRand(sorted.slice(0, 3))[1]; };
   const skinHex = stRand(['#E0AC8A', '#C59178', '#A9765A', '#8A5A44', '#6E4A3A']);
+  /* on a small shelf, a missing kind takes the closest paint you do have */
+  const closeAny = hex => { const t = hexLab(hex), c = pool.filter(x => x !== main && x !== accent); if (!c.length) return null; return c.map(x => [deltaE(t, hexLab(choiceHex(x))), x]).sort((p, q) => p[0] - q[0])[0][1]; };
+  const trim = trim0 || closeAny('#B39250'), steel = steel0 || closeAny('#A2A6AA'), leather = leather0 || closeAny('#6B4A2E'), ground = ground0 || closeAny('#5E4B36'), dark = dark0 || closeAny('#26282B'), rim = rim0 || dark;
   const pick = { main, accent, trim, steel, leather, dark, ground, rim,
     wood: near('#4A3628', x => x.k === 'earth') || leather, skin: near(skinHex), bone: near(stRand(['#D8CFAE', '#CBBD91', '#E3DCC2', '#BFAE86'])), mouth: near(stRand(['#8E2B33', '#7A2230', '#A8433E'])) };
   stRemember(sc); delete sc.firstAuto;
   sc.roles.forEach((r, i) => { const n = pick[kinds[i]]; if (!locks.includes(r.mat) && n) stSetPaint(sc, i, n); });
   ST_LAST[sc.id] = stKey(main) + '|' + stKey(accent);
   sc.stHarm = choiceName(main) + ' + ' + choiceName(accent); delete sc.stPat;
+  ST_NOTE[sc.id] = note;
   return '';
 }
 /* Suggest from the starting colour and harmony: real paints for each unlocked part. */
@@ -7469,12 +7491,12 @@ function screenStudio(sc){
       <button class="btn ghost stundobtn" data-st="undo" aria-label="Undo"${(ST_HIST[sc.id] || []).length ? '' : ' disabled'}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button></div>
     ${stDirty(sc) ? `<div class="stdirty" role="status"><span><b>Changed since you saved it.</b> Your saved scheme is safe until you save again.</span><span class="stdirtyb"><button class="btn ghost sm" data-st="backsaved">Back to saved</button><button class="btn ghost sm" data-st="save">Save changes</button></span></div>` : ''}
     ${state.stStart ? `<div class="ststart">${stStartBody(sc)}</div>` : ''}
-    <p class="stmsg small" role="status">${esc(msg)}</p>
-    <div class="sthd"><span class="small muted stharm">${sc.firstAuto ? 'A first scheme: shuffle or use a photo.' : sc.stHarm ? esc(sc.stHarm) : `Shuffles ${sc.owned ? 'your paints' : esc(stBrand(sc)) + ' paints'}`}</span>${sc.firstAuto || P ? '' : '<span class="small muted">Tap a part to change it</span>'}</div>
+    <p class="stmsg small" role="status">${esc(msg)}${msg && sc.owned ? ' <button class="btn ghost sm stuseall" data-st="useall">Include catalogue paints</button>' : ''}</p>
+    <div class="sthd"><span class="small muted stharm">${sc.firstAuto ? (sc.owned ? 'A first scheme from your paints: shuffle or use a photo.' : `An example in ${esc(stBrand(sc))} paints you don\u2019t have yet. Shuffle to try more.`) : sc.stHarm ? esc(sc.stHarm) : `Shuffles ${sc.owned ? 'your paints' : esc(stBrand(sc)) + ' paints'}`}</span>${sc.firstAuto || P ? '' : '<span class="small muted">Tap a part to change it</span>'}</div>
     <div class="stzones${sc.roles.length > 8 ? ' nine' : ''}${P && P.sel != null ? ' picking' : ''}">${sc.roles.map((r, i) => studioSwatch(sc, r, i)).join('')}</div>
     <button class="btn ghost stsave" data-st="save"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/></svg> ${sc.saved ? (stDirty(sc) ? 'Save changes' : 'Saved') : 'Save scheme'}</button>
     ${sc.saved ? `<p class="small muted stsaved">Saved ${esc(fmtDay(localISO(new Date(sc.saved))))}${sc.pic ? ' with a picture of the painted miniature' : ''}.</p>` : ''}
-    ${(() => { const R = stRecipeOf(sc); return R ? `<button class="strecline" data-openrecipe="${esc(R.id)}"><span>${BOOK_SVG}</span><span class="grow"><small>Recipe</small><b class="user-text">${esc(R.title)}</b></span><span class="small">${arr(R.steps).length} steps &rsaquo;</span></button>` : '<p class="small muted stsaved">Saving also makes a recipe with shade and highlight steps.</p>'; })()}
+    ${(() => { const R = stRecipeOf(sc); return R ? `<button class="strecline" data-openrecipe="${esc(R.id)}"><span>${BOOK_SVG}</span><span class="grow"><small>Recipe</small><b class="user-text">${esc(R.title)}</b></span><span class="small">${arr(R.steps).length} steps &rsaquo;</span></button>` : '<p class="small muted stsaved">Saving keeps the colours and a picture. A recipe is optional.</p>'; })()}
     <p class="small muted stnote">One fixed view. Screen colours are estimates from makers&rsquo; published colours, not real paint.</p></div>`;
   /* the extras, folded */
   const hlRows = stHlRows(sc), hlBuy = stHlBuys(sc, hlRows);
@@ -7731,37 +7753,67 @@ function stAddToShop(items, why){
    Steps: base, shade, highlight, part by part; parts sharing a paint share a base step.
    stepsSig remembers what the studio last wrote, so a recipe you have edited by hand
    is never overwritten without asking. */
-function stRecipeSteps(sc, hl){
-  const idsOf = c => c.mine ? [c.mine.id] : pickedIds({ items:[{ ci:c.ci }] });
-  const step = (c, tech, note) => { const ids = idsOf(c); return { id:uid(), technique:tech, paintIds:ids, paintNames:namesFor(ids), mix:'', dry:'', notes:note }; };
-  const steps = [], done = new Set();
+/* v069: how much recipe a scheme gets. Simple: a base coat per part. Standard: the
+   main and second colours also get a shade and a highlight. Detailed: every part does. */
+const ST_LEVELS = [['simple', 'Simple'], ['standard', 'Standard'], ['detailed', 'Detailed']];
+const stLevelOf = v => v === true ? 'detailed' : v === false ? 'simple' : ['simple', 'standard', 'detailed'].includes(v) ? v : 'detailed';
+/* the plan: which paint goes in each step, before anything is written */
+function stRecipePlan(sc, level){
+  level = stLevelOf(level);
+  const out = [], done = new Map();
   sc.roles.forEach(r => { const c = roleChoice(sc, r); if (!c) return;
-    if (!hl){ steps.push(step(c, '', r.role)); return; }
-    let S = null; try { S = hlRow(c, true); } catch (e) {}
-    const k = S ? hlKey(S.steps[1]) : r.mat;
-    if (done.has(k)){ const st = steps.find(x => x.baseKey === k); if (st) st.notes += ', ' + r.role; return; }
-    done.add(k); const b = step(c, 'Basecoat', r.role); b.baseKey = k; steps.push(b);
-    if (S && !S.steps[0].none) steps.push(step(S.steps[0], S.steps[0].wash ? 'Wash' : 'Shade', r.role + (S.steps[0].wash ? ': recesses' : ': deepest areas')));
-    if (S && !S.steps[2].none) steps.push(step(S.steps[2], 'Highlight', r.role + ': raised edges')); });
-  steps.forEach(x => delete x.baseKey);
-  return steps;
+    const kind = stKindOf(sc, r), full = level === 'detailed' || (level === 'standard' && (kind === 'main' || kind === 'accent'));
+    let S = null; if (full){ try { S = hlRow(c, true); } catch (e) {} }
+    const k = S ? hlKey(S.steps[1]) : (c.mine ? 'm' + c.mine.id : 'c' + c.ci);
+    /* parts sharing a paint share their base coat */
+    if (done.has(k)){ const st = done.get(k); st.note += ', ' + r.role; if (!full || st.full) return; }
+    const b = { c, tech:level === 'simple' ? 'Basecoat' : 'Basecoat', note:r.role, full };
+    if (!done.has(k)){ done.set(k, b); out.push(b); }
+    if (S && !S.steps[0].none) out.push({ c:S.steps[0], tech:S.steps[0].wash ? 'Wash' : 'Shade', note:r.role + (S.steps[0].wash ? ': recesses' : ': deepest areas') });
+    if (S && !S.steps[2].none) out.push({ c:S.steps[2], tech:'Highlight', note:r.role + ': raised edges' });
+    if (S) done.get(k).full = true; });
+  return out;
+}
+const stPlanKey = c => c.mine ? 'm' + c.mine.id : 'c' + c.ci;
+const stPlanOwned = c => !!(c.mine && OWNED_STOCK(c.mine.stock));
+/* steps, paints and how many of those paints you do not have */
+function stPlanCounts(sc, level){
+  const P = stRecipePlan(sc, level), seen = new Map();
+  P.forEach(x => seen.set(stPlanKey(x.c), x.c));
+  const missing = [...seen.values()].filter(c => !stPlanOwned(c));
+  return { steps:P.length, paints:seen.size, missing:missing.length, missingList:missing };
+}
+function stRecipeSteps(sc, level){
+  const idsOf = c => c.mine ? [c.mine.id] : pickedIds({ items:[{ ci:c.ci }] });
+  return stRecipePlan(sc, level).map(x => { const ids = idsOf(x.c); return { id:uid(), technique:x.tech, paintIds:ids, paintNames:namesFor(ids), mix:'', dry:'', notes:x.note }; });
 }
 const stStepsSig = steps => JSON.stringify(arr(steps).map(x => [x.technique || '', arr(x.paintIds).join('+'), x.notes || '', x.mix || '', x.dry || '']));
 const stRecipeOf = sc => data.recipes.find(r => r.scheme === sc.id) || null;
-/* Saving a scheme makes its recipe, or brings it up to date */
-function stSyncRecipe(sc, force){
+/* Saving a scheme makes its recipe, or brings it up to date (never one you have edited by hand) */
+function stSyncRecipe(sc, force, level){
+  level = stLevelOf(level || sc.recLevel);
   let rec = stRecipeOf(sc);
-  const steps = stRecipeSteps(sc, true);
   if (!rec){
+    const steps = stRecipeSteps(sc, level);
     rec = { id:uid(), title:sc.name, category:'', tags:'', desc:`Made from the colour scheme "${sc.name}".`, steps, visibility:'private', created:Date.now(), updated:Date.now(), scheme:sc.id, photos:[], stepsSig:stStepsSig(steps) };
     data.recipes.push(rec);
-    arr(sc.units).forEach(id => { if (!data.links.some(l => l.miniId === id && l.recipeId === rec.id)) data.links.push({ miniId:id, recipeId:rec.id, area:'' }); });
+    arr(sc.units).forEach(id => { if (!data.links.some(l => l.miniId === id && l.recipeId === rec.id)) data.links.push({ id:uid(), miniId:id, recipeId:rec.id, area:'', notes:'' }); });
     return { rec, made:true };
   }
   const untouched = rec.stepsSig && rec.stepsSig === stStepsSig(rec.steps);
-  if (untouched || force){ rec.steps = steps; rec.stepsSig = stStepsSig(steps); rec.updated = Date.now(); rec.stale = false; return { rec, updated:true }; }
+  if (untouched || force){ const steps = stRecipeSteps(sc, level); rec.steps = steps; rec.stepsSig = stStepsSig(steps); rec.updated = Date.now(); rec.stale = false; return { rec, updated:true }; }
   rec.stale = true; rec.updated = Date.now();
   return { rec, kept:true };
+}
+/* only when you ask: the paints you lack go on the shopping list (Want) */
+function stShopMissing(list){
+  const prev = [];
+  const mark = p => { if (!p || p.stock === 'Wishlist' || p.stock === 'Out' || OWNED_STOCK(p.stock)) return false; prev.push([p.id, p.stock]); p.stock = 'Wishlist'; return true; };
+  let n = 0;
+  list.forEach(c => { if (c.mine){ if (mark(c.mine)) n++; return; }
+    const ids = pickedIds({ items:[{ ci:c.ci }] }); const p = paintOf(ids[0]); if (mark(p)) n++; });
+  /* Undo puts each paint back as it was */
+  return { n, undo:() => { prev.forEach(([id, st]) => { const p = paintOf(id); if (p) p.stock = st; }); } };
 }
 /* A recipe's paints, tried on a miniature: base coats first, matched to parts by name, the rest in order */
 function stSchemeFromRecipe(r){
@@ -7819,38 +7871,57 @@ function stBackToSaved(sc){
   sc.roles = JSON.parse(JSON.stringify(S.roles)); sc.locks = S.locks.slice(); sc.stHarm = ''; ST_CACHE.key = '';
   return true;
 }
-async function stSave(sc, name){
+async function stSave(sc, name, opt){
+  opt = opt || {};
   sc.name = name; sc.saved = Date.now(); delete sc.firstAuto; stKeepSaved(sc);
-  const R = stSyncRecipe(sc);
+  /* v069: a recipe only when chosen, at the chosen level; shopping only when ticked */
+  const level = opt.level || (stRecipeOf(sc) ? stLevelOf(sc.recLevel) : 'simple');
+  const missing = opt.shop ? stPlanCounts(sc, level === 'none' ? 'simple' : level).missingList : [];
+  let R = null;
+  if (level !== 'none'){ sc.recLevel = level; R = stSyncRecipe(sc, false, level); }
+  const S = opt.shop ? stShopMissing(missing) : { n:0, undo:null }, shopped = S.n;
   const blob = await stPicture(sc).catch(() => null);
   const old = sc.pic, P = stPicPlaces(sc);
   if (blob){ const id = uid(); await putPhoto(id, blob); sc.pic = id;
+    /* the picture goes on its recipe as a reference image. It is never put among a
+       unit's photos: it is a preview of the colours, not a photo of your models. */
     const swap = list => { const a = arr(list).filter(x => x !== old); a.push(id); return a; };
     P.recs.forEach(r => { r.photos = swap(r.photos); r.updated = Date.now(); });
-    P.units.forEach(m => { m.photos = swap(m.photos); m.updated = Date.now(); });
-    /* the old picture comes off anything it was put on */
     if (old){ data.recipes.forEach(r => { if (arr(r.photos).includes(old)) r.photos = r.photos.filter(x => x !== old); }); data.minis.forEach(m => { if (arr(m.photos).includes(old)) m.photos = m.photos.filter(x => x !== old); }); }
   }
-  return { pic:!!blob, recs:P.recs.length, units:P.units.length, R };
+  return { pic:!!blob, recs:P.recs.length, units:P.units.length, R, shopped, undoShop:S.undo };
 }
 function dlgSaveScheme(){
   const sc = schemeOf(state.schemeId); if (!sc) return;
   const facs = [...new Set(liveMinis().map(m => m.fac).filter(Boolean))].map(id => data.factions.find(f => f.id === id)).filter(Boolean).sort((a, b) => a.name.localeCompare(b.name));
   const us = arr(sc.units).map(id => data.minis.find(m => m.id === id)).filter(Boolean);
-  openDialog(sc.saved ? 'Save changes' : 'Save scheme', `${sc.saved ? '<p class="small muted" style="margin-top:0">This replaces the saved version, and updates its recipe and picture.</p>' : ''}<label for="ssName">Name</label><input id="ssName" value="${esc(ST_DEFAULT_NAME.test(sc.name.trim()) ? '' : sc.name)}" placeholder="${esc(stModel(sc).name)} scheme" autocomplete="off">
+  const hasRec = !!stRecipeOf(sc); let level = hasRec ? stLevelOf(sc.recLevel) : 'simple';
+  const LDESC = { none:'Just the colours and the picture. You can make a recipe later.', simple:'one base coat per part', standard:'base coats, plus a shade and highlight for the main and second colours', detailed:'a base coat, shade and highlight for every part' };
+  const info = () => { if (level === 'none') return { t:LDESC.none, miss:stPlanCounts(sc, 'simple').missing };
+    const C = stPlanCounts(sc, level), nm = ST_LEVELS.find(x => x[0] === level)[1];
+    return { t:`<b>${nm}:</b> ${C.steps} step${C.steps === 1 ? '' : 's'}, ${LDESC[level]}. ${C.missing ? `You don&rsquo;t have ${C.missing} of its ${C.paints} paints.` : `You have all ${C.paints} of its paints.`}`, miss:C.missing }; };
+  const shopRow = n => n ? `<label class="checkrow"><input type="checkbox" id="ssShop"><span class="ctext">Add the ${n} paint${n === 1 ? '' : 's'} I don&rsquo;t have to my shopping list</span></label>` : '';
+  const I0 = info();
+  openDialog(sc.saved ? 'Save changes' : 'Save scheme', `${sc.saved ? '<p class="small muted" style="margin-top:0">This replaces the saved version and its picture.</p>' : ''}<label for="ssName">Name</label><input id="ssName" value="${esc(ST_DEFAULT_NAME.test(sc.name.trim()) ? '' : sc.name)}" placeholder="${esc(stModel(sc).name)} scheme" autocomplete="off">
     <p class="fsec">The picture kept with it</p><div class="sspic"><canvas id="ssPic" width="240" height="240" role="img" aria-label="${esc(stModel(sc).name)} in this scheme's paints"></canvas></div>
     ${facs.length ? `<p class="fsec" id="ssForL">Use for <span class="opt">optional</span></p><div class="chips" role="group" aria-labelledby="ssForL">${facs.map(f => `<button class="chip" data-ssfac="${esc(f.id)}" aria-pressed="${arr(sc.armies).includes(f.id)}">${esc(f.name)}</button>`).join('')}</div>` : ''}
     ${us.length ? `<p class="small muted">Also on: ${us.map(m => `<span class="user-text">${esc(m.name)}</span>`).join(', ')}.</p>` : ''}
-    <p class="small muted">${stRecipeOf(sc) ? 'Its recipe is brought up to date' : 'A recipe is made from it, with shade and highlight steps'}. The picture goes on the recipe and on the units it is used for, as a reference.</p>`,
-    () => { const n = $('#ssName').value.trim() || $('#ssName').placeholder;
+    <p class="fsec" id="ssRecL">${hasRec ? 'Its recipe' : 'Recipe'} <span class="opt">optional</span></p>
+    <div class="chips" role="group" aria-labelledby="ssRecL">${[['none', hasRec ? 'Leave as it is' : 'No recipe']].concat(ST_LEVELS).map(([k, l]) => `<button class="chip" data-sslevel="${k}" aria-pressed="${k === level}">${l}</button>`).join('')}</div>
+    <p class="small sslevel" id="ssLevelT" role="status">${I0.t}</p>
+    <div id="ssShopW">${shopRow(I0.miss)}</div>
+    <p class="small muted">The picture goes on the recipe as a reference image. Your units show it as a scheme preview, never as a photo of them.</p>`,
+    () => { const n = $('#ssName').value.trim() || $('#ssName').placeholder, shop = !!($('#ssShop') && $('#ssShop').checked);
       $$('#dlg [data-ssfac]').forEach(b => { const on = b.getAttribute('aria-pressed') === 'true', id = b.dataset.ssfac; sc.armies = arr(sc.armies).filter(x => x !== id).concat(on ? [id] : []); });
-      stSave(sc, n).then(r => { schSave(sc); const bits = [r.pic ? 'Saved with a picture' : 'Saved'];
+      stSave(sc, n, { level, shop }).then(r => { schSave(sc); const bits = [r.pic ? 'Saved with a picture' : 'Saved'];
         if (r.R && r.R.made) bits.push('and a recipe made'); else if (r.R && r.R.updated) bits.push('and its recipe updated'); else if (r.R && r.R.kept) bits.push('(your edited recipe was left as it is)');
-        if (r.units) bits.push(`on ${r.units} unit${r.units === 1 ? '' : 's'}`);
-        const m = bits.join(' ') + '.'; toast(m); announce(m); });
-    }, 'Save scheme');
+        let m = bits.join(' ') + '.'; if (r.shopped) m += ` ${r.shopped} paint${r.shopped === 1 ? '' : 's'} added to your shopping list.`;
+        if (r.shopped) undoBar(m, () => { r.undoShop(); save(); render(); announce('Taken off your shopping list.'); }); else toast(m); announce(m); });
+    }, 'Save');
   const cv = $('#ssPic'); stPicture(sc).then(b => { if (!b || !cv) return; const im = new Image(); im.onload = () => { cv.getContext('2d').drawImage(im, 0, 0, cv.width, cv.height); URL.revokeObjectURL(im.src); }; im.src = URL.createObjectURL(b); });
-  $('#dlgBody').addEventListener('click', e => { const b = e.target.closest('[data-ssfac]'); if (b) b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') !== 'true'); });
+  $('#dlgBody').addEventListener('click', e => { const b = e.target.closest('[data-ssfac]'); if (b) b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') !== 'true');
+    const L = e.target.closest('[data-sslevel]'); if (L){ level = L.dataset.sslevel; $$('#dlg [data-sslevel]').forEach(x => x.setAttribute('aria-pressed', x === L)); const I = info(); $('#ssLevelT').innerHTML = I.t;
+      const was = $('#ssShop') && $('#ssShop').checked; $('#ssShopW').innerHTML = shopRow(I.miss); if (was && $('#ssShop')) $('#ssShop').checked = true; } });
 }
 
 /* --- dialogs -------------------------------------------------------------------- */
@@ -7950,7 +8021,8 @@ document.addEventListener('click', e => {
   if (a === 'big') return dlgStudioBig();
   if (a === 'paints') return dlgStudioPaints();
   if (a === 'mat'){ if (stPhotoApply(sc, i)) return; return dlgStudioPaint(i); }
-  if (a === 'shuffle'){ const m = stShuffle(sc); state.stMsg = { id:sc.id, text:m }; if (!m) state.stMode = state.stMode === 'values' ? 'values' : 'colour'; schSave(sc); keep('[data-st="shuffle"]');
+  if (a === 'useall'){ sc.owned = false; const m = stShuffle(sc); state.stMsg = { id:sc.id, text:m || 'Now shuffling from all ' + stBrand(sc) + ' paints, including ones you don\u2019t have.' }; schSave(sc); keep('[data-st="shuffle"]'); announce(state.stMsg.text); return; }
+  if (a === 'shuffle'){ const m = stShuffle(sc) || ST_NOTE[sc.id] || ''; state.stMsg = { id:sc.id, text:m }; if (!m) state.stMode = state.stMode === 'values' ? 'values' : 'colour'; schSave(sc); keep('[data-st="shuffle"]');
     announce(m || 'New scheme: ' + sc.stHarm + '.'); return; }
   if (a === 'undo'){ if (stUndo(sc)){ state.stMsg = { id:sc.id, text:'' }; schSave(sc); announce('Previous paints restored.'); } keep((ST_HIST[sc.id] || []).length ? '[data-st="undo"]' : '[data-st="shuffle"]'); return; }
   if (a === 'lock'){ const m = sc.roles[i].mat, L = arr(sc.locks); sc.locks = L.includes(m) ? L.filter(x => x !== m) : L.concat(m); schSave(sc);
@@ -8362,11 +8434,16 @@ function welPaints(){
     (w.brands.length > 1 || w.mode ? `<div class="chips welsw" role="group" aria-label="Brand">${w.brands.map(b => `<button class="chip" data-wpbrand="${esc(b)}" aria-pressed="${w.brand === b}">${esc(b)} <span class="n">${nPick(b)}</span></button>`).join('')}${w.mode ? '<button class="chip" data-wel="gostep" data-s="1">+ Another brand</button>' : ''}</div>` : '') +
     `<div class="wsearch"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><label for="wq" class="sr-only">Search ${esc(w.brand)} paints</label><input id="wq" type="search" placeholder="Search ${esc(w.brand)}&hellip;" value="${esc(w.q)}" autocomplete="off"></div>`;
   const rows = welCatRows(w.brand);
+  /* v069: in search results each paint says which range it is (Base, Air, Spray...) */
+  let showRg = false;
   const tile = ci => { const r = cat[ci], own = welOwned(r), on = own || !!w.picked[ci];
-    return `<button class="wtile" data-wpaint="${ci}" aria-pressed="${on}"${own ? ' disabled' : ''}><span class="sw${finOf({ name:r.n, brand:r.b, range:r.rg }) === 'metal' ? ' metal' : ''}" style="background-color:#${esc(r.hex.replace('#', ''))};--c:${esc(r.hex)}"></span><span class="nm">${esc(r.n)}</span>${own ? '<small>Yours</small>' : ''}${on ? `<span class="tick" aria-hidden="true">&#10003;</span>` : ''}</button>`; };
+    return `<button class="wtile" data-wpaint="${ci}" aria-pressed="${on}"${own ? ' disabled' : ''}><span class="sw${finOf({ name:r.n, brand:r.b, range:r.rg }) === 'metal' ? ' metal' : ''}" style="background-color:#${esc(r.hex.replace('#', ''))};--c:${esc(r.hex)}"></span><span class="nm">${esc(r.n)}</span>${showRg ? `<small class="wrg">${esc(r.rg || 'Other')}</small>` : ''}${own ? '<small>Yours</small>' : ''}${on ? `<span class="tick" aria-hidden="true">&#10003;</span>` : ''}</button>`; };
   const q = w.q.trim().toLowerCase();
   if (q){
-    const hits = rows.filter(ci => (cat[ci].n + ' ' + cat[ci].rg + ' ' + cat[ci].c).toLowerCase().indexOf(q) !== -1).slice(0, 90);
+    /* main ranges before airbrush, spray and discontinued ones */
+    const hits = rows.filter(ci => (cat[ci].n + ' ' + cat[ci].rg + ' ' + cat[ci].c).toLowerCase().indexOf(q) !== -1)
+      .sort((a, b) => (LESSER.test(cat[a].rg || '') - LESSER.test(cat[b].rg || '')) || cat[a].n.localeCompare(cat[b].n)).slice(0, 90);
+    showRg = true;
     h += hits.length ? `<div class="wgrid">${hits.map(tile).join('')}</div>` : `<p class="small muted">Nothing in ${esc(w.brand)} matches.</p>`;
   } else {
     const ranges = [...new Set(rows.map(ci => cat[ci].rg || 'Other'))];
@@ -8721,7 +8798,7 @@ gl_FragColor=vec4(color*alpha,alpha);}`;
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v068';
+const APP_VERSION = 'v069';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -8853,6 +8930,10 @@ function load(){
   /* v062: four catalogue names were stored with "&amp;" for "&" */
   arr(data.paints).forEach(p => { if (p && /&amp;/.test(p.name || '')){ p.name = p.name.replace(/&amp;/g, '&'); p.updated = Date.now(); } });
   arr(data.wishlist).forEach(w => { if (w && /&amp;/.test(w.name || '')) w.name = w.name.replace(/&amp;/g, '&'); });
+  /* v069: a scheme's picture is a preview of colours, not a photo of your models: take it
+     out of units' photos (it stays on the scheme, and on its recipe as a reference) */
+  { const pics = new Set(arr((data.settings || {}).schemes).map(sc => sc && sc.pic).filter(Boolean));
+    if (pics.size) arr(data.minis).forEach(m => { if (m && arr(m.photos).some(x => pics.has(x))){ m.photos = m.photos.filter(x => !pics.has(x)); m.updated = Date.now(); } }); }
 }
 
 /* Write to this device only. Used by the sync code when folding changes
@@ -9808,7 +9889,7 @@ function counts(){
   return { total:t.total, done:t.done, started:t.started, backlog:t.backlog,
            startedUnits:t.startedUnits, backlogUnits:t.backlogUnits, terrain:t.terrain,
            entries:data.minis.length,
-           paints:data.paints.length, swatches:data.swatches.length, recipes:data.recipes.length };
+           paints:shelfPaints().length, swatches:data.swatches.length, recipes:data.recipes.length };
 }
 
 /* --- state ---------------------------------------------------------------- */
@@ -11256,7 +11337,7 @@ function filterSheetBody(){
     const f = pf(), stockCount = {}, cnt = (k, v) => data.paints.filter(p => (k === 'fam' ? colourFam(p.hex) : (p[k] || '')) === v).length;
     data.paints.forEach(p => { stockCount[p.stock] = (stockCount[p.stock]||0)+1; });
     let h = `<p class="fsec">How you are for it</p><div class="chips">`;
-    STOCK.filter(s => stockCount[s]).forEach(s => {
+    ['Have it', 'Running low', 'Out'].filter(s => stockCount[s]).forEach(s => {
       h += `<button class="chip" data-fstock="${esc(s)}" aria-pressed="${state.pStock===s}">
         ${esc(s)} <span class="n">${stockCount[s]}</span></button>`;
     });
@@ -11580,8 +11661,9 @@ function unitRecipesHtml(m){
   if (!linked.length) h += `<p class="small muted">No recipes attached yet.</p>`;
   /* v047: colour schemes this unit, or its army, is linked to */
   const schs = schemesList().filter(sc => arr(sc.units).indexOf(m.id) !== -1 || (m.fac && arr(sc.armies).indexOf(m.fac) !== -1));
-  schs.forEach(sc => { h += `<button class="uscheme" data-sch="open" data-id="${esc(sc.id)}"><span class="schstrip" aria-hidden="true">${sc.roles.map(r => `<i style="background:${esc(choiceHex(roleChoice(sc, r)) || r.hex)}"></i>`).join('')}</span>
-    <span>Colour scheme: <b class="user-text">${esc(sc.name)}</b></span><span aria-hidden="true">&rsaquo;</span></button>`; });
+  /* v069: the scheme's picture is shown here, labelled as a preview, never as the unit's photo */
+  schs.forEach(sc => { h += `<button class="uscheme" data-sch="open" data-id="${esc(sc.id)}">${sc.pic ? `<span class="uschpic">${photoImg(sc.pic, 'ph')}</span>` : `<span class="schstrip" aria-hidden="true">${sc.roles.map(r => `<i style="background:${esc(choiceHex(roleChoice(sc, r)) || r.hex)}"></i>`).join('')}</span>`}
+    <span class="grow"><small class="muted">${sc.pic ? 'Scheme preview' : 'Colour scheme'}</small><b class="user-text">${esc(sc.name)}</b></span><span aria-hidden="true">&rsaquo;</span></button>`; });
   linked.forEach(l => {
     const r = data.recipes.find(x => x.id === l.recipeId);
     if (!r) return;
@@ -11801,7 +11883,8 @@ const pfOn = () => { const f = pf(); return (f.brand ? 1 : 0) + (f.range ? 1 : 0
 function paintList(){
   const q = state.pq.trim().toLowerCase(), f = pf();
   return data.paints.filter(p => {
-    if (state.pStock && p.stock !== state.pStock) return false;
+    /* v069: the shelf is what you own; Out only when asked for */
+    if (state.pStock ? p.stock !== state.pStock : !OWNED_STOCK(p.stock)) return false;
     if (f.brand && (p.brand || '') !== f.brand) return false;
     if (f.range && (p.range || '') !== f.range) return false;
     if (f.fam && colourFam(p.hex) !== f.fam) return false;
@@ -11823,7 +11906,8 @@ function screenColour(){
   if (!sc){ sc = schemesList().slice().sort((a, b) => (b.updated || 0) - (a.updated || 0))[0];
     if (!sc){ sc = newScheme('colour'); sc.name = 'My first scheme';
       /* v060: start with a proper opposite-colour pair, from your paints if they allow it */
-      if (stShuffle(sc)){ sc.owned = false; stShuffle(sc); sc.owned = true; }
+      /* v069: from your paints if at all possible; otherwise an example that says so */
+      if (stShuffle(sc)){ sc.owned = false; stShuffle(sc); }
       ST_HIST[sc.id] = []; sc.firstAuto = 1; save(); }
     state.schemeId = sc.id; }
   state.sub = 'scheme';
@@ -11844,8 +11928,8 @@ function screenPaints(){
   const nd = needList();
   let h = '';
 
-  if (!data.paints.length){
-    return h + paintsSeg('shelf') + emptyPlain(`<h3>No paints yet</h3>
+  if (!shelfPaints().length && !state.pStock){
+    return h + paintsSeg('shelf') + emptyPlain(`<h3>No paints on your shelf yet</h3>
       <p>Add from <span class="num">${catalogue().rows.length.toLocaleString()}</span> paints in the catalogue, or enter your own. Your shelf, swatches and shopping list all start here.</p>
       <div class="gxacts"><button class="btn" data-act="addPaints">Add paints</button></div>`);
   }
@@ -11855,7 +11939,7 @@ function screenPaints(){
   /* v059: colour tools have their own tab; the shopping list sits here */
   h += `<div class="findrow" style="margin-top:.875rem"><div class="field">
       <label for="pq" class="sr-only">Search your paints</label>
-      <input id="pq" type="search" placeholder="Search ${data.paints.length} paints" value="${esc(state.pq)}">
+      <input id="pq" type="search" placeholder="Search ${shelfPaints().length} paints" value="${esc(state.pq)}">
       ${state.pq?`<button class="clearq" data-act="clearpq" aria-label="Clear search">&times;</button>`:''}</div>
     <button class="fopen" data-act="openPaintFilter" aria-haspopup="dialog">Filter${nOn?` <span class="fc">${nOn}</span>`:''}</button></div>`;
   if (nOn){
@@ -11880,7 +11964,8 @@ function screenPaints(){
     `<button type="button" data-act="pGroup" data-g="${g.k}" aria-pressed="${state.pGroup === g.k}">${g.label} <b class="num">${g.ps.length}</b></button>`).join('')}</div>`;
   h += `<p class="estline">Colours are the maker&rsquo;s estimates until you photograph a swatch.</p>`;
   const shown = state.pGroup ? groups.filter(g => g.k === state.pGroup) : groups;
-  h += `<div class="pshown"><p class="small muted"><span class="num">${shown.reduce((a, g) => a + g.ps.length, 0)}</span> of <span class="num">${data.paints.length}</span> shown</p>
+  const nOut = data.paints.filter(p => p.stock === 'Out').length;
+  h += `<div class="pshown"><p class="small muted"><span class="num">${shown.reduce((a, g) => a + g.ps.length, 0)}</span> of <span class="num">${state.pStock ? data.paints.filter(p => p.stock === state.pStock).length : shelfPaints().length}</span> ${state.pStock ? esc(state.pStock.toLowerCase()) : 'owned'} shown${!state.pStock && nOut ? ` &middot; <button class="linkbtn" data-act="pOut">${nOut} out</button>` : ''}</p>
     <button class="linkbtn" data-act="pCompact" aria-pressed="${F.compact}">Compact list</button></div>`;
   return h + shown.map(g => `<h2 class="pgh">${g.label} <span class="num">${g.ps.length}</span></h2><div class="paintlist${F.compact ? ' compact' : ''}">${paintTiles(g.ps)}</div>`).join('');
 }
@@ -11905,7 +11990,7 @@ function catToPaint(ci, stock){
   else { p.stock = stock; p.updated = Date.now(); }
   return p;
 }
-const STOCK_PILL = { 'Have it':['have','Have it'], 'Running low':['low','Low'], 'Out':['out','Out'], 'Wishlist':['wish','Wishlist'] };
+const STOCK_PILL = { 'Have it':['have','Have it'], 'Running low':['low','Low'], 'Out':['out','Out'], 'Wishlist':['wish','Wishlist'], 'Not owned':['wish','Not owned'] };
 function paintTiles(list){
   let h = '';
   list.forEach(p => {
@@ -11961,7 +12046,7 @@ function screenPaintDetail(){
       <p class="muted user-text">${esc([p.brand, p.range].filter(Boolean).join(' · '))}${p.code ? ` &middot; <span class="num">${esc(p.code)}</span>` : ''}</p>
       <p class="small muted">${[p.type, FINISH_WORD[fin], colourFam(p.hex) ? colourFam(p.hex) + ' (estimate)' : '', validHex(p.hex) ? '' : 'No colour on record'].filter(Boolean).map(esc).join(' &middot; ')}</p></div></div>`;
   h += `<p class="fsec" id="pdStockL">How you are for it</p>
-    <div class="segq pdstock" role="radiogroup" aria-labelledby="pdStockL">${STOCK.map(s => `<button type="button" role="radio" data-pdstock="${esc(s)}" aria-checked="${(p.stock || 'Have it') === s}">${esc(s)}</button>`).join('')}</div>`;
+    <div class="segq pdstock" role="radiogroup" aria-labelledby="pdStockL">${STOCK.concat(p.stock === 'Not owned' ? ['Not owned'] : []).map(s => `<button type="button" role="radio" data-pdstock="${esc(s)}" aria-checked="${(p.stock || 'Have it') === s}">${esc(s)}</button>`).join('')}</div>`;
   h += `<div class="pdacts">
     <button data-act="pdPanel" data-v="alt" aria-expanded="${panel === 'alt'}"><span>Find alternatives</span><small>Closest from other brands</small></button>
     <button data-act="pdPanel" data-v="lad" aria-expanded="${panel === 'lad'}"><span>Shade and highlight</span><small>A darker and a lighter paint to go with it</small></button>
@@ -12203,7 +12288,10 @@ function paintHlHtml(p){
    deleted, so a deleted paint leaves a readable step rather than a blank.
    Nothing is rewritten on load: the names are filled in at those two moments
    only, so opening the app never sends every recipe back to the account. */
-const OWNED_STOCK = s => s !== 'Out' && s !== 'Wishlist';
+/* v069: "Not owned" is a paint a recipe or scheme uses that you have not got and have
+   not asked to buy: it is neither on your shelf nor on your shopping list. */
+const OWNED_STOCK = s => s !== 'Out' && s !== 'Wishlist' && s !== 'Not owned';
+const shelfPaints = () => arr(data.paints).filter(p => OWNED_STOCK(p.stock));
 function stepPaints(s){
   const ids = arr(s.paintIds), names = arr(s.paintNames);
   return ids.map((id, i) => {
@@ -14472,6 +14560,7 @@ document.addEventListener('click', e => {
       if (v === 'shop'){ state.tab = 'shop'; state.shopFrom = null; } else { state.tab = 'paints'; state.pSeg = v; }
       render(); window.scrollTo(0, 0); const b = document.querySelector(`[data-act="pSeg"][data-v="${v}"]`); if (b) b.focus({ preventScroll:true }); return; }
     if (a === 'recLink') return dlgRecipeLink();
+    if (a === 'pOut'){ state.pStock = 'Out'; pfSave(); render(); return; }
     if (a === 'pView'){ state.pView = act.dataset.v; render(); const b = document.querySelector(`[data-act="pView"][data-v="${act.dataset.v}"]`); if (b) b.focus(); return; }
     if (a === 'pdHlBuy'){ const p = paintOf(state.openPaint); if (!p) return; const S = hlRow({ mine:p }, true);
       const buys = S.steps.filter((x, i) => i !== 1 && !x.none && x.buy && !(x.mine && x.mine.stock === 'Wishlist') && !onWishlist({ id:x.mine ? x.mine.id : '', name:choiceName(x), brand:x.mine ? x.mine.brand : x.row.b }));
