@@ -2474,6 +2474,18 @@ button.stchip{border-color:var(--gold-line);background:none;font:inherit;font-si
 .uscheme .grow{display:grid;text-align:left;min-width:0}.uscheme .grow small{font-size:.75rem}
 .sslevel{margin:.5rem 0}
 .wtile .wrg{display:block;color:var(--text-2);font-size:.75rem;line-height:1.2;margin-top:.125rem}
+.wbtop{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr) minmax(0,1fr);gap:.5rem;margin:.25rem 0 .875rem}
+.wbtop .btn{display:flex;align-items:center;justify-content:center;gap:.375rem;min-height:46px;padding:.25rem .375rem;white-space:nowrap;font-size:.9375rem}.wbtop .btn svg{width:1.125rem;height:1.125rem;flex:none}
+.bigtext .wbtop{grid-template-columns:1fr}.bigtext .wbtop .btn{white-space:normal}
+.guestbar.g1{display:flex;align-items:center;gap:.5rem;padding:.375rem .5rem .375rem .75rem;font-size:.875rem;margin-bottom:.5rem}.guestbar.g1>span{flex:1;min-width:0}.guestbar.g1 .iconbtn{flex:none}
+.rtline{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}.rtline .linkbtn{margin-left:auto}
+.rsum.miss summary .dot{display:inline-block;width:.5rem;height:.5rem;border-radius:50%;background:#E0A85A;margin-right:.375rem;vertical-align:.1em}.rsum summary svg[stroke-width="3"]{width:1rem;height:1rem;vertical-align:-.15em;margin-right:.25rem;color:#6FA387}
+.rsumd{margin-left:auto;color:var(--gold-text,#D9BE80);text-decoration:underline}
+.pbar{height:8px;border-radius:5px;background:var(--deep);overflow:hidden;margin:.375rem 0 .5rem}.pbar i{display:block;height:100%;background:#6FA387;transition:width .2s ease}
+@media (prefers-reduced-motion:reduce){.pbar i{transition:none}}
+.pbody[hidden]{display:none!important}
+.pacts{position:absolute;right:.5rem;top:.875rem;display:flex;gap:1rem;align-items:center}.pacts .pshow{position:relative;right:auto;top:auto}.pacts .linkbtn{min-height:var(--tap)}.pundo{font-weight:600}
+.rsum summary{display:flex;align-items:center;gap:.375rem}.rsum summary>span:first-child{flex:1;min-width:0}
 .ctnav.pseg button,.ctnav.stseg button{font-size:.75rem!important;letter-spacing:.02em}
 .sthlrow.pdhl{grid-template-columns:repeat(3,minmax(0,1fr))}.pdpanel .sthlhead{grid-template-columns:repeat(3,minmax(0,1fr))}
 button.sthl{background:none;border:0;color:inherit;font:inherit;cursor:pointer;padding:0}.sthlown{font-size:.75rem!important;opacity:.9}
@@ -8798,7 +8810,7 @@ gl_FragColor=vec4(color*alpha,alpha);}`;
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v069';
+const APP_VERSION = 'v070';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -10109,15 +10121,17 @@ function claimDevice(user, go){
    =========================================================================== */
 function screenHome(){
   const c = counts();
-  let h = guestMode ? `<div class="guestbar"><span><b>On this phone only.</b> Sign in to keep it safe and use it on your other devices.</span>
-      <button class="linkbtn" data-act="signin">Sign in</button></div>` : '';
+  /* v070: one quiet line, which can be put away (Account still says it) */
+  let gh = false; try { gh = localStorage.getItem('mm.guestHide') === '1'; } catch (e){}
+  let h = guestMode && !gh ? `<div class="guestbar g1"><span>Saved on this device only.</span>
+      <button class="linkbtn" data-act="signin">Sign in</button><button class="iconbtn sm" data-act="guestHide" aria-label="Hide this note">&times;</button></div>` : '';
   /* v044: a compact head and summary, so the featured project is on the
      first screen of a phone. */
   h += `<div class="wbhead"><h2 class="wbtitle">Your Workbench</h2><p class="greet">${greeting()}</p></div>`;
-  /* v047: the project comes first; totals, Add and the dice follow it. */
-  const after = c.entries !== 0 ? progStrip(c) + `<div class="wbacts">
-      <button class="btn" data-act="addModels">${PLUS_SVG}Add models</button>
-      <button class="btn ghost" data-act="dice">${DICE_SVG}Roll the dice</button></div>` : '';
+  /* v070: the everyday actions come first, above the project (they sat under the
+     bottom bar on a phone); the totals follow the project. */
+  const after = c.entries !== 0 ? progStrip(c) : '';
+  if (c.entries !== 0) h += '<!--WBACTS-->';
   if (c.entries === 0){
     return h + emptyFrame(`${emptyPen('spare-navy')}<h3>Your bench is clear</h3>
       <p>Add your first miniature and it waits here, ready for the next brushstroke.</p>
@@ -10146,6 +10160,11 @@ function screenHome(){
     h += `<p class="muted" style="margin:1rem 0">Nothing here yet.</p>` + inboxReminder() + after;
   }
   h += `</div><div class="wbside">` + sessionStrip(heroM) + activityList() + `</div></div>`;
+  { const s = sessNow();
+    const paint = s ? `<button class="btn gold" data-act="sessOpen">${s.pausedAt ? PLAY_SVG : PAUSE_SVG}<span>${s.pausedAt ? 'Paused' : 'Painting'} <span class="num" data-sessclock>${fmtClock(sessMs(s))}</span></span></button>`
+      : heroM ? `<button class="btn gold" data-act="sessStart" data-id="${esc(heroM.id)}" aria-label="Start painting ${esc(heroM.name)}">${PLAY_SVG}<span>Start painting</span></button>`
+      : `<button class="btn gold" data-act="sessStartFree">${PLAY_SVG}<span>Start painting</span></button>`;
+    h = h.replace('<!--WBACTS-->', `<div class="wbtop"><button class="btn ghost" data-act="addModels">${PLUS_SVG}<span>Add<span class="sr-only"> models</span></span></button>${paint}<button class="btn ghost" data-act="dice">${DICE_SVG}<span>Roll<span class="sr-only"> the dice</span></span></button></div>`); }
   /* The shelf (v038): every unit on the bench as a photo card you swipe
      through, with filters for game, army and stage. */
   h += benchShelf(L.bench);
@@ -11765,6 +11784,10 @@ document.addEventListener('click', e => {
     const st = arr(r.steps), n = ticksAt(key).length, name = stepTitle(st.find(x => x.id === id) || {});
     const b = document.querySelector(`.pmark[data-rtick="${CSS.escape(id)}"]`); if (b) b.focus({ preventScroll:true });
     const msg = n === st.length ? `${name} done. Recipe steps complete.` : `${name} ${on ? 'done' : 'not done'}. ${n} of ${st.length} steps done.`;
+    /* v070: in the painting list, Undo sits on the step itself so nothing covers the next one */
+    if (on && state.recipeMode === 'painting'){ state.pUndo = { id, prev, key }; state.justDone = id; render(); state.justDone = null; /* from Mark done, on to the next one; from the round marker, stay on it */
+      const nb = (rt.classList.contains('pdonebtn') && document.querySelector('.pcur .pdonebtn')) || document.querySelector(`.pmark[data-rtick="${CSS.escape(id)}"]`); if (nb){ nb.focus({ preventScroll:true }); const li = nb.closest('li'); if (li && li.getBoundingClientRect().bottom > innerHeight - 90) li.scrollIntoView({ block:'center', behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); } announce(msg + ' Undo is beside it.'); return; }
+    state.pUndo = null;
     announce(msg); undoBar(on ? `${name} marked done.` : `${name} unticked.`, () => { setTicksAt(key, prev); save(); render(); announce(`Undone. ${prev.length} of ${st.length} steps done.`);
       const f = document.querySelector(`.pmark[data-rtick="${CSS.escape(id)}"]`); if (f) f.focus({ preventScroll:true }); });
     return; }
@@ -12386,13 +12409,16 @@ function paintingTarget(r, tk){
   const linked = unitsOnRecipe(r), others = liveMinis().filter(m => linked.indexOf(m) === -1).sort((a, b) => a.name.localeCompare(b.name));
   const opt = m => `<option value="${esc(m.id)}"${t.m === m ? ' selected' : ''}>${esc(m.name)}</option>`;
   const n = t.m ? Number(t.m.total) || 1 : 1;
+  /* v070: once chosen, one line; Change opens the choices again */
+  if (t.m && !state.ptOpen) return `<div class="rtarget rtline"><b class="user-text">${esc(t.m.name)}</b><span class="muted">&middot; ${t.model ? `model <span class="num">${t.model}</span> of <span class="num">${n}</span>` : n > 1 ? 'whole batch' : 'one model'}</span><button class="linkbtn" id="ptChange" data-act="ptChange" aria-expanded="false">Change<span class="sr-only"> what you are painting</span></button></div>`;
   return `<div class="rtarget"><label for="rtUnit" class="lbl">Ticking steps for</label>
     <select id="rtUnit" data-rtunit><option value=""${t.m ? '' : ' selected'}>Choose what you are painting</option>${linked.length ? `<optgroup label="Uses this recipe">${linked.map(opt).join('')}</optgroup>` : ''}<optgroup label="${linked.length ? 'Everything else' : 'Your collection'}">${others.map(opt).join('')}</optgroup></select>
-    ${t.m && n > 1 ? `<label for="rtModel" class="sr-only">Which models</label><select id="rtModel" data-rtmodel><option value="0"${t.model ? '' : ' selected'}>The whole batch</option>${Array.from({ length:n }, (_, i) => `<option value="${i + 1}"${t.model === i + 1 ? ' selected' : ''}>Model ${i + 1} of ${n}</option>`).join('')}</select>` : ''}</div>`;
+    ${t.m && n > 1 ? `<label for="rtModel" class="sr-only">Which models</label><select id="rtModel" data-rtmodel><option value="0"${t.model ? '' : ' selected'}>The whole batch</option>${Array.from({ length:n }, (_, i) => `<option value="${i + 1}"${t.model === i + 1 ? ' selected' : ''}>Model ${i + 1} of ${n}</option>`).join('')}</select>` : ''}${t.m ? `<button class="linkbtn" id="ptChange" data-act="ptChange" aria-expanded="true">Done</button>` : ''}</div>`;
 }
 /* The Painting checklist. The round marker and the heading are one button;
    paints, instructions, Relink and the drying timer sit outside it. */
-function pfoldOn(){ if (state.pfoldOn == null){ try { state.pfoldOn = !!localStorage.getItem('mm.pfold'); } catch (e){ state.pfoldOn = false; } } return state.pfoldOn; }
+/* v070: done steps fold to one line unless you have asked to see them in full */
+function pfoldOn(){ if (state.pfoldOn == null){ try { state.pfoldOn = localStorage.getItem('mm.pfold') !== '0'; } catch (e){ state.pfoldOn = true; } } return state.pfoldOn; }
 function paintingSteps(r, tk, nextId, doneN){
   const steps = arr(r.steps), timers = dryTimers(), now = Date.now(), fold = pfoldOn();
   if (!tk.key) return `<p class="small muted" style="margin:.75rem 0 0">Choose what you are painting above, then tick the steps off as you go.</p>`;
@@ -12417,7 +12443,7 @@ function paintingSteps(r, tk, nextId, doneN){
         <span class="pcirc"${dot}>${done ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path class="tk" d="M5 12.5l4.5 4.5L19 7.5"/></svg>' : `<span class="num">${i + 1}</span>`}</span>
         <span class="ph"><span class="sr-only">Step ${i + 1}: </span><span class="user-text">${esc(stepTitle(s))}</span><span class="sr-only">${done ? ', done' : ', not done'}</span></span>
         ${cur ? '<span class="pcurtag" aria-hidden="true">Current</span>' : ''}</button>
-      ${fold && done ? `<button class="linkbtn pshow" data-act="pOpen" data-id="${esc(s.id)}" aria-expanded="${!folded}">${folded ? 'Show' : 'Hide'}<span class="sr-only"> step ${i + 1}</span></button>` : ''}
+      ${(done && state.pUndo && state.pUndo.id === s.id) || (fold && done) ? `<span class="pacts">${done && state.pUndo && state.pUndo.id === s.id ? `<button class="linkbtn pundo" data-act="pUndo">Undo<span class="sr-only"> step ${i + 1}</span></button>` : ''}${fold && done ? `<button class="linkbtn pshow" data-act="pOpen" data-id="${esc(s.id)}" aria-expanded="${!folded}">${folded ? 'Show' : 'Hide'}<span class="sr-only"> step ${i + 1}</span></button>` : ''}</span>` : ''}
       <div class="pbody"${folded ? ' hidden' : ''}>
         ${names.length && (s.technique || names.length > 1) ? `<span class="rps">${names.join('<span class="rplus" aria-hidden="true">+</span>')}</span>` : ''}
         ${instr ? `<span class="rins user-text">${esc(instr)}</span>` : ''}
@@ -12537,7 +12563,7 @@ function screenRecipeDetail(){
       : `<div class="rscheme none"><span class="grow small muted">See these colours on a miniature in the Studio. Shared and imported recipes work too.</span><button class="btn ghost sm" data-act="recTryOn">See it on a miniature</button></div>`; }
   if (!editing) h += `<div class="rmode" role="tablist" aria-label="How to view this recipe">
       <button role="tab" data-rmode="overview" aria-selected="${!painting}">Overview</button><button role="tab" data-rmode="painting" aria-selected="${painting}">Painting</button></div>`;
-  if (!editing && needs.length){ const av = availWords(r);
+  if (!editing && !painting && needs.length){ const av = availWords(r);
     /* v062: the way to buy what's missing sits right beside "missing" */
     const add = av.ok ? [] : toAdd(recipePaints(r));
     h += `<div class="ravailbox${av.ok ? '' : ' miss'}"><p class="ravail ${av.ok ? 'ok' : 'miss'}">${av.ok ? TICK_SVG : '<span class="dot" aria-hidden="true"></span>'}<span>${esc(av.t)}</span>${av.ok ? '' : `<button class="linkbtn" data-act="shop" data-shoptab="want">Shopping list</button>`}</p>
@@ -12557,7 +12583,9 @@ function screenRecipeDetail(){
     if (usedList) h += `<section class="rsec">${usedList}</section>`;
   }
   if (painting){
-    h += `<details class="rsum"><summary><span><b class="num">${needs.length}</b> paint${needs.length === 1 ? '' : 's'} required &middot; <b class="num">${refs.length}</b> reference${refs.length === 1 ? '' : 's'}${ms.length ? ` &middot; used on <b class="num">${ms.length}</b>` : ''}</span><svg class="chev" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></summary>
+    /* v070: while painting, what you need is one line; the details open from it */
+    const av = needs.length ? availWords(r) : { ok:true, t:'' };
+    h += `<details class="rsum${av.ok ? '' : ' miss'}"><summary><span>${needs.length ? (av.ok ? `${TICK_SVG}<b class="num">${needs.length}</b> paint${needs.length === 1 ? '' : 's'}, all yours` : `<span class="dot" aria-hidden="true"></span>${esc(av.t)}`) : 'No paints listed'}${refs.length ? ` &middot; <b class="num">${refs.length}</b> reference${refs.length === 1 ? '' : 's'}` : ''}</span><svg class="chev" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="rsumin">${needs.length ? needList : ''}${refGrid}${usedList}</div></details>`;
   }
 
@@ -12567,7 +12595,8 @@ function screenRecipeDetail(){
   if (painting) h += paintingTarget(r, tk);
   h += `<div class="card${painting ? ' rpaint' : ''}"><div class="row spread"><h3 style="margin:0">Steps</h3>
     ${painting && stepIds.length ? `<span class="rprog" aria-live="polite"><b class="num">${doneN}</b> of <b class="num">${stepIds.length}</b> done</span>` : ''}
-    ${editing ? `<button class="btn sm ghost" data-act="addStep">Add step</button>` : ''}</div>`;
+    ${editing ? `<button class="btn sm ghost" data-act="addStep">Add step</button>` : ''}</div>
+    ${painting && stepIds.length && tk.key ? `<div class="pbar" aria-hidden="true"><i style="width:${Math.round(doneN / stepIds.length * 100)}%"></i></div>` : ''}`;
   if (!arr(r.steps).length) h += `<p class="small muted">No steps yet.${editing ? '' : ' Choose Edit to add some.'}</p>`;
   if (painting){ h += paintingSteps(r, tk, nextId, doneN); h += `</div>`; return h; }
   h += `<ol class="rsteps${editing ? '' : ' tl'}">`;
@@ -14560,6 +14589,9 @@ document.addEventListener('click', e => {
       if (v === 'shop'){ state.tab = 'shop'; state.shopFrom = null; } else { state.tab = 'paints'; state.pSeg = v; }
       render(); window.scrollTo(0, 0); const b = document.querySelector(`[data-act="pSeg"][data-v="${v}"]`); if (b) b.focus({ preventScroll:true }); return; }
     if (a === 'recLink') return dlgRecipeLink();
+    if (a === 'guestHide'){ try { localStorage.setItem('mm.guestHide', '1'); } catch (e){} render(); announce('Hidden. Account still shows where your things are saved.'); return; }
+    if (a === 'ptChange'){ state.ptOpen = !state.ptOpen; render(); const f = document.getElementById(state.ptOpen ? 'rtUnit' : 'ptChange'); if (f) f.focus(); return; }
+    if (a === 'pUndo'){ const u = state.pUndo; if (!u) return; setTicksAt(u.key, u.prev); state.pUndo = null; save(); render(); const f = document.querySelector(`.pmark[data-rtick="${CSS.escape(u.id)}"]`); if (f) f.focus({ preventScroll:true }); announce('Undone.'); return; }
     if (a === 'pOut'){ state.pStock = 'Out'; pfSave(); render(); return; }
     if (a === 'pView'){ state.pView = act.dataset.v; render(); const b = document.querySelector(`[data-act="pView"][data-v="${act.dataset.v}"]`); if (b) b.focus(); return; }
     if (a === 'pdHlBuy'){ const p = paintOf(state.openPaint); if (!p) return; const S = hlRow({ mine:p }, true);
@@ -14596,7 +14628,7 @@ document.addEventListener('click', e => {
     if (a === 'pdPanel'){ state.pdPanel = state.pdPanel === act.dataset.v ? '' : act.dataset.v; render(); const b = document.querySelector(`[data-act="pdPanel"][data-v="${act.dataset.v}"]`); if (b) b.focus(); return; }
     if (a === 'clearrq'){ state.rq = ''; state.rCat = ''; render(); const q = $('#rq'); if (q) q.focus(); return; }
     if (a === 'dupRecipe') return duplicateRecipe();
-    if (a === 'pFold'){ state.pfoldOn = !pfoldOn(); try { localStorage.setItem('mm.pfold', state.pfoldOn ? '1' : ''); } catch (e){} render(); const b = $('[data-act="pFold"]'); if (b) b.focus({ preventScroll:true }); return; }
+    if (a === 'pFold'){ state.pfoldOn = !pfoldOn(); try { localStorage.setItem('mm.pfold', state.pfoldOn ? '1' : '0'); } catch (e){} render(); const b = $('[data-act="pFold"]'); if (b) b.focus({ preventScroll:true }); return; }
     if (a === 'pOpen'){ state.pOpen = state.pOpen === act.dataset.id ? null : act.dataset.id; render(); const b = document.querySelector(`[data-act="pOpen"][data-id="${act.dataset.id}"]`); if (b) b.focus({ preventScroll:true }); return; }
     if (a === 'pCompact'){ pf().compact = !pf().compact; pfSave(); render(); const b = document.querySelector('[data-act="pCompact"]'); if (b) b.focus(); return; }
     if (a === 'pfx'){ const k = act.dataset.k; if (k === 'stock') state.pStock = ''; else pf()[k] = ''; if (k === 'brand') pf().range = ''; pfSave(); render(); return; }
