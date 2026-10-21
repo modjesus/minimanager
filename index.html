@@ -2396,6 +2396,30 @@ button.stchip{border-color:var(--gold-line);background:none;font:inherit;font-si
 .sspic{display:flex;justify-content:center;margin:.25rem 0 .5rem}.sspic canvas{width:11rem;height:11rem;border-radius:10px;background:#0a1c2a}
 .bigtext .sttop{flex-wrap:wrap}.bigtext .sttopbtns{flex-wrap:wrap}.bigtext .sttopbtns .btn{white-space:normal;flex:1 1 auto}
 .schlist button:has(.schpic){grid-template-columns:4.5rem minmax(0,1fr)}.schlist .schpic{grid-row:1/3;width:4.5rem;height:6.75rem;object-fit:cover;object-position:center;background:#0a1c2a}
+/* v064: folds, photo, start colour */
+.stshuf{flex-wrap:wrap;gap:.375rem}.stshuf .btn{min-height:46px;padding-top:0;padding-bottom:0}.stshufbtn{flex:1 1 5.5rem;padding-left:.5rem;padding-right:.5rem}.stundobtn{padding-left:.625rem;padding-right:.625rem}.stundobtn svg{width:1.25rem;height:1.25rem}
+.stphbtn{display:inline-flex;align-items:center;gap:.3rem;padding-left:.5rem;padding-right:.5rem;font-size:.8125rem}.stphbtn svg{width:1.125rem;height:1.125rem}
+.stcoldot{width:1.125rem;height:1.125rem;border-radius:50%;box-shadow:inset 0 0 0 1px #ffffff40}
+.stphbtn[aria-expanded="true"]{border-color:var(--gold);color:var(--gold-ink)}
+.ststart{border:1px solid var(--gold-line);border-radius:12px;padding:.625rem .75rem;margin:.5rem 0 .25rem;background:var(--surface)}
+.ststarth{display:flex;justify-content:space-between;align-items:center;margin:0 0 .375rem}
+.stfolds{display:grid;grid-template-columns:minmax(0,1fr);gap:.375rem;margin:.75rem 0 1rem}.stfold{min-width:0;overflow:hidden}
+.stfold{border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+.stfold > summary{display:flex;justify-content:space-between;align-items:center;gap:.75rem;min-height:var(--tap);padding:.375rem .875rem;cursor:pointer;list-style:none}
+.stfold > summary::-webkit-details-marker{display:none}
+.stfold > summary::after{content:"";width:.5rem;height:.5rem;border-right:2px solid var(--text-2);border-bottom:2px solid var(--text-2);transform:rotate(45deg) translateY(-2px);flex:none;margin-left:.25rem}
+.stfold[open] > summary::after{transform:rotate(-135deg)}
+.stfold > summary span{margin-left:auto;text-align:right}
+.stfoldin{padding:0 .875rem .875rem}.stfoldin .schfoot{display:grid;gap:.5rem}
+.stphoto{display:flex;gap:.625rem;align-items:center;padding:.375rem .5rem;border:1px solid var(--gold-line);border-radius:12px;background:var(--surface);margin-bottom:.375rem}
+.stphimg{flex:none;width:3.5rem;height:4.5rem;align-self:stretch;padding:0;border:0;border-radius:8px;overflow:hidden;cursor:pointer;background:#0a1c2a}.stphimg img{width:100%;height:100%;object-fit:cover;display:block}
+.stphr{min-width:0;flex:1}.stphr b{font-size:.875rem}.stphtop{display:flex;justify-content:space-between;align-items:center;gap:.5rem}.stphtop span{display:flex;gap:.75rem}.stphtop .linkbtn{font-size:.8125rem;min-height:2rem;color:var(--gold-ink)}
+.stphdots{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.25rem}
+.stphdots button{width:1.875rem;height:1.875rem;min-width:24px;border-radius:50%;border:2px solid #ffffff30;cursor:pointer;padding:0}
+.stphdots button[aria-pressed="true"]{outline:3px solid var(--gold);outline-offset:2px;border-color:var(--ink-navy)}
+.stphhint{margin:.25rem 0 0;color:var(--text-2);font-size:.75rem}
+.stphbtns{display:flex;gap:.375rem;margin-bottom:.375rem}.stphbtns .btn{flex:1}
+.stzones.picking .stzone{border-style:dashed;border-color:var(--gold)}
 </style>
 <script type="importmap">
 { "imports": {
@@ -6570,8 +6594,11 @@ async function photoPalette(file){
   const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(img.naturalWidth * sc)); c.height = Math.max(1, Math.round(img.naturalHeight * sc));
   const x = c.getContext('2d', { willReadFrequently:true }); x.drawImage(img, 0, 0, c.width, c.height);
   const d = x.getImageData(0, 0, c.width, c.height).data, px = [];
-  for (let i = 0; i < d.length; i += 4 * 2) if (d[i + 3] > 200) px.push(rgbLab(d[i], d[i + 1], d[i + 2]));
-  const k = 6; let cent = []; for (let i = 0; i < k; i++) cent.push(px[Math.floor((i + .5) * px.length / k)] || [50, 0, 0]);
+  /* v064: the middle of a photo is the model; the edges are mostly backdrop, so they count less */
+  for (let y = 0; y < c.height; y++) for (let x2 = 0; x2 < c.width; x2 += 2){ const i = (y * c.width + x2) * 4; if (d[i + 3] <= 200) continue;
+    const dx = Math.abs(x2 / c.width - .5) * 2, dy = Math.abs(y / c.height - .5) * 2;
+    if (dx > .8 || dy > .85) continue; const l = rgbLab(d[i], d[i + 1], d[i + 2]); px.push(l); if (dx < .45 && dy < .5) px.push(l); }
+  const k = 7; let cent = []; for (let i = 0; i < k; i++) cent.push(px[Math.floor((i + .5) * px.length / k)] || [50, 0, 0]);
   let lab = new Array(px.length).fill(0);
   for (let it = 0; it < 10; it++){
     lab = px.map(p => { let b = 0, bd = Infinity; cent.forEach((q, j) => { const dd = (p[0]-q[0])**2 + (p[1]-q[1])**2 + (p[2]-q[2])**2; if (dd < bd){ bd = dd; b = j; } }); return b; });
@@ -6597,11 +6624,14 @@ function schPhotoInput(){
       try { const r = await photoPalette(f); let sc = schemeOf(state.schemeId);
         if (!sc || state.sub !== 'scheme'){ sc = newScheme('photo', r.colours[0] || '#808080'); sc.name = 'Scheme from a photo'; }
         if (state.schPhoto && state.schPhoto.url) URL.revokeObjectURL(state.schPhoto.url);
-        state.schPhoto = { id:sc.id, url:r.url, colours:r.colours, canvas:r.canvas };
-        if (!sc.roles.some(x => x.pick)){ sc.start = { hex:r.colours[0] || sc.start.hex, paintId:'' };
+        state.schPhoto = { id:sc.id, url:r.url, colours:r.colours, canvas:r.canvas, sel:null, alt:0 };
+        /* v064: the miniature is painted from the photo straight away */
+        if (sc.studio) stFromPhoto(sc, r.colours, 0);
+        else if (!sc.roles.some(x => x.pick)){ sc.start = { hex:r.colours[0] || sc.start.hex, paintId:'' };
           sc.roles.forEach((x, i) => { if (x.finish !== 'metal' && r.colours[i]) x.hex = r.colours[i]; }); }
-        schSave(sc); announce(`${r.colours.length} colours found in the photo.`);
-        const t = document.querySelector('.schphoto h3'); if (t){ t.setAttribute('tabindex', '-1'); t.focus(); }
+        state.tab = 'colour'; state.sub = 'scheme'; state.schemeId = sc.id;
+        schSave(sc); window.scrollTo(0, 0); announce(`Painted from your photo: ${r.colours.length} colours found.`);
+        const t = document.querySelector('.stphoto'); if (t){ t.setAttribute('tabindex', '-1'); t.focus({ preventScroll:true }); }
       } catch (e){ const m = /hei[cf]/i.test(f.type || f.name) ? 'This browser cannot open HEIC photos. Convert it to JPEG first.' : 'That photo could not be read.'; toast(m); announce(m); } });
   }
   return el;
@@ -6731,10 +6761,10 @@ document.addEventListener('pointerdown', e => {
   const d = c.getContext('2d').getImageData(Math.max(0, x - 1), Math.max(0, y - 1), 3, 3).data; let R = 0, G = 0, B = 0;
   for (let i = 0; i < d.length; i += 4){ R += d[i]; G += d[i + 1]; B += d[i + 2]; }
   const hex = rgbHex(R / 9, G / 9, B / 9);
-  state.schPhoto.colours = [hex].concat(state.schPhoto.colours.filter(c => c !== hex)).slice(0, 10);   /* the picked colour goes first */
-  const sc = schemeOf(state.schemeId); if (sc) schSave(sc);
-  announce(`Picked ${hex}. Choose what to use it for.`);
-  const s = document.querySelector('[data-schuse]'); if (s) s.focus({ preventScroll:true });
+  state.schPhoto.colours = [hex].concat(state.schPhoto.colours.filter(c => c !== hex)).slice(0, 7);   /* the picked colour goes first */
+  state.schPhoto.sel = 0;
+  const sc = schemeOf(state.schemeId); if ($('#dlg').open) $('#dlg').close(); if (sc) schSave(sc);
+  announce(`Colour picked. Now tap a part of the miniature to give it this colour.`);
 });
 document.addEventListener('change', e => {
   const el = e.target; const sc = schemeOf(state.schemeId); if (!sc || !el.closest) return;
@@ -7341,53 +7371,115 @@ function studioSwatch(sc, r, i){
     <span class="stdot${metal ? ' metal' : ''}" style="background-color:${esc(hx)}">${lock ? '<span class="stlock" aria-hidden="true">L</span>' : ''}</span>
     <span class="stlab">${esc(r.role)}</span><span class="stpn user-text">${esc(name)}</span></button>`;
 }
+/* v064: one line per extra, opened when wanted (state.stOpen keeps which are open) */
+function stFold(key, title, status, body){
+  const open = !!(state.stOpen && state.stOpen[key]);
+  return `<details class="stfold" data-fold="${key}"${open ? ' open' : ''}><summary><b>${title}</b><span class="small muted">${status}</span></summary><div class="stfoldin">${body}</div></details>`;
+}
+/* v064: colours from a photo, shown above the miniature while you work with them */
+function stPhotoBar(sc, P){
+  const sel = P.sel;
+  return `<div class="stphoto" role="group" aria-label="Colours from your photo">
+    <button class="stphimg" data-st="photoview" aria-label="Open the photo to pick another colour"><img src="${P.url}" alt=""></button>
+    <div class="stphr"><div class="stphtop"><b>From your photo</b><span><button class="linkbtn" data-st="photoalt">&#8635; Rearrange</button><button class="linkbtn" data-st="photodone">Done</button></span></div>
+      <div class="stphdots">${P.colours.slice(0, 7).map((c, i) => `<button data-st="photocol" data-i="${i}" aria-pressed="${sel === i}" aria-label="Colour ${i + 1} of the photo${sel === i ? ', chosen' : ''}" style="background:${esc(c)}"></button>`).join('')}</div>
+      <p class="stphhint small" role="status">${sel != null ? 'Now tap a part to give it this colour.' : 'Tap a colour, then a part, to move it.'}</p></div></div>`;
+}
+function stStartBody(sc){
+  const start = sc.start || { hex:sc.roles[0].hex }, neutral = isNeutral(start.hex);
+  return `<p class="ststarth"><b>Start from a colour</b><button class="iconbtn" data-st="startcol" aria-label="Close">&times;</button></p>
+    <div class="schstart"><label class="schcol"><input type="color" value="${esc(start.hex)}" data-schf="starthex" aria-label="Starting colour"><span style="background:${esc(start.hex)}"></span></label>
+      <span class="grow small">${start.paintId && paintOf(start.paintId) ? `<b class="user-text">${esc(paintOf(start.paintId).name)}</b><br>` : 'Tap the swatch to choose a colour, or'}<span class="num">${start.paintId ? esc(start.hex) : ''}</span></span>
+      <button class="btn ghost sm" data-sch="startpaint">Pick a paint</button></div>
+    ${neutral ? `<p class="small schneutral">Black, white and greys have no opposite colour, so the wheel cannot pair them. These suggestions are accents that suit any neutral.</p>`
+      : `<p class="small muted" style="margin:.5rem 0 .125rem">What goes with it</p><div class="chips" role="group" aria-label="Colour harmony">${Object.keys(HARMONIES).map(k => `<button class="chip" data-sch="harm" data-k="${k}" aria-pressed="${(sc.harmony || 'complementary') === k}">${esc(HARMONIES[k].label)}</button>`).join('')}</div>`}
+    <p class="small muted" style="margin:.375rem 0 0">The miniature updates as you choose. Locked parts are kept.</p>`;
+}
 function screenStudio(sc){
   const msg = state.stMsg && state.stMsg.id === sc.id ? state.stMsg.text : '';
   const P = state.schPhoto && state.schPhoto.id === sc.id ? state.schPhoto : null;
   let h = colourToolsNav('scheme') + `
     <div class="sthead"><label for="schName" class="sr-only">Scheme name</label><input id="schName" class="schname display" value="${esc(sc.name)}" data-schf="name">
 </div>`;
-  h += `<div class="studio">${studioViewer(false)}`;
+  h += `<div class="studio">${P ? stPhotoBar(sc, P) : ''}${studioViewer(false)}`;
   if ((state.stMode || 'colour') === 'values'){ const n = valueNotes(sc);
     h += n.length ? `<ul class="schwarn">${n.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : `<p class="small muted" style="margin:.375rem 0 0">Armour, cloth and trim are clearly lighter or darker than each other, so they stay distinct.</p>`; }
-  h += `<div class="stshuf"><button class="btn gold stshufbtn" data-st="shuffle"><svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path d="M3 6h3c5 0 6 12 11 12h4m-4-4 4 4-4 4M3 18h3c2 0 4-3 6-6s3-6 5-6h4m-4-4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Shuffle scheme</button>
-      <button class="btn ghost" data-st="undo"${(ST_HIST[sc.id] || []).length ? '' : ' disabled'}>Undo</button></div>
+  h += `<div class="stshuf"><button class="btn gold stshufbtn" data-st="shuffle"><svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path d="M3 6h3c5 0 6 12 11 12h4m-4-4 4 4-4 4M3 18h3c2 0 4-3 6-6s3-6 5-6h4m-4-4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Shuffle</button>
+      <button class="btn ghost stphbtn" data-sch="photo" aria-label="Paint it from a photo">${CAM_SVG}<span>Photo</span></button>
+      <button class="btn ghost stphbtn" data-st="startcol" aria-expanded="${!!state.stStart}" aria-label="Start from a colour"><span class="stcoldot" style="background:${esc((sc.start && validHex(sc.start.hex)) ? sc.start.hex : sc.roles[0].hex)}"></span><span>Colour</span></button>
+      <button class="btn ghost stundobtn" data-st="undo" aria-label="Undo"${(ST_HIST[sc.id] || []).length ? '' : ' disabled'}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button></div>
+    ${state.stStart ? `<div class="ststart">${stStartBody(sc)}</div>` : ''}
     <p class="stmsg small" role="status">${esc(msg)}</p>
-    <div class="sthd"><span class="small muted stharm">${sc.firstAuto ? 'A first scheme. Shuffle to try your own paints.' : sc.stHarm ? esc(sc.stHarm) : `Shuffles ${sc.owned ? 'your paints' : esc(stBrand(sc)) + ' paints'}`}</span>${sc.firstAuto ? '' : '<span class="small muted">Tap a part to change it</span>'}</div>
-    <div class="stzones${sc.roles.length > 8 ? ' nine' : ''}">${sc.roles.map((r, i) => studioSwatch(sc, r, i)).join('')}</div>
+    <div class="sthd"><span class="small muted stharm">${sc.firstAuto ? 'A first scheme: shuffle or use a photo.' : sc.stHarm ? esc(sc.stHarm) : `Shuffles ${sc.owned ? 'your paints' : esc(stBrand(sc)) + ' paints'}`}</span>${sc.firstAuto || P ? '' : '<span class="small muted">Tap a part to change it</span>'}</div>
+    <div class="stzones${sc.roles.length > 8 ? ' nine' : ''}${P && P.sel != null ? ' picking' : ''}">${sc.roles.map((r, i) => studioSwatch(sc, r, i)).join('')}</div>
     <button class="btn ghost stsave" data-st="save"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/></svg> Save scheme</button>
     ${sc.saved ? `<p class="small muted stsaved">Saved ${esc(fmtDay(localISO(new Date(sc.saved))))}${sc.pic ? ' with a picture of the painted miniature' : ''}.</p>` : ''}
     <p class="small muted stnote">One fixed view. Screen colours are estimates from makers&rsquo; published colours, not real paint.</p></div>`;
-  h += stHighlights(sc);
-  /* start from a colour, a paint or a photo */
-  const start = sc.start || { hex:sc.roles[0].hex };
-  const neutral = isNeutral(start.hex);
-  h += `<div class="card"><h3>Start from</h3>
-    <div class="schstart"><label class="schcol"><input type="color" value="${esc(start.hex)}" data-schf="starthex" aria-label="Starting colour"><span style="background:${esc(start.hex)}"></span></label>
-      <span class="grow small">${start.paintId && paintOf(start.paintId) ? `<b class="user-text">${esc(paintOf(start.paintId).name)}</b><br>` : ''}<span class="num">${esc(start.hex)}</span></span>
-      <button class="btn ghost sm" data-sch="startpaint">A paint</button><button class="btn ghost sm" data-sch="photo">${CAM_SVG}A photo</button></div>
-    ${neutral ? `<p class="small schneutral">Black, white and greys have no opposite colour, so the wheel cannot pair them. These suggestions are accents that suit any neutral.</p>`
-      : `<div class="chips" role="group" aria-label="Colour harmony" style="margin-top:.5rem">${Object.keys(HARMONIES).map(k => `<button class="chip" data-sch="harm" data-k="${k}" aria-pressed="${(sc.harmony || 'complementary') === k}">${esc(HARMONIES[k].label)}</button>`).join('')}</div>`}
-    <button class="btn sm" data-sch="suggest" style="margin-top:.5rem">Suggest paints</button>
-    <p class="small muted" style="margin:.375rem 0 0">Changes every part you have not locked.</p></div>`;
-  if (P) h += `<div class="card schphoto"><h3>Colours from your photo</h3>
-      <p class="small muted">Tap the photo to pick a colour, or use one found for you. The photo is not saved.</p>
-      <div class="schphimg"><img src="${P.url}" alt="Your photo: tap to pick a colour" data-sch="pick" tabindex="0"></div>
-      <ul class="schfound">${P.colours.map((c, i) => `<li><span class="sw" style="background:${esc(c)}"></span><span class="num">${esc(c)}</span>
-        <label class="sr-only" for="pc${i}">Use ${esc(c)} for</label><select id="pc${i}" data-schuse="${esc(c)}"><option value="">Use for…</option><option value="__start">Starting colour</option>${sc.roles.map((r, j) => `<option value="${j}">${esc(r.role)}</option>`).join('')}</select></li>`).join('')}</ul>
-      <button class="linkbtn" data-sch="photoclose">Done with the photo</button></div>`;
-  /* missing paints */
+  /* the extras, folded */
+  const hlRows = stHlRows(sc), hlBuy = stHlBuys(sc, hlRows);
+  h += `<div class="stfolds">`;
+  h += stFold('hl', 'Shade and highlight', hlBuy.length ? `${hlBuy.length} to buy` : 'All yours', stHighlights(sc, hlRows, hlBuy));
   const miss = sc.roles.map(r => ({ r, c:roleChoice(sc, r) })).filter(x => !x.c || x.c.stat === 'Missing' || x.c.stat === 'Out');
   const names = [...new Set(miss.map(x => x.c ? choiceName(x.c) : x.r.role))];
-  h += `<div class="card schmiss"><h3>${names.length ? `${names.length} paint${names.length === 1 ? '' : 's'} missing` : 'You have every paint'}</h3>
-    ${names.length ? `<p class="small">${names.map(n => `<span class="user-text">${esc(n)}</span>`).join(', ')}</p><button class="btn" data-sch="shop">Add to my shopping list&hellip;</button>` : '<p class="small muted">Nothing to buy for this scheme.</p>'}</div>`;
+  h += stFold('buy', 'Paints to buy', names.length ? `${names.length} missing` : 'None', names.length
+    ? `<p class="small">${names.map(n => `<span class="user-text">${esc(n)}</span>`).join(', ')}</p><button class="btn ghost" data-sch="shop">Add to my shopping list&hellip;</button>`
+    : '<p class="small muted">You have every paint for this scheme.</p>');
   const us = arr(sc.units).map(id => data.minis.find(m => m.id === id)).filter(Boolean), as = arr(sc.armies).map(id => data.factions.find(f => f.id === id)).filter(Boolean);
-  h += `<div class="card"><div class="row spread"><h3 style="margin:0">Used for</h3><button class="btn ghost sm" data-sch="link">Choose units and armies</button></div>
-    ${us.length || as.length ? `<div class="chips" style="margin-top:.5rem">${as.map(f => `<span class="chip static">${pennantImg(pennantFor('fac', f.id), 'cpen')}<span class="user-text">${esc(f.name)}</span></span>`).join('')}${us.map(m => `<button class="chip" data-open="${esc(m.id)}"><span class="user-text">${esc(m.name)}</span></button>`).join('')}</div>` : '<p class="small muted">Not linked yet.</p>'}</div>`;
-  if (arr(sc.legacyRoles).length) h += `<p class="small muted">Kept from before the studio: ${sc.legacyRoles.map(r => `<span class="user-text">${esc(r.role)}</span>`).join(', ')}. These are not shown on the miniature.</p>`;
-  h += `<div class="schfoot"><button class="btn gold" data-sch="recipe">Make a recipe from this scheme</button>
-    <button class="btn ghost" data-sch="dup">Duplicate</button><button class="btn danger" data-sch="del">Delete scheme</button></div>`;
-  return h;
+  const usedWords = as.map(f => f.name).concat(us.map(m => m.name));
+  h += stFold('used', 'Used for', usedWords.length ? esc(usedWords.length > 1 ? usedWords[0] + ' +' + (usedWords.length - 1) : usedWords[0]) : 'Not linked',
+    `${us.length || as.length ? `<div class="chips">${as.map(f => `<span class="chip static">${pennantImg(pennantFor('fac', f.id), 'cpen')}<span class="user-text">${esc(f.name)}</span></span>`).join('')}${us.map(m => `<button class="chip" data-open="${esc(m.id)}"><span class="user-text">${esc(m.name)}</span></button>`).join('')}</div>` : '<p class="small muted">Not linked yet.</p>'}
+     <button class="btn ghost sm" data-sch="link">Choose units and armies</button>`);
+  h += stFold('more', 'Recipe, copy, delete', '',
+    `${arr(sc.legacyRoles).length ? `<p class="small muted">Kept from before the studio: ${sc.legacyRoles.map(r => `<span class="user-text">${esc(r.role)}</span>`).join(', ')}. These are not shown on the miniature.</p>` : ''}
+     <div class="schfoot"><button class="btn ghost" data-sch="recipe">Make a recipe from this scheme</button>
+     <button class="btn ghost" data-sch="dup">Duplicate</button><button class="btn danger" data-sch="del">Delete scheme</button></div>`);
+  return h + `</div>`;
+}
+
+/* --- v064: paint the miniature from a photo -------------------------------------
+   The photo's colours (biggest first) are sorted into kinds: bright colours
+   become the main and second colours, a brown the leather and ground, a very
+   dark one the dark parts. Metals, skin and bone keep suitable paints. Each
+   arrangement gives every unlocked part a real paint. */
+function stFromPhoto(sc, cols, alt){
+  const info = cols.map(h => { const [L, A, B] = hexLab(h), C = Math.hypot(A, B), hue = (Math.atan2(B, A) * 180 / Math.PI + 360) % 360; return { h, L, C, hue }; });
+  const chroma = info.filter(x => x.C >= 14 && x.L > 18), brown = info.filter(x => x.C >= 6 && x.C < 40 && x.hue > 35 && x.hue < 95 && x.L < 55), darks = info.filter(x => x.L < 28).sort((a, b) => a.L - b.L);
+  const light = info.filter(x => x.L >= 70 && x.C < 18);
+  let pool = chroma.length ? chroma : info;
+  /* arrangement: rotate which colour leads and which supports */
+  const n = Math.max(1, pool.length), k = (alt || 0) % (n * Math.max(1, n - 1));
+  const iMain = Math.floor(k / Math.max(1, n - 1)) % n, rest = pool.filter((_, j) => j !== iMain);
+  const main = pool[iMain], second = rest.length ? rest[k % rest.length] : (light[0] || info[1] || main);
+  const want = { main:main.h, accent:second.h };
+  if (brown[0]) want.leather = brown[0].h; if (brown[1] || brown[0]) want.ground = (brown[1] || brown[0]).h;
+  if (darks[0]) { want.dark = darks[0].h; want.rim = darks[0].h; }
+  if (light[0] && light[0] !== second) want.bone = light[0].h;
+  stRemember(sc); delete sc.firstAuto;
+  sc.roles.forEach((r, i) => { if (arr(sc.locks).includes(r.mat)) return; const kd = stKindOf(sc, r), hx = want[kd]; if (!hx) return;
+    const c = stPhotoPaint(sc, hx, stKindFinish(kd)); if (c) stSetPaint(sc, i, c); else r.hex = hx; });
+  sc.start = { hex:main.h, paintId:'' }; sc.stHarm = 'From your photo';
+}
+/* the paint for a photo colour: yours if it is close, otherwise the closest the brand makes */
+function stPhotoPaint(sc, hex, finish){
+  const own = matchColour(hex, { owned:true, finish })[0];
+  if (own && own.de <= 12) return own;
+  const cat = matchColour(hex, { brand:stBrand(sc), finish }).filter(x => !LESSER.test(x.mine ? x.mine.range || '' : x.row.rg || ''))[0] || matchColour(hex, { finish })[0];
+  return cat || own || null;
+}
+/* a photo colour has been chosen: the next part tapped gets it */
+function stPhotoApply(sc, i){
+  const P = state.schPhoto; if (!P || P.id !== sc.id || P.sel == null) return false;
+  const r = sc.roles[i], hx = P.colours[P.sel]; if (!r || !hx) return false;
+  const c = stPhotoPaint(sc, hx, stKindFinish(stKindOf(sc, r)));
+  stRemember(sc); if (c) stSetPaint(sc, i, c); else r.hex = hx; P.sel = null; sc.stHarm = 'From your photo';
+  schSave(sc); announce(`${r.role}: ${c ? choiceName(c) : hx}.`);
+  const f = document.querySelector(`[data-st="mat"][data-i="${i}"]`); if (f) f.focus({ preventScroll:true });
+  return true;
+}
+function dlgPhotoPick(){
+  const P = state.schPhoto; if (!P) return;
+  openDialog('Pick a colour from the photo', `<p class="small muted" style="margin-top:0">Tap anywhere on the photo. That colour is chosen; then tap a part of the miniature.</p>
+    <div class="schphimg"><img src="${P.url}" alt="Your photo: tap to pick a colour" data-sch="pick" tabindex="0"></div>`, null, null, 'Done');
 }
 
 /* --- v063: shade, base and highlight for every part ----------------------------- */
@@ -7396,13 +7488,12 @@ function stHlRows(sc){
     let S = null; try { S = hlRow(c, true); } catch (e) { S = null; }
     return S ? { r, S } : null; }).filter(Boolean);
 }
-function stHighlights(sc){
-  const rows = stHlRows(sc); if (!rows.length) return '';
+function stHighlights(sc, rows, buys){
+  rows = rows || stHlRows(sc); if (!rows.length) return '<p class="small muted">Choose paints first.</p>';
+  buys = buys || stHlBuys(sc, rows);
   const tile = (x, i) => { if (x.none) return `<span class="sthl none"><i></i><small>${i === 2 ? 'Already lightest' : 'Use a dark wash'}</small></span>`;
     return `<span class="sthl${i === 1 ? ' base' : ''}${x.buy ? ' buy' : ''}"><i style="background:${esc(x.show || choiceHex(x))}"></i><small class="user-text">${esc(choiceName(x))}${x.wash ? ' wash' : ''}</small>${x.buy ? '<span class="sr-only">, you do not have it</span>' : ''}</span>`; };
-  const buys = stHlBuys(sc, rows);
-  return `<div class="card sthlcard"><h3>Shade and highlight</h3>
-    <p class="small muted" style="margin:.125rem 0 .5rem">A darker and a lighter paint for each part, from your paints first. Dashed ones you do not have.</p>
+  return `<div class="sthlcard"><p class="small muted" style="margin:0 0 .5rem">A darker and a lighter paint for each part, from your paints first. Dashed ones you do not have.</p>
     <div class="sthlhead" aria-hidden="true"><span></span><small>Shade</small><small>Base</small><small>Highlight</small></div>
     ${rows.map(({ r, S }) => `<div class="sthlrow" role="group" aria-label="${esc(r.role)}"><b>${esc(r.role)}</b>${S.steps.map(tile).join('')}</div>`).join('')}
     ${buys.length ? `<button class="btn ghost" data-st="hlbuy" style="margin-top:.625rem">Add ${buys.length} missing paint${buys.length === 1 ? '' : 's'} to shopping list</button>` : '<p class="small muted" style="margin:.5rem 0 0">You have every paint for these.</p>'}
@@ -7541,7 +7632,7 @@ document.addEventListener('click', e => {
   let k = -1;
   for (let rad = 0; rad <= 12 && k < 0; rad += 3) for (let dy = -rad; dy <= rad && k < 0; dy += 3) for (let dx = -rad; dx <= rad && k < 0; dx += 3){
     const xx = x + dx, yy = y + dy; if (xx < 0 || yy < 0 || xx >= ST_W || yy >= ST_H) continue; const p = yy * ST_W + xx; if (ST.a[p] > 150 && ST.id[p] < ST.n) k = ST.id[p]; }
-  if (k >= 0){ e.stopPropagation(); if ($('#dlg').open) $('#dlg').close(); dlgStudioPaint(k); }
+  if (k >= 0){ e.stopPropagation(); if ($('#dlg').open) $('#dlg').close(); const sc = schemeOf(state.schemeId); if (sc && stPhotoApply(sc, k)) return; dlgStudioPaint(k); }
 }, true);
 document.addEventListener('click', e => {
   const t = e.target.closest && e.target.closest('[data-st]'); if (!t || t.tagName === 'INPUT' || t.tagName === 'SELECT') return;
@@ -7554,10 +7645,15 @@ document.addEventListener('click', e => {
   if (a === 'model'){ if (stSwitchModel(sc, t.dataset.v)){ state.stMsg = null; const inDlg = !!t.closest('#dlg');
       schSave(sc); if (inDlg){ $('#dlg').close(); dlgStudioBig(); } keep(`[data-st="model"][data-v="${t.dataset.v}"]`); announce(stModel(sc).name + '. ' + sc.roles.map(r => r.role).join(', ') + '.'); } return; }
   if (a === 'save') return dlgSaveScheme();
+  if (a === 'startcol'){ state.stStart = !state.stStart; render(); keep('[data-st="startcol"]'); return; }
+  if (a === 'photocol'){ const P = state.schPhoto; if (!P) return; P.sel = P.sel === i ? null : i; render(); keep(`[data-st="photocol"][data-i="${i}"]`); return; }
+  if (a === 'photoalt'){ const P = state.schPhoto; if (!P) return; P.alt = (P.alt || 0) + 1; stFromPhoto(sc, P.colours, P.alt); P.sel = null; schSave(sc); keep('[data-st="photoalt"]'); announce('Another arrangement of the photo colours.'); return; }
+  if (a === 'photodone'){ const P = state.schPhoto; if (P && P.url) URL.revokeObjectURL(P.url); state.schPhoto = null; schSave(sc); keep('[data-st="shuffle"]'); return; }
+  if (a === 'photoview') return dlgPhotoPick();
   if (a === 'hlbuy'){ const b = stHlBuys(sc); if (!b.length) return; stAddToShop(b, 'for ' + sc.name); schSave(sc); const m = `${b.length} paint${b.length === 1 ? '' : 's'} added to your shopping list.`; toast(m); announce(m); return; }
   if (a === 'big') return dlgStudioBig();
   if (a === 'paints') return dlgStudioPaints();
-  if (a === 'mat') return dlgStudioPaint(i);
+  if (a === 'mat'){ if (stPhotoApply(sc, i)) return; return dlgStudioPaint(i); }
   if (a === 'shuffle'){ const m = stShuffle(sc); state.stMsg = { id:sc.id, text:m }; if (!m) state.stMode = state.stMode === 'values' ? 'values' : 'colour'; schSave(sc); keep('[data-st="shuffle"]');
     announce(m || 'New scheme: ' + sc.stHarm + '.'); return; }
   if (a === 'undo'){ if (stUndo(sc)){ state.stMsg = { id:sc.id, text:'' }; schSave(sc); announce('Previous paints restored.'); } keep((ST_HIST[sc.id] || []).length ? '[data-st="undo"]' : '[data-st="shuffle"]'); return; }
@@ -7585,6 +7681,12 @@ const ST_DEFAULT_NAME = /^(new scheme|my first scheme)( \d+)?$/i;
   const t = e.target; if (!t || t.id !== 'schName') return;
   if (ev === 'focusin' || ST_DEFAULT_NAME.test(t.value.trim())) { try { t.select(); } catch (er) {} }
 }));
+
+/* v064: the extras remember whether they are open while you work */
+document.addEventListener('toggle', e => {
+  const d = e.target; if (!d || !d.matches || !d.matches('details.stfold')) return;
+  state.stOpen = Object.assign({}, state.stOpen, { [d.dataset.fold]: d.open });
+}, true);
 
 </script>
 <script>
@@ -8281,7 +8383,7 @@ gl_FragColor=vec4(color*alpha,alpha);}`;
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v063';
+const APP_VERSION = 'v064';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
