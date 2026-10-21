@@ -2463,6 +2463,13 @@ button.stchip{border-color:var(--gold-line);background:none;font:inherit;font-si
 .stballist{list-style:none;margin:.5rem 0 0;padding:0;display:flex;flex-wrap:wrap;gap:.375rem .875rem;font-size:.875rem}
 .stballist li{display:flex;align-items:center;gap:.375rem}.stballist i{width:.875rem;height:.875rem;border-radius:3px}
 .stseg{margin:.25rem 0 .75rem}
+.stwheel{touch-action:none}.stwdot{cursor:grab;outline:none}.stwdot.drag{cursor:grabbing}.stwdot.drag .stwc{stroke-width:3.5}
+.stwdot:focus-visible .stwc{stroke:#C4A461;stroke-width:4}
+.stwdrag b{color:var(--text)}
+.stcust{margin:.25rem 0 .75rem}.stch{margin:.625rem 0 .25rem}.stch:first-child{margin-top:0}
+.stsl{display:grid;grid-template-columns:7.5rem minmax(0,1fr) 2.75rem;align-items:center;gap:.5rem;margin:.375rem 0;font-size:.875rem}
+.stsl input{width:100%;min-height:var(--tap);accent-color:#C4A461}.stsl input:disabled{opacity:.45}.stsl output{text-align:right;font-variant-numeric:tabular-nums;color:var(--text-2)}
+.bigtext .stsl{grid-template-columns:1fr 2.75rem}.bigtext .stsl span{grid-column:1/-1}
 .ctnav.pseg button,.ctnav.stseg button{font-size:.75rem!important;letter-spacing:.02em}
 .sthlrow.pdhl{grid-template-columns:repeat(3,minmax(0,1fr))}.pdpanel .sthlhead{grid-template-columns:repeat(3,minmax(0,1fr))}
 button.sthl{background:none;border:0;color:inherit;font:inherit;cursor:pointer;padding:0}.sthlown{font-size:.75rem!important;opacity:.9}
@@ -7312,11 +7319,11 @@ function stSwitchModel(sc, id){
   sc.model = to.id; sc.stHarm = ''; ST_CACHE.key = '';
   return true;
 }
-function stSnap(sc){ return JSON.stringify({ model:stModel(sc).id, roles:sc.roles, locks:arr(sc.locks), harm:sc.stHarm || '' }); }
+function stSnap(sc){ return JSON.stringify({ model:stModel(sc).id, roles:sc.roles, locks:arr(sc.locks), harm:sc.stHarm || '', pat:sc.stPat || '' }); }
 function stRemember(sc){ const h = ST_HIST[sc.id] || (ST_HIST[sc.id] = []); h.push(stSnap(sc)); if (h.length > 50) h.shift(); }
 function stUndo(sc){ const h = ST_HIST[sc.id]; if (!h || !h.length) return false; const s = JSON.parse(h.pop());
   if (s.model && s.model !== stModel(sc).id){ sc.byModel = sc.byModel || {}; sc.byModel[stModel(sc).id] = { roles:sc.roles, locks:arr(sc.locks) }; sc.model = s.model; }
-  sc.roles = s.roles; sc.locks = s.locks; sc.stHarm = s.harm; return true; }
+  sc.roles = s.roles; sc.locks = s.locks; sc.stHarm = s.harm; if (s.pat) sc.stPat = s.pat; else delete sc.stPat; return true; }
 function stSetPaint(sc, i, item){ const r = sc.roles[i]; r.pick = stPickOf(item); const hx = choiceHex(item); if (validHex(hx)) r.hex = hx.toUpperCase(); }
 
 /* --- the paint pool for shuffling ------------------------------------------------ */
@@ -7537,47 +7544,82 @@ function stWheelSvg(parts, rings){
   const rs = arr(rings).map(h => { const [x, y] = at(h, r); return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="12" fill="none" stroke="#F6F3E9" stroke-width="2.5" stroke-dasharray="4 3"/>`; }).join('');
   /* dots that would sit on top of each other step inwards */
   const pts = []; parts.forEach(x => { let rad = r - 34, q = at(stHueOf(x.hex), rad);
-    while (rad > 30 && pts.some(o => Math.hypot(o[0] - q[0], o[1] - q[1]) < 24)){ rad -= 22; q = at(stHueOf(x.hex), rad); } pts.push(q); });
-  const lines = pts.length > 1 ? `<path d="M${pts.map(p => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('L')}${pts.length > 2 ? 'Z' : ''}" fill="none" stroke="#F6F3E9" stroke-opacity=".55" stroke-width="1.5"/>` : '';
-  const dots = parts.map((x, k) => { const [px, py] = pts[k];
-    return `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="13" fill="${esc(x.hex)}" stroke="#F6F3E9" stroke-width="2"/><text x="${px.toFixed(1)}" y="${(py + 4.5).toFixed(1)}" text-anchor="middle" font-size="12" font-weight="700" fill="${lum(x.hex) > .5 ? '#0B1A2E' : '#F6F3E9'}">${k + 1}</text>`; }).join('');
-  return `<svg class="stwheel" viewBox="0 0 220 220" role="img" aria-label="Colour wheel: ${esc(parts.map((x, k) => `${k + 1} ${x.role}`).join(', ') || 'no coloured parts')}">${ring}${rs}<circle cx="${cx}" cy="${cy}" r="${r - 9}" fill="none"/>${lines}${dots}</svg>`;
+    while (rad > 30 && pts.some(o => Math.hypot(o[0] - q[0], o[1] - q[1]) < 24)){ rad -= 22; q = at(stHueOf(x.hex), rad); } q.rad = rad; pts.push(q); });
+  const lines = pts.length > 1 ? `<path class="stwlines" d="M${pts.map(p => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('L')}${pts.length > 2 ? 'Z' : ''}" fill="none" stroke="#F6F3E9" stroke-opacity=".55" stroke-width="1.5"/>` : '';
+  /* v067: each dot can be dragged round the wheel, or moved with the arrow keys */
+  const dots = parts.map((x, k) => { const [px, py] = pts[k], hue = Math.round(stHueOf(x.hex));
+    return `<g class="stwdot" data-i="${x.i}" data-rad="${pts[k].rad}" tabindex="0" role="slider" aria-label="${esc(x.role)} colour. Drag, or use the arrow keys" aria-valuemin="0" aria-valuemax="359" aria-valuenow="${hue}" aria-valuetext="${esc(x.name)}"><circle class="stwhit" cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="20" fill="transparent"/><circle class="stwc" cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="13" fill="${esc(x.hex)}" stroke="#F6F3E9" stroke-width="2"/><text x="${px.toFixed(1)}" y="${(py + 4.5).toFixed(1)}" text-anchor="middle" font-size="12" font-weight="700" fill="${lum(x.hex) > .5 ? '#0B1A2E' : '#F6F3E9'}">${k + 1}</text></g>`; }).join('');
+  return `<svg class="stwheel" viewBox="0 0 220 220" role="group" aria-label="Colour wheel: ${esc(parts.map((x, k) => `${k + 1} ${x.role}`).join(', ') || 'no coloured parts')}">${ring}${rs}<circle cx="${cx}" cy="${cy}" r="${r - 9}" fill="none"/>${lines}${dots}</svg>`;
 }
-/* the hues a pattern wants, starting from the main colour */
-function stPatHues(k, h){ return { complementary:[h, h + 180], triadic:[h, h + 120, h + 240], split:[h, h + 150, h + 210], analogous:[h, h - 30, h + 30], tetradic:[h, h + 90, h + 180, h + 270] }[k].map(x => ((x % 360) + 360) % 360); }
-/* apply a pattern: the main stays; the accent and then other coloured parts take the pattern's other hues */
+/* the hues a pattern wants, from the starting colour; the other colours can be turned */
+function stPatHues(k, h, turn){ const t = +turn || 0;
+  return { complementary:[h, h + 180], triadic:[h, h + 120, h + 240], split:[h, h + 150, h + 210], analogous:[h, h - 30, h + 30], tetradic:[h, h + 90, h + 180, h + 270] }[k]
+    .map((x, n) => (((n ? x + t : x) % 360) + 360) % 360); }
+/* v067: which part the pattern starts from (it keeps its colour), and which parts it may change */
+function stPatStart(sc){
+  const ws = stWheelParts(sc), want = sc.stStart ? sc.roles.findIndex(r => r.mat === sc.stStart) : -1;
+  if (want >= 0 && ws.some(x => x.i === want)) return want;
+  return sc.roles.findIndex(r => stKindOf(sc, r) === 'main');
+}
+function stChangeable(sc, iStart){
+  return sc.roles.map((r, i) => i).filter(i => i !== iStart && !['trim', 'steel'].includes(stKindOf(sc, sc.roles[i])) && !stPartCol(sc, sc.roles[i]).metal);
+}
+function stSlots(sc, iStart, n){
+  const locks = arr(sc.locks), ok = stChangeable(sc, iStart).filter(i => !locks.includes(sc.roles[i].mat));
+  if (Array.isArray(sc.stChange)) return ok.filter(i => sc.stChange.includes(sc.roles[i].mat));
+  const order = ['main', 'accent', 'leather', 'wood', 'mouth'], out = [];
+  order.forEach(kind => ok.forEach(i => { if (out.length < n && stKindOf(sc, sc.roles[i]) === kind && !out.includes(i)) out.push(i); }));
+  return out;
+}
+/* apply a pattern: the starting part stays; the chosen parts take the pattern's other colours in turn */
 function stPattern(sc, k){
-  const locks = arr(sc.locks), iMain = sc.roles.findIndex(r => stKindOf(sc, r) === 'main'); if (iMain < 0) return 'This miniature has no main colour to start from.';
-  const main = stPartCol(sc, sc.roles[iMain]); if (isNeutral(main.hex) || main.metal) return `${sc.roles[iMain].role} is ${main.metal ? 'a metal' : 'a black, white or grey'}, which has no place on the colour wheel. Choose a coloured paint for it first.`;
-  const hues = stPatHues(k, stHueOf(main.hex)).slice(1);
-  /* which parts take the other hues, in order: the accent, then leather, cloth-like parts, skin-free extras */
-  const order = ['accent', 'leather', 'wood', 'mouth'];
-  const slots = [];
-  order.forEach(kind => sc.roles.forEach((r, i) => { if (slots.length < hues.length && stKindOf(sc, r) === kind && !locks.includes(r.mat) && !slots.includes(i)) slots.push(i); }));
-  if (!slots.length) return 'The parts that would change are locked. Unlock one to try a pattern.';
+  const iStart = stPatStart(sc); if (iStart < 0) return 'This miniature has no main colour to start from.';
+  const start = stPartCol(sc, sc.roles[iStart]); if (isNeutral(start.hex) || start.metal) return `${sc.roles[iStart].role} is ${start.metal ? 'a metal' : 'a black, white or grey'}, which has no place on the colour wheel. Choose a coloured paint for it first.`;
+  const hues = stPatHues(k, stHueOf(start.hex), sc.stTurn).slice(1);
+  const slots = stSlots(sc, iStart, hues.length);
+  if (!slots.length) return Array.isArray(sc.stChange) && !sc.stChange.length ? 'No parts are ticked to change. Tick one under Customise.' : 'The parts that would change are locked. Unlock one to try a pattern.';
   stRemember(sc); delete sc.firstAuto;
-  const [, ms, ml] = rgbHsl(...hexRgb(main.hex));
-  slots.forEach((i, n) => { const r = sc.roles[i], cur = stPartCol(sc, r), [, cs, cl] = rgbHsl(...hexRgb(cur.hex));
-    /* the accent keeps the main's strength; quieter parts keep their own lightness */
-    const s2 = n === 0 ? Math.max(.35, ms) : Math.max(.3, Math.min(.65, cs)), l2 = n === 0 ? Math.max(.25, Math.min(.65, ml)) : Math.max(.2, Math.min(.5, cl));
-    const want = rgbHex(...hslRgb(hues[n], s2, l2)), c = stClosest(sc, want, ''); if (c) stSetPaint(sc, i, c); else r.hex = want; });
-  sc.stPat = k; sc.stHarm = ST_PATS.find(p => p[0] === k)[1] + ': ' + slots.map(i => sc.roles[i].role.toLowerCase()).join(' and ') + ' set from ' + sc.roles[iMain].role.toLowerCase();
+  const [, ms, ml] = rgbHsl(...hexRgb(start.hex)), dl = (+sc.stLight || 0) / 100, ds = (+sc.stSat || 0) / 100;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  slots.forEach((i, n) => { const r = sc.roles[i], cur = stPartCol(sc, r), [, cs, cl] = rgbHsl(...hexRgb(cur.hex)), first = n === 0;
+    /* the first keeps the start's strength; quieter parts keep their own lightness */
+    const s2 = clamp((first ? Math.max(.35, ms) : Math.max(.3, Math.min(.65, cs))) + ds, .08, .95), l2 = clamp((first ? Math.max(.25, Math.min(.65, ml)) : Math.max(.2, Math.min(.5, cl))) + dl, .1, .85);
+    const want = rgbHex(...hslRgb(hues[n % hues.length], s2, l2)), c = stClosest(sc, want, ''); if (c) stSetPaint(sc, i, c); else r.hex = want; });
+  sc.stPat = k; sc.stHarm = ST_PATS.find(p => p[0] === k)[1] + ': ' + slots.map(i => sc.roles[i].role.toLowerCase()).join(', ').replace(/, ([^,]*)$/, ' and $1') + ' set from ' + sc.roles[iStart].role.toLowerCase();
   return '';
 }
+/* the Customise drop-down: start from, parts that change, fine-tune */
+function stCustomBody(sc, pat){
+  const iStart = stPatStart(sc), ws = stWheelParts(sc), n = pat ? stPatHues(pat[0], 0).length - 1 : 2;
+  const on = new Set(stSlots(sc, iStart, n)), ch = stChangeable(sc, iStart), locks = arr(sc.locks);
+  const sl = (k, label, v, min, max, unit) => `<label class="stsl"><span>${label}</span><input type="range" data-st="${k}" min="${min}" max="${max}" step="5" value="${+v || 0}"${pat ? '' : ' disabled'} aria-valuetext="${(+v || 0) > 0 ? '+' : ''}${+v || 0}${unit}"><output>${(+v || 0) > 0 ? '+' : ''}${+v || 0}${unit}</output></label>`;
+  return `<p class="small stch"><b>Start from</b> <span class="muted">this part keeps its colour</span></p>
+    ${ws.length ? `<div class="chips" role="group" aria-label="Start from">${ws.map(x => `<button class="chip" data-st="pstart" data-m="${esc(sc.roles[x.i].mat)}" aria-pressed="${x.i === iStart}">${esc(x.role)}</button>`).join('')}</div>` : '<p class="small muted">Give a part a coloured paint first.</p>'}
+    <p class="small stch"><b>Parts that change</b> <span class="muted">untick to keep a part as it is</span></p>
+    <div class="chips" role="group" aria-label="Parts that change">${ch.map(i => { const r = sc.roles[i], lk = locks.includes(r.mat);
+      return `<button class="chip" data-st="pchg" data-m="${esc(r.mat)}" aria-pressed="${on.has(i)}"${lk ? ' disabled' : ''}>${esc(r.role)}${lk ? ' (locked)' : ''}</button>`; }).join('')}</div>
+    <p class="small stch"><b>Fine-tune</b> <span class="muted">${pat ? 'the miniature repaints when you let go' : 'pick a pattern above first'}</span></p>
+    ${sl('pturn', 'Turn the colours', sc.stTurn, -60, 60, '°')}
+    ${sl('plight', 'Lighter / darker', sc.stLight, -25, 25, '')}
+    ${sl('psat', 'Brighter / duller', sc.stSat, -25, 25, '')}
+    <button class="linkbtn" data-st="preset">Back to the usual settings</button>`;
+}
 function screenWheel(sc){
-  const M = stModel(sc), parts = stWheelParts(sc), iMain = sc.roles.findIndex(r => stKindOf(sc, r) === 'main');
-  const main = iMain >= 0 ? stPartCol(sc, sc.roles[iMain]) : null, mainOk = main && !main.metal && !isNeutral(main.hex);
-  const pat = sc.stPat && ST_PATS.find(p => p[0] === sc.stPat), rings = pat && mainOk ? stPatHues(pat[0], stHueOf(main.hex)) : [];
+  const M = stModel(sc), parts = stWheelParts(sc);
+  const iSt = stPatStart(sc), main = iSt >= 0 ? stPartCol(sc, sc.roles[iSt]) : null, mainOk = main && !main.metal && !isNeutral(main.hex);
+  const pat = sc.stPat && ST_PATS.find(p => p[0] === sc.stPat), rings = pat && mainOk ? stPatHues(pat[0], stHueOf(main.hex), sc.stTurn) : [];
   const msg = state.stMsg && state.stMsg.id === sc.id ? state.stMsg.text : '';
   let h = studioSeg('wheel') + `<div class="sthead"><h2 class="display schname" style="margin:0">${esc(sc.name)}</h2></div>`;
   h += `<div class="card stwcard"><div class="stwtop">${stWheelSvg(parts, rings)}
       <button class="stwthumb" data-st="view" data-v="mini" aria-label="Back to the miniature"><canvas class="stthumb" width="112" height="168" aria-hidden="true"></canvas><span class="small">${esc(M.short)}</span></button></div>
     ${parts.length ? `<ol class="stwkey">${parts.map((x, k) => `<li><span class="stwn">${k + 1}</span><i style="background:${esc(x.hex)}"></i><span class="grow"><b>${esc(x.role)}</b> <span class="muted user-text">${esc(x.name)}</span></span><span class="small muted">${stWarm(stHueOf(x.hex)) ? 'warm' : 'cool'}</span></li>`).join('')}</ol>`
       : '<p class="small muted">None of the parts has a strong colour yet: they are metals, browns kept neutral, blacks, whites or greys.</p>'}
+    ${parts.length ? '<p class="small muted stwring stwdrag" aria-live="polite"><b>Drag a dot</b> to a new colour; it snaps to the nearest paint.</p>' : ''}
     ${rings.length ? '<p class="small muted stwring">Dashed rings: where the pattern puts each colour.</p>' : ''}</div>`;
   h += `<p class="stwh"><b>Try a pattern</b> <span class="small muted">The miniature repaints from ${sc.owned ? 'your paints' : esc(stBrand(sc)) + ' paints'}. ${(ST_HIST[sc.id] || []).length ? '' : 'Undo is on the Miniature page.'}</span></p>
     <div class="chips stpats" role="group" aria-label="Colour pattern">${ST_PATS.map(([k, l]) => `<button class="chip" data-st="pat" data-k="${k}" aria-pressed="${!!pat && pat[0] === k}">${l}</button>`).join('')}</div>
-    <p class="small muted stpatnote" role="status">${esc(msg || (pat ? pat[2] : 'Each one keeps your ' + (iMain >= 0 ? sc.roles[iMain].role.toLowerCase() : 'main colour') + ' and changes the others to match.'))}</p>
+    <p class="small muted stpatnote" role="status">${esc(msg || (pat ? pat[2] : 'Each one keeps your ' + (iSt >= 0 ? sc.roles[iSt].role.toLowerCase() : 'main colour') + ' and changes the others to match.'))}</p>
+    <div class="stfolds stcust">${stFold('cust', 'Customise the pattern', `From ${iSt >= 0 ? esc(sc.roles[iSt].role.toLowerCase()) : '—'}${pat ? (n => ` \u00b7 ${n} part${n === 1 ? '' : 's'} change${n === 1 ? 's' : ''}`)(stSlots(sc, iSt, stPatHues(pat[0], 0).length - 1).length) : ''}${sc.stTurn || sc.stLight || sc.stSat ? ' · tuned' : ''}`, stCustomBody(sc, pat))}</div>
     <div class="stwacts"><button class="btn ghost" data-st="view" data-v="mini">See it on the miniature</button>${(ST_HIST[sc.id] || []).length ? `<button class="btn ghost stundobtn" data-st="undo" aria-label="Undo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>` : ''}</div>`;
   /* balance, warm and cool, light and dark */
   const G = stShares(sc);
@@ -7888,6 +7930,14 @@ document.addEventListener('click', e => {
   if (a === 'view'){ state.stView = t.dataset.v === 'wheel' ? 'wheel' : 'mini'; render(); window.scrollTo(0, 0); keep(`[data-st="view"][data-v="${state.stView}"]`); return; }
   if (a === 'pat'){ const m = stPattern(sc, t.dataset.k); state.stMsg = { id:sc.id, text:m }; if (!m && state.stMode === 'clay') state.stMode = 'colour'; schSave(sc); keep(`[data-st="pat"][data-k="${t.dataset.k}"]`);
     announce(m || sc.stHarm + '.'); return; }
+  if (a === 'pstart' || a === 'pchg' || a === 'preset'){
+    if (a === 'pstart'){ sc.stStart = t.dataset.m; if (Array.isArray(sc.stChange)) sc.stChange = sc.stChange.filter(m => m !== t.dataset.m); }
+    if (a === 'pchg'){ const iSt = stPatStart(sc), pat = sc.stPat, n = pat ? stPatHues(pat, 0).length - 1 : 2;
+      const cur = stSlots(sc, iSt, n).map(i => sc.roles[i].mat), m = t.dataset.m; sc.stChange = cur.includes(m) ? cur.filter(x => x !== m) : cur.concat(m); }
+    if (a === 'preset'){ delete sc.stStart; delete sc.stChange; delete sc.stTurn; delete sc.stLight; delete sc.stSat; }
+    state.stOpen = Object.assign({}, state.stOpen, { cust:true });
+    const m = sc.stPat ? stPattern(sc, sc.stPat) : ''; state.stMsg = { id:sc.id, text:m }; schSave(sc);
+    keep(a === 'preset' ? '[data-st="preset"]' : `[data-st="${a}"][data-m="${t.dataset.m}"]`); announce(m || (sc.stPat ? sc.stHarm + '.' : 'Saved. Pick a pattern to use it.')); return; }
   if (a === 'greyview'){ state.stView = 'mini'; state.stMode = 'values'; render(); window.scrollTo(0, 0); keep('[data-st="mode"][data-v="values"]'); announce('Shown in grey, so you see only light and dark.'); return; }
   if (a === 'save') return dlgSaveScheme();
   if (a === 'backsaved'){ if (stBackToSaved(sc)){ state.stMsg = null; schSave(sc); keep('[data-st="shuffle"]'); announce('Back to the saved scheme. Undo brings your changes back.'); toast('Back to the saved scheme.'); } return; }
@@ -7917,8 +7967,50 @@ document.addEventListener('change', e => {
   const sc = schemeOf(state.schemeId); if (!sc) return;
   if (el.dataset.st === 'pool'){ sc.owned = el.value === 'mine'; state.stMsg = null; schSave(sc); announce(sc.owned ? 'Shuffle and the paint chooser use your paints.' : 'Shuffle and the paint chooser use all paints.'); return; }
   if (el.dataset.st === 'brand'){ sc.brand = el.value; schSave(sc); return; }
+  if (['pturn', 'plight', 'psat'].includes(el.dataset.st)){ const k = { pturn:'stTurn', plight:'stLight', psat:'stSat' }[el.dataset.st]; sc[k] = +el.value || 0;
+    state.stOpen = Object.assign({}, state.stOpen, { cust:true });
+    const m = sc.stPat ? stPattern(sc, sc.stPat) : ''; state.stMsg = { id:sc.id, text:m }; schSave(sc);
+    const f = document.querySelector(`[data-st="${el.dataset.st}"]`); if (f) f.focus({ preventScroll:true }); announce(m || sc.stHarm + '.'); return; }
   if (el.dataset.st === 'sheen'){ state.stSheen = el.checked; studioSync(); render(); return; }
 });
+
+/* v067: sliders show their value as they move */
+document.addEventListener('input', e => { const el = e.target; if (!el.matches || !el.matches('input[type=range][data-st]')) return;
+  const v = +el.value, txt = (v > 0 ? '+' : '') + v + (el.dataset.st === 'pturn' ? '\u00b0' : ''); const o = el.parentElement.querySelector('output'); if (o) o.textContent = txt; el.setAttribute('aria-valuetext', txt); });
+/* v067: drag a dot round the colour wheel (or use the arrow keys); it snaps to the nearest paint */
+let stDrag = null;
+/* back to the dot after a repaint; if its new paint is too grey for the wheel, to the wheel itself */
+function stDotFocus(i){ const f = document.querySelector(`.stwdot[data-i="${i}"]`) || document.querySelector('svg.stwheel'); if (!f) return; if (f.tagName === 'svg') f.setAttribute('tabindex', '-1'); f.focus({ preventScroll:true }); }
+function stDotHex(sc, i, hue){ const cur = stPartCol(sc, sc.roles[i]), [, s, l] = rgbHsl(...hexRgb(cur.hex)); return rgbHex(...hslRgb(hue, Math.max(.3, s), Math.max(.18, Math.min(.7, l)))); }
+function stDotMove(g, hue){ const rad = +g.dataset.rad || 52, x = 110 + Math.cos((hue - 90) * Math.PI / 180) * rad, y = 110 + Math.sin((hue - 90) * Math.PI / 180) * rad;
+  g.querySelectorAll('circle').forEach(c => { c.setAttribute('cx', x.toFixed(1)); c.setAttribute('cy', y.toFixed(1)); }); const t = g.querySelector('text'); t.setAttribute('x', x.toFixed(1)); t.setAttribute('y', (y + 4.5).toFixed(1));
+  const svg = g.ownerSVGElement, L = svg && svg.querySelector('.stwlines'); if (!L) return;
+  const pts = [...svg.querySelectorAll('.stwdot .stwc')].map(c => c.getAttribute('cx') + ' ' + c.getAttribute('cy'));
+  L.setAttribute('d', 'M' + pts.join('L') + (pts.length > 2 ? 'Z' : '')); }
+function stDotSet(sc, i, hue){ const c = stClosest(sc, stDotHex(sc, i, hue), ''); if (!c) return null;
+  stRemember(sc); stSetPaint(sc, i, c); delete sc.firstAuto; delete sc.stPat; sc.stHarm = ''; state.stMsg = null; return c; }
+document.addEventListener('pointerdown', e => { const g = e.target.closest && e.target.closest('.stwdot'); if (!g) return;
+  const sc = schemeOf(state.schemeId); if (!sc) return; e.preventDefault();
+  stDrag = { g, svg:g.ownerSVGElement, i:+g.dataset.i, hue:null, id:e.pointerId, sc }; g.classList.add('drag'); try { stDrag.svg.setPointerCapture(e.pointerId); } catch (er) {} });
+let stDragRaf = 0;
+document.addEventListener('pointermove', e => { if (!stDrag || e.pointerId !== stDrag.id) return; e.preventDefault();
+  const r = stDrag.svg.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * 220 - 110, y = (e.clientY - r.top) / r.height * 220 - 110;
+  const hue = ((Math.atan2(y, x) * 180 / Math.PI + 90) % 360 + 360) % 360; stDrag.hue = hue; stDotMove(stDrag.g, hue);
+  if (stDragRaf) return; stDragRaf = requestAnimationFrame(() => { stDragRaf = 0; if (!stDrag || stDrag.hue == null) return;
+    const hx = stDotHex(stDrag.sc, stDrag.i, stDrag.hue), c = stClosest(stDrag.sc, hx, ''); stDrag.g.querySelector('.stwc').setAttribute('fill', c ? choiceHex(c) : hx);
+    const n = document.querySelector('.stwdrag'); if (n) n.innerHTML = `<b>${esc(stDrag.sc.roles[stDrag.i].role)}</b> &rarr; <span class="user-text">${esc(c ? choiceName(c) : 'no paint near here')}</span>. Let go to use it.`; }); });
+function stDragEnd(e){ if (!stDrag || (e && e.pointerId !== stDrag.id)) return; const d = stDrag; stDrag = null; d.g.classList.remove('drag');
+  if (d.hue == null) return; const c = stDotSet(d.sc, d.i, d.hue); schSave(d.sc);
+  stDotFocus(d.i);
+  announce(c ? `${d.sc.roles[d.i].role}: ${choiceName(c)}.` : 'No paint near that colour.'); }
+document.addEventListener('pointerup', stDragEnd); document.addEventListener('pointercancel', stDragEnd);
+document.addEventListener('keydown', e => { const g = e.target.closest && e.target.closest('.stwdot'); if (!g) return;
+  const step = { ArrowRight:10, ArrowUp:10, ArrowLeft:-10, ArrowDown:-10 }[e.key]; if (!step) return; e.preventDefault();
+  const sc = schemeOf(state.schemeId); if (!sc) return; const i = +g.dataset.i, hue = stHueOf(stPartCol(sc, sc.roles[i]).hex);
+  /* step until the nearest paint changes, so every press does something */
+  let c = null, h = hue; for (let k = 1; k <= 12 && !c; k++){ h = hue + step * k; const t = stClosest(sc, stDotHex(sc, i, h), ''); if (t && choiceName(t) !== stPartCol(sc, sc.roles[i]).name) c = t; }
+  if (!c) return; stDotSet(sc, i, h); schSave(sc); stDotFocus(i);
+  announce(`${sc.roles[i].role}: ${choiceName(c)}${document.querySelector(`.stwdot[data-i="${i}"]`) ? '' : ', which is too grey to sit on the wheel'}.`); });
 
 /* v062: a scheme still called by its starting name is replaced, not added to,
    when you tap it to rename it. */
@@ -8629,7 +8721,7 @@ gl_FragColor=vec4(color*alpha,alpha);}`;
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v067';
+const APP_VERSION = 'v068';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
