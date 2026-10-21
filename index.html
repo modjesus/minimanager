@@ -2498,6 +2498,22 @@ button.stchip{border-color:var(--gold-line);background:none;font:inherit;font-si
 .phhold{display:block;width:100%;height:100%;object-fit:cover}
 .tile .ph.none .phhold{position:absolute;inset:0}.shnone{position:relative}.shnone img.phhold{position:absolute;inset:0;width:100%;height:100%;margin:0;filter:none;object-fit:cover}
 .pc-ph.empty{background:var(--deep)}
+/* v072 polish: fewer frames, plain-case section headings */
+.card.unitprog{background:none;border:0;box-shadow:none;border-radius:0;padding:0 0 1rem;border-bottom:1px solid var(--border)}
+.card.unitprog.finished{border-bottom-color:var(--gold-line)}
+.unitprog .stchips>*{border:0;background:none;padding-left:0}
+.urec{background:none;border:0;border-top:1px solid var(--border);border-radius:0;padding-left:0}
+.rscheme{border:0;background:none;border-top:1px solid var(--border);border-bottom:1px solid var(--border);border-radius:0;padding-left:0;padding-right:0}
+.rlinks .chip.static{border:0;background:none;padding-left:0}
+.card.rsteps-card{background:none;border:0;box-shadow:none;padding:0}
+.ueyebrow,.rsec h3,.rlinkh{text-transform:none;letter-spacing:0;font-size:1rem;color:var(--text);font-weight:700}
+.stfade{position:absolute;pointer-events:none;opacity:0}
+@media (prefers-reduced-motion:no-preference){
+  .pstep.justnext{animation:pnext .22s cubic-bezier(.23,1,.32,1) .08s both}
+  .sbar span.sgrow{animation:sgrow .5s cubic-bezier(.23,1,.32,1)}
+}
+@keyframes pnext{from{transform:translateY(6px);opacity:.6}to{transform:none;opacity:1}}
+@keyframes sgrow{0%{filter:brightness(1.7);transform:scaleY(1.5)}100%{filter:none;transform:none}}
 .ctnav.pseg button,.ctnav.stseg button{font-size:.75rem!important;letter-spacing:.02em}
 .sthlrow.pdhl{grid-template-columns:repeat(3,minmax(0,1fr))}.pdpanel .sthlhead{grid-template-columns:repeat(3,minmax(0,1fr))}
 button.sthl{background:none;border:0;color:inherit;font:inherit;cursor:pointer;padding:0}.sthlown{font-size:.75rem!important;opacity:.9}
@@ -7272,6 +7288,19 @@ function stThumb(D, colours, metal, sh){
   ts.forEach(t => { const c = t.getContext('2d'), k = Math.min(t.width / bw, t.height / bh), w = bw * k, h = bh * k;
     c.clearRect(0, 0, t.width, t.height); c.imageSmoothingQuality = 'high'; c.drawImage(big, bx, by, bw, bh, (t.width - w) / 2, (t.height - h) / 2, w, h); });
 }
+/* v072: the old paints fade into the new, instead of a jump (not with reduced motion) */
+const ST_FRAME = { c:null, key:'' };   /* the last picture drawn, kept across re-renders */
+function stFadeFrom(cv, key){
+  const F = ST_FRAME; if (!F.c || F.key !== key || matchMedia('(prefers-reduced-motion: reduce)').matches || !cv.parentElement) return;
+  let f = cv.parentElement.querySelector('canvas.stfade');
+  if (!f){ f = document.createElement('canvas'); f.className = 'stfade'; f.setAttribute('aria-hidden', 'true'); f.width = cv.width; f.height = cv.height; cv.after(f); }
+  f.style.left = cv.offsetLeft + 'px'; f.style.top = cv.offsetTop + 'px'; f.style.width = cv.offsetWidth + 'px'; f.style.height = cv.offsetHeight + 'px';
+  const x = f.getContext('2d'); x.clearRect(0, 0, f.width, f.height); x.drawImage(F.c, 0, 0);
+  f.style.transition = 'none'; f.style.opacity = '1'; void f.offsetWidth; f.style.transition = 'opacity .2s ease-out'; f.style.opacity = '0';
+}
+function stKeepFrame(cv, key){ if (!ST_FRAME.c){ ST_FRAME.c = document.createElement('canvas'); }
+  if (ST_FRAME.c.width !== cv.width) ST_FRAME.c.width = cv.width; if (ST_FRAME.c.height !== cv.height) ST_FRAME.c.height = cv.height;
+  const x = ST_FRAME.c.getContext('2d'); x.clearRect(0, 0, cv.width, cv.height); x.drawImage(cv, 0, 0); ST_FRAME.key = key; }
 /* paint every studio canvas on the page (called after each render) */
 function studioSync(){
   const cs = document.querySelectorAll('canvas.stcanvas,canvas.stthumb'); if (!cs.length) return;
@@ -7281,7 +7310,9 @@ function studioSync(){
     const colours = sc.roles.map(r => { const c = roleChoice(sc, r); return validHex(choiceHex(c)) ? choiceHex(c) : (r.hex || '#808080'); });
     const metal = sc.roles.map(r => { const c = roleChoice(sc, r); return !!c && finOf(c.mine || { name:c.row.n, brand:c.row.b, range:c.row.rg }) === 'metal'; });
     document.querySelectorAll('canvas.stcanvas').forEach(cv => { const m = cv.dataset.mode || state.stMode || 'colour';
-      cv.getContext('2d').putImageData(studioImage(D, colours, metal, m, sh), 0, 0); cv.closest('.stview') && cv.closest('.stview').classList.add('ready'); });
+      const fk = D.model + '|' + m + '|' + (cv.closest('#dlg') ? 'big' : 'page'), first = cv === document.querySelector('canvas.stcanvas');
+      if (first) stFadeFrom(cv, fk);
+      cv.getContext('2d').putImageData(studioImage(D, colours, metal, m, sh), 0, 0); if (first) stKeepFrame(cv, fk); cv.closest('.stview') && cv.closest('.stview').classList.add('ready'); });
     stThumb(D, colours, metal, sh); };
   if (ST_DATA[M.id]) go(ST_DATA[M.id]);
   else { document.querySelectorAll('.stview').forEach(v => v.classList.remove('ready')); const pr = studioLoad(M); if (pr) pr.then(go).catch(() => { document.querySelectorAll('.stview').forEach(v => v.classList.add('failed')); }); }
@@ -8822,7 +8853,7 @@ gl_FragColor=vec4(color*alpha,alpha);}`;
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v071';
+const APP_VERSION = 'v072';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -9862,6 +9893,8 @@ function runningTotals(m){
    through the palette in order. */
 const stCol = (i, n) => i === n - 1 ? 7 : Math.min(i, 6);
 /* A unit's own stage bar: one band per stage, as wide as its models. */
+/* v072: the stage just moved to brightens once */
+let stageBarFlash = -1;
 function stageBar(cnt, cls, names){
   const total = cnt.reduce((a, b) => a + b, 0) || 1, last = cnt.length - 1;
   /* With names it is announced: how many are finished, and where the rest
@@ -9870,7 +9903,7 @@ function stageBar(cnt, cls, names){
      it is announced as that picture, never as a "finished" progress value. */
   const a11y = names ? ` role="img" aria-label="${esc('Where the models are now: ' + nowWordsPlain(cnt, names))}"` : ' aria-hidden="true"';
   return `<div class="${cls || 'sbar'}"${a11y}>${cnt.map((k, i) => k ?
-    `<span style="flex:${k};background:var(--st${stCol(i, cnt.length)})"></span>` : '').join('')}</div>`;
+    `<span${i === stageBarFlash ? ' class="sgrow"' : ''} style="flex:${k};background:var(--st${stCol(i, cnt.length)})"></span>` : '').join('')}</div>`;
 }
 /* Two meanings, always labelled. "Now" is where each model is today, so the
    counts add up to the unit. "Reached" counts every model at that stage or
@@ -12455,7 +12488,7 @@ function paintingSteps(r, tk, nextId, doneN){
         : `<span class="rdry over">${TICK_SVG}<span><b>Drying time is up</b> (${esc(dry)})</span><button class="linkbtn" data-drystop="${esc(s.id)}">Clear</button></span>`)
       : `<span class="rdry"><span><b>Dry</b> <span class="user-text">${esc(dry)}</span></span>${dms ? `<button class="btn ghost sm" data-drystart="${esc(s.id)}">Start ${esc(dry)} timer</button>` : ''}</span>`;
     const folded = fold && done && state.pOpen !== s.id;
-    h += `<li class="pstep${done ? ' pdone' : ''}${cur ? ' pcur' : ''}${state.justDone === s.id ? ' just' : ''}${folded ? ' pfolded' : ''}">
+    h += `<li class="pstep${done ? ' pdone' : ''}${cur ? ' pcur' : ''}${state.justDone === s.id ? ' just' : ''}${cur && state.justDone ? ' justnext' : ''}${folded ? ' pfolded' : ''}">
       <button class="pmark" data-rtick="${esc(s.id)}" aria-pressed="${done}">
         <span class="pcirc"${dot}>${done ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path class="tk" d="M5 12.5l4.5 4.5L19 7.5"/></svg>' : `<span class="num">${i + 1}</span>`}</span>
         <span class="ph"><span class="sr-only">Step ${i + 1}: </span><span class="user-text">${esc(stepTitle(s))}</span><span class="sr-only">${done ? ', done' : ', not done'}</span></span>
@@ -12610,7 +12643,7 @@ function screenRecipeDetail(){
   const doneN = stepIds.filter(id => tk.list.indexOf(id) !== -1).length;
   const nextId = stepIds.find(id => tk.list.indexOf(id) === -1);
   if (painting) h += paintingTarget(r, tk);
-  h += `<div class="card${painting ? ' rpaint' : ''}"><div class="row spread"><h3 style="margin:0">Steps</h3>
+  h += `<div class="card${painting ? ' rpaint' : editing ? '' : ' rsteps-card'}"><div class="row spread"><h3 style="margin:0">Steps</h3>
     ${painting && stepIds.length ? `<span class="rprog" aria-live="polite"><b class="num">${doneN}</b> of <b class="num">${stepIds.length}</b> done</span>` : ''}
     ${editing ? `<button class="btn sm ghost" data-act="addStep">Add step</button>` : ''}</div>
     ${painting && stepIds.length && tk.key ? `<div class="pbar" aria-hidden="true"><i style="width:${Math.round(doneN / stepIds.length * 100)}%"></i></div>` : ''}`;
@@ -13593,7 +13626,7 @@ function moveModels(m, fromIx){
     if (when && when > localISO()){ toast('That date is in the future.'); return false; }
     logMove(m, names[mv.from], names[mv.to], k, when);
     c[mv.from] -= k; c[mv.to] += k;
-    setCounts(m, c); m.updated = Date.now(); save(); render();
+    setCounts(m, c); m.updated = Date.now(); save(); stageBarFlash = mv.to; render(); stageBarFlash = -1;
     offerStageUndo(snap, isDone(m) && !wasDone ? `${m.name}: all ${m.total} finished.` : `${m.name}: moved ${k} to ${names[mv.to]}.`);
     if (mv.to > mv.from) burstForMove(m, okRect, isDone(m) && !wasDone);
     if (isDone(m) && !wasDone) askUnpin([m]);
