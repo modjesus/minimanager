@@ -2430,6 +2430,42 @@ button.stchip{border-color:var(--gold-line);background:none;font:inherit;font-si
 .rschstrip{display:flex;width:3rem;height:3rem;border-radius:8px;overflow:hidden;flex:none}.rschstrip i{flex:1}
 .rstale{margin:-.25rem 0 .75rem;color:var(--warning)}
 .rscheme{flex-wrap:wrap}.rscheme .grow{flex:1 1 8rem}.bigtext .rscheme .btn{white-space:normal;flex:1 1 100%}
+.stdirty{display:grid;gap:.375rem;margin:.5rem 0 .25rem;padding:.5rem .75rem;border:1px solid var(--warning);border-radius:12px;background:#3a2e17;font-size:.875rem}
+.stdirty b{color:#F0CC8A}.stdirtyb{display:flex;gap:.375rem;flex-wrap:wrap}.stdirtyb .btn{flex:1}
+.schedited{color:#F0CC8A;font-weight:600}
+/* v067: Paints | Studio | Recipes, each with one job */
+.pseg{margin:.25rem 0 .875rem}.pseg .num{margin-left:.25rem;font-weight:700}
+.pview{margin:.5rem 0 .25rem}
+.pview button[aria-pressed="true"]{background:var(--raised);color:var(--text);box-shadow:inset 0 0 0 1.5px var(--gold)}
+.rclink{display:flex;align-items:center;gap:.375rem;margin-top:.25rem;color:var(--gold-text,#D9BE80)}.rclink svg{width:.875rem;height:.875rem;flex:none}
+.rlinks{margin:.25rem 0 .75rem}.rlinkh{margin:0 0 .375rem;color:var(--text-2)}
+.rlinks .chips{gap:.375rem}.chip.addchip{border-style:dashed;color:var(--gold-text,#D9BE80)}
+.rspics{display:flex;flex-wrap:wrap;gap:.375rem;margin:.5rem 0 .125rem}
+.rspic{position:relative;width:3.75rem;height:3.75rem;padding:0;border:1px solid var(--border);border-radius:9px;overflow:hidden;background:var(--deep);cursor:pointer}
+.rspic img{width:100%;height:100%;object-fit:cover;display:block}
+.rspic small{position:absolute;left:2px;bottom:2px;padding:0 .25rem;border-radius:4px;background:rgba(8,26,45,.85);color:var(--text);font-size:.75rem;font-weight:700}
+.rspadd{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:.125rem;width:3.75rem;height:3.75rem;padding:0;border:1.5px dashed var(--gold-line);border-radius:9px;background:none;color:var(--gold-text,#D9BE80);font:inherit;font-size:.75rem;line-height:1.05;cursor:pointer}
+.rspadd svg{width:1rem;height:1rem}
+.stwcard{padding:.875rem}
+.stwtop{display:flex;align-items:center;justify-content:center;gap:.75rem}
+.stwheel{width:min(15rem,62vw);height:auto;flex:none}
+.stwthumb{display:grid;justify-items:center;gap:.125rem;padding:.25rem;border:1px solid var(--border);border-radius:12px;background:var(--deep);color:var(--text-2);cursor:pointer;flex:none}
+.stwthumb canvas{width:4.5rem;height:6.75rem}
+.stwkey{list-style:none;margin:.75rem 0 0;padding:0;display:grid;gap:.375rem}
+.stwkey li{display:flex;align-items:center;gap:.5rem;font-size:.875rem}
+.stwkey i{width:1.125rem;height:1.125rem;border-radius:50%;flex:none;border:1px solid rgba(246,243,233,.35)}
+.stwn{width:1.25rem;height:1.25rem;border-radius:50%;display:grid;place-items:center;background:var(--raised);font-size:.75rem;font-weight:700;flex:none}
+.stwring{margin:.5rem 0 0}
+.stwh{margin:1rem 0 .375rem}.stwh .small{display:block}
+.stpats{gap:.375rem}.stpatnote{margin:.375rem 0 .625rem}
+.stwacts{display:flex;gap:.5rem;margin-bottom:1rem}.stwacts .btn:first-child{flex:1}
+.stbal{display:flex;height:1rem;border-radius:6px;overflow:hidden;border:1px solid var(--border)}.stbal i{min-width:2px}
+.stballist{list-style:none;margin:.5rem 0 0;padding:0;display:flex;flex-wrap:wrap;gap:.375rem .875rem;font-size:.875rem}
+.stballist li{display:flex;align-items:center;gap:.375rem}.stballist i{width:.875rem;height:.875rem;border-radius:3px}
+.stseg{margin:.25rem 0 .75rem}
+.ctnav.pseg button,.ctnav.stseg button{font-size:.75rem!important;letter-spacing:.02em}
+.sthlrow.pdhl{grid-template-columns:repeat(3,minmax(0,1fr))}.pdpanel .sthlhead{grid-template-columns:repeat(3,minmax(0,1fr))}
+button.sthl{background:none;border:0;color:inherit;font:inherit;cursor:pointer;padding:0}.sthlown{font-size:.75rem!important;opacity:.9}
 </style>
 <script type="importmap">
 { "imports": {
@@ -2484,7 +2520,7 @@ button.stchip{border-color:var(--gold-line);background:none;font:inherit;font-si
   <button data-tab="home" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16M6 10v9M18 10v9M9 10V6.5a3 3 0 0 1 6 0V10"/></svg><span class="tl">Workbench</span></button>
   <button data-tab="coll"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20h14M7 20v-3.5a5 5 0 0 1 10 0V20M12 11.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/></svg><span class="tl">Collection</span></button>
   <button data-tab="paints"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6v3H9zM7 9.5A2.5 2.5 0 0 1 9.5 7h5A2.5 2.5 0 0 1 17 9.5V18a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2Z"/><path d="M7 13h10"/></svg><span class="tl">Paints</span></button>
-  <button data-tab="colour"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.6-.9 1.2-1.8-.5-1 .2-2.2 1.3-2.2H17a4 4 0 0 0 4-4c0-5.5-4-10-9-10Z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="10" cy="7" r="1.2"/><circle cx="15" cy="7.5" r="1.2"/></svg><span class="tl">Colour</span></button>
+  <button data-tab="colour"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.6-.9 1.2-1.8-.5-1 .2-2.2 1.3-2.2H17a4 4 0 0 0 4-4c0-5.5-4-10-9-10Z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="10" cy="7" r="1.2"/><circle cx="15" cy="7.5" r="1.2"/></svg><span class="tl">Studio</span></button>
   <button data-tab="recipes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6.5C10 5 7.5 4.5 4 5v13c3.5-.5 6 0 8 1.5 2-1.5 4.5-2 8-1.5V5c-3.5-.5-6 0-8 1.5ZM12 6.5v13"/></svg><span class="tl">Recipes</span></button>
 </nav>
 
@@ -5035,6 +5071,8 @@ async function pushPhotos(){
     .concat(arr(data.minis).flatMap(m => arr(m.photos)))
     .concat(arr((data.settings || {}).inbox).map(x => x && x.id))
     .concat(arr(data.recipes).flatMap(r => arr(r.photos)))
+    .concat(arr(data.recipes).flatMap(r => arr(r.steps).flatMap(s => arr(s && s.photos).concat(arr(s && s.refs)))))
+    .concat(arr((data.settings || {}).schemes).map(sc => sc && sc.pic))
     .filter(Boolean);
 
   for (const pid of wanted){
@@ -6489,7 +6527,7 @@ function screenSchemes(){
   if (!list.length) return h + `<p class="small muted" style="margin-top:1rem">No schemes yet.</p>`;
   h += `<ul class="schlist">${list.map(sc => { const miss = sc.roles.filter(r => { const c = roleChoice(sc, r); return !c || c.stat === 'Missing' || c.stat === 'Out'; }).length;
     return `<li><button data-sch="open" data-id="${esc(sc.id)}">${sc.pic ? photoImg(sc.pic, 'schpic') : ''}<span class="schstrip" aria-hidden="true">${sc.roles.map(r => `<i style="background:${esc(choiceHex(roleChoice(sc, r)) || r.hex)}"></i>`).join('')}</span>
-      <span class="tx"><b class="user-text">${esc(sc.name)}</b><small>${sc.studio ? esc(stModel(sc).name) + ' &middot; ' : ''}${sc.roles.length} colours${miss ? ` &middot; ${miss} paint${miss === 1 ? '' : 's'} missing` : ' &middot; you have every paint'}${arr(sc.units).length ? ` &middot; on ${arr(sc.units).length} unit${arr(sc.units).length === 1 ? '' : 's'}` : ''}</small></span></button></li>`; }).join('')}</ul>`;
+      <span class="tx"><b class="user-text">${esc(sc.name)}</b><small>${sc.studio && stDirty(sc) ? '<span class="schedited">Changed since saved</span> &middot; ' : ''}${sc.studio ? esc(stModel(sc).name) + ' &middot; ' : ''}${sc.roles.length} colours${miss ? ` &middot; ${miss} paint${miss === 1 ? '' : 's'} missing` : ' &middot; you have every paint'}${arr(sc.units).length ? ` &middot; on ${arr(sc.units).length} unit${arr(sc.units).length === 1 ? '' : 's'}` : ''}</small></span></button></li>`; }).join('')}</ul>`;
   return h;
 }
 function screenScheme(){
@@ -6732,6 +6770,7 @@ document.addEventListener('click', e => {
   const t = e.target.closest && e.target.closest('[data-sch]'); if (!t) return;
   const a = t.dataset.sch, sc = schemeOf(state.schemeId), i = t.dataset.i != null ? +t.dataset.i : -1;
   if (a === 'new'){
+    if ($('#dlg').open) $('#dlg').close();
     if (t.dataset.from === 'photo'){ state.sub = 'planner'; state.schemeId = null; schPhotoInput().click(); return; }
     const pid = t.dataset.pid || '';
     const s2 = newScheme(t.dataset.from, pid && paintOf(pid) && validHex(paintOf(pid).hex) ? paintOf(pid).hex : undefined, pid);
@@ -6739,7 +6778,7 @@ document.addEventListener('click', e => {
     if (t.dataset.from === 'shelf') announce('Only paints you have will be suggested.');
     return; }
   if (a === 'open'){ state.schemeId = t.dataset.id; state.sub = 'scheme'; state.tab = 'colour'; state.openPaint = null; state.openMini = null; state.schAlt = null; render(); window.scrollTo(0, 0); return; }
-  if (a === 'list'){ state.sub = 'planner'; state.schemeId = null; render(); window.scrollTo(0, 0); return; }
+  if (a === 'list'){ state.tab = 'colour'; state.sub = 'planner'; state.schemeId = null; render(); window.scrollTo(0, 0); return; }
   if (!sc) return;
   if (a === 'grey'){ state.schGrey = !!t.dataset.v; schSave(sc); const f = document.querySelector(`[data-sch="grey"][data-v="${t.dataset.v}"]`); if (f) f.focus({ preventScroll:true }); return; }
   if (a === 'harm'){ sc.harmony = t.dataset.k; if (sc.studio) stSuggest(sc); else applySuggest(sc, false); schSave(sc); announce(`${HARMONIES[sc.harmony].label}: colours suggested.`); return; }
@@ -6805,10 +6844,10 @@ document.addEventListener('change', e => {
    =========================================================================== */
 
 /* --- your shelf -------------------------------------------------------------- */
-function screenShelfColours(){
-  let h = colourToolsNav('shelf');
+function screenShelfColours(embedded){
+  let h = embedded ? '' : colourToolsNav('shelf');
   const own = data.paints.filter(p => OWNED_STOCK(p.stock) && validHex(p.hex));
-  h += `<h2 class="display" style="font-size:1.5rem;margin:0">Your shelf by colour</h2>
+  h += embedded ? `<p class="small muted" style="margin:.25rem 0 .75rem">The paints you have, grouped by the maker&rsquo;s colour. Tap one to open it. Families are estimates.</p>` : `<h2 class="display" style="font-size:1.5rem;margin:0">Your shelf by colour</h2>
     <p class="muted" style="margin:.25rem 0 .75rem">The paints you have, grouped by the maker&rsquo;s colour. Families are estimates.</p>`;
   if (!own.length) return h + `<p class="small muted">No paints with a colour on record yet.</p>`;
   const opaque = own.filter(p => !paintFinish(p) && !NOT_COLOUR.test(p.range || ''));
@@ -7198,7 +7237,7 @@ function stThumb(D, colours, metal, sh){
 }
 /* paint every studio canvas on the page (called after each render) */
 function studioSync(){
-  const cs = document.querySelectorAll('canvas.stcanvas'); if (!cs.length) return;
+  const cs = document.querySelectorAll('canvas.stcanvas,canvas.stthumb'); if (!cs.length) return;
   const sc = schemeOf(state.schemeId); if (!sc || !sc.studio) return;
   const M = stModel(sc);
   const go = D => { if (stModel(schemeOf(state.schemeId)).id !== D.model) return; ST = D; const sh = state.stSheen !== false;
@@ -7347,7 +7386,7 @@ function stShuffle(sc){
   stRemember(sc); delete sc.firstAuto;
   sc.roles.forEach((r, i) => { const n = pick[kinds[i]]; if (!locks.includes(r.mat) && n) stSetPaint(sc, i, n); });
   ST_LAST[sc.id] = stKey(main) + '|' + stKey(accent);
-  sc.stHarm = choiceName(main) + ' + ' + choiceName(accent);
+  sc.stHarm = choiceName(main) + ' + ' + choiceName(accent); delete sc.stPat;
   return '';
 }
 /* Suggest from the starting colour and harmony: real paints for each unlocked part. */
@@ -7407,9 +7446,11 @@ function stStartBody(sc){
     <p class="small muted" style="margin:.375rem 0 0">The miniature updates as you choose. Locked parts are kept.</p>`;
 }
 function screenStudio(sc){
+  if (sc.saved && !sc.savedState){ stKeepSaved(sc); save(); }
   const msg = state.stMsg && state.stMsg.id === sc.id ? state.stMsg.text : '';
   const P = state.schPhoto && state.schPhoto.id === sc.id ? state.schPhoto : null;
-  let h = colourToolsNav('scheme') + `
+  if (state.stView === 'wheel') return screenWheel(sc);
+  let h = studioSeg('mini') + `
     <div class="sthead"><label for="schName" class="sr-only">Scheme name</label><input id="schName" class="schname display" value="${esc(sc.name)}" data-schf="name">
 </div>`;
   h += `<div class="studio">${P ? stPhotoBar(sc, P) : ''}${studioViewer(false)}`;
@@ -7419,11 +7460,12 @@ function screenStudio(sc){
       <button class="btn ghost stphbtn" data-sch="photo" aria-label="Paint it from a photo">${CAM_SVG}<span>Photo</span></button>
       <button class="btn ghost stphbtn" data-st="startcol" aria-expanded="${!!state.stStart}" aria-label="Start from a colour"><span class="stcoldot" style="background:${esc((sc.start && validHex(sc.start.hex)) ? sc.start.hex : sc.roles[0].hex)}"></span><span>Colour</span></button>
       <button class="btn ghost stundobtn" data-st="undo" aria-label="Undo"${(ST_HIST[sc.id] || []).length ? '' : ' disabled'}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button></div>
+    ${stDirty(sc) ? `<div class="stdirty" role="status"><span><b>Changed since you saved it.</b> Your saved scheme is safe until you save again.</span><span class="stdirtyb"><button class="btn ghost sm" data-st="backsaved">Back to saved</button><button class="btn ghost sm" data-st="save">Save changes</button></span></div>` : ''}
     ${state.stStart ? `<div class="ststart">${stStartBody(sc)}</div>` : ''}
     <p class="stmsg small" role="status">${esc(msg)}</p>
     <div class="sthd"><span class="small muted stharm">${sc.firstAuto ? 'A first scheme: shuffle or use a photo.' : sc.stHarm ? esc(sc.stHarm) : `Shuffles ${sc.owned ? 'your paints' : esc(stBrand(sc)) + ' paints'}`}</span>${sc.firstAuto || P ? '' : '<span class="small muted">Tap a part to change it</span>'}</div>
     <div class="stzones${sc.roles.length > 8 ? ' nine' : ''}${P && P.sel != null ? ' picking' : ''}">${sc.roles.map((r, i) => studioSwatch(sc, r, i)).join('')}</div>
-    <button class="btn ghost stsave" data-st="save"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/></svg> Save scheme</button>
+    <button class="btn ghost stsave" data-st="save"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/></svg> ${sc.saved ? (stDirty(sc) ? 'Save changes' : 'Saved') : 'Save scheme'}</button>
     ${sc.saved ? `<p class="small muted stsaved">Saved ${esc(fmtDay(localISO(new Date(sc.saved))))}${sc.pic ? ' with a picture of the painted miniature' : ''}.</p>` : ''}
     ${(() => { const R = stRecipeOf(sc); return R ? `<button class="strecline" data-openrecipe="${esc(R.id)}"><span>${BOOK_SVG}</span><span class="grow"><small>Recipe</small><b class="user-text">${esc(R.title)}</b></span><span class="small">${arr(R.steps).length} steps &rsaquo;</span></button>` : '<p class="small muted stsaved">Saving also makes a recipe with shade and highlight steps.</p>'; })()}
     <p class="small muted stnote">One fixed view. Screen colours are estimates from makers&rsquo; published colours, not real paint.</p></div>`;
@@ -7448,6 +7490,119 @@ function screenStudio(sc){
   return h + `</div>`;
 }
 
+/* --- v067: the colour wheel, a page of its own in the Studio ---------------------
+   The scheme's coloured parts sit on the wheel where their paints are. A pattern
+   (opposite, triad...) repaints the miniature from real paints, keeping the main
+   colour; rings show where the pattern wants each colour. Metals, blacks, whites
+   and greys have no place on a wheel, so they are left off it. */
+const ST_PATS = [
+  ['complementary', 'Opposite', 'Two colours from opposite sides of the wheel. Each makes the other look stronger.'],
+  ['triadic', 'Triad', 'Three colours evenly spaced round the wheel. Bold and balanced: good on cloaks, banners and shields.'],
+  ['split', 'Split', 'One colour, and the two either side of its opposite. Strong, but easier to live with than a straight opposite.'],
+  ['analogous', 'Next to', 'Colours that sit side by side on the wheel. Calm and natural, and they blend easily.'],
+  ['tetradic', 'Four', 'Two pairs of opposites. Lively; let one colour lead and keep the others small.']];
+function studioSeg(cur){
+  const b = (v, label) => `<button data-st="view" data-v="${v}"${v === cur ? ' aria-current="page"' : ''}>${label}</button>`;
+  return `<nav class="segbar ctnav stseg" aria-label="Studio">${b('mini', 'Miniature')}${b('wheel', 'Colour wheel')}</nav>`;
+}
+function stPartCol(sc, r){ const c = roleChoice(sc, r), hx = validHex(choiceHex(c)) ? choiceHex(c) : r.hex;
+  const metal = !!c && finOf(c.mine || { name:c.row.n, brand:c.row.b, range:c.row.rg }) === 'metal';
+  return { hex:hx, metal, name:c ? choiceName(c) : 'No paint', kind:stKindOf(sc, r) }; }
+const stHueOf = hx => rgbHsl(...hexRgb(hx))[0];
+const stWarm = h => h < 75 || h >= 330;
+/* parts that belong on the wheel: coloured paints, not metals or near-greys */
+function stWheelParts(sc){
+  return sc.roles.map((r, i) => Object.assign({ i, role:r.role }, stPartCol(sc, r)))
+    .filter(x => validHex(x.hex) && !x.metal && !isNeutral(x.hex) && x.kind !== 'ground' && x.kind !== 'rim');
+}
+/* how much of the figure each part covers, counted from the picture (base left out) */
+function stShares(sc){
+  const M = stModel(sc), D = ST_DATA[M.id]; if (!D) return null;
+  if (!D.count){ D.count = new Array(D.n).fill(0); for (let p = 0; p < D.id.length; p++) if (D.a[p] > 128 && D.id[p] < D.n) D.count[D.id[p]]++; }
+  const parts = sc.roles.map((r, i) => Object.assign({ i, role:r.role }, stPartCol(sc, r))).filter(x => x.kind !== 'ground' && x.kind !== 'rim');
+  const tot = parts.reduce((a, x) => a + (D.count[x.i] || 0), 0) || 1;
+  /* parts in the same colour count together */
+  const groups = [];
+  parts.forEach(x => { const sh = (D.count[x.i] || 0) / tot, L = hexLab(x.hex);
+    const g = groups.find(g => deltaE(g.lab, L) < 10); if (g){ g.share += sh; g.roles.push(x.role); } else groups.push({ hex:x.hex, lab:L, share:sh, roles:[x.role] }); });
+  return groups.sort((a, b) => b.share - a.share);
+}
+function stWheelSvg(parts, rings){
+  const cx = 110, cy = 110, r = 86; let ring = '';
+  for (let a = 0; a < 360; a += 3){ const [r1, g1, b1] = hslRgb(a, .62, .52);
+    const p = d => [cx + Math.cos((d - 90) * Math.PI / 180) * r, cy + Math.sin((d - 90) * Math.PI / 180) * r];
+    const [x1, y1] = p(a), [x2, y2] = p(a + 3.4);
+    ring += `<path d="M${x1.toFixed(1)} ${y1.toFixed(1)}A${r} ${r} 0 0 1 ${x2.toFixed(1)} ${y2.toFixed(1)}" stroke="${rgbHex(r1, g1, b1)}" stroke-width="16" fill="none"/>`; }
+  const at = (h, rad) => [cx + Math.cos((h - 90) * Math.PI / 180) * rad, cy + Math.sin((h - 90) * Math.PI / 180) * rad];
+  const rs = arr(rings).map(h => { const [x, y] = at(h, r); return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="12" fill="none" stroke="#F6F3E9" stroke-width="2.5" stroke-dasharray="4 3"/>`; }).join('');
+  /* dots that would sit on top of each other step inwards */
+  const pts = []; parts.forEach(x => { let rad = r - 34, q = at(stHueOf(x.hex), rad);
+    while (rad > 30 && pts.some(o => Math.hypot(o[0] - q[0], o[1] - q[1]) < 24)){ rad -= 22; q = at(stHueOf(x.hex), rad); } pts.push(q); });
+  const lines = pts.length > 1 ? `<path d="M${pts.map(p => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('L')}${pts.length > 2 ? 'Z' : ''}" fill="none" stroke="#F6F3E9" stroke-opacity=".55" stroke-width="1.5"/>` : '';
+  const dots = parts.map((x, k) => { const [px, py] = pts[k];
+    return `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="13" fill="${esc(x.hex)}" stroke="#F6F3E9" stroke-width="2"/><text x="${px.toFixed(1)}" y="${(py + 4.5).toFixed(1)}" text-anchor="middle" font-size="12" font-weight="700" fill="${lum(x.hex) > .5 ? '#0B1A2E' : '#F6F3E9'}">${k + 1}</text>`; }).join('');
+  return `<svg class="stwheel" viewBox="0 0 220 220" role="img" aria-label="Colour wheel: ${esc(parts.map((x, k) => `${k + 1} ${x.role}`).join(', ') || 'no coloured parts')}">${ring}${rs}<circle cx="${cx}" cy="${cy}" r="${r - 9}" fill="none"/>${lines}${dots}</svg>`;
+}
+/* the hues a pattern wants, starting from the main colour */
+function stPatHues(k, h){ return { complementary:[h, h + 180], triadic:[h, h + 120, h + 240], split:[h, h + 150, h + 210], analogous:[h, h - 30, h + 30], tetradic:[h, h + 90, h + 180, h + 270] }[k].map(x => ((x % 360) + 360) % 360); }
+/* apply a pattern: the main stays; the accent and then other coloured parts take the pattern's other hues */
+function stPattern(sc, k){
+  const locks = arr(sc.locks), iMain = sc.roles.findIndex(r => stKindOf(sc, r) === 'main'); if (iMain < 0) return 'This miniature has no main colour to start from.';
+  const main = stPartCol(sc, sc.roles[iMain]); if (isNeutral(main.hex) || main.metal) return `${sc.roles[iMain].role} is ${main.metal ? 'a metal' : 'a black, white or grey'}, which has no place on the colour wheel. Choose a coloured paint for it first.`;
+  const hues = stPatHues(k, stHueOf(main.hex)).slice(1);
+  /* which parts take the other hues, in order: the accent, then leather, cloth-like parts, skin-free extras */
+  const order = ['accent', 'leather', 'wood', 'mouth'];
+  const slots = [];
+  order.forEach(kind => sc.roles.forEach((r, i) => { if (slots.length < hues.length && stKindOf(sc, r) === kind && !locks.includes(r.mat) && !slots.includes(i)) slots.push(i); }));
+  if (!slots.length) return 'The parts that would change are locked. Unlock one to try a pattern.';
+  stRemember(sc); delete sc.firstAuto;
+  const [, ms, ml] = rgbHsl(...hexRgb(main.hex));
+  slots.forEach((i, n) => { const r = sc.roles[i], cur = stPartCol(sc, r), [, cs, cl] = rgbHsl(...hexRgb(cur.hex));
+    /* the accent keeps the main's strength; quieter parts keep their own lightness */
+    const s2 = n === 0 ? Math.max(.35, ms) : Math.max(.3, Math.min(.65, cs)), l2 = n === 0 ? Math.max(.25, Math.min(.65, ml)) : Math.max(.2, Math.min(.5, cl));
+    const want = rgbHex(...hslRgb(hues[n], s2, l2)), c = stClosest(sc, want, ''); if (c) stSetPaint(sc, i, c); else r.hex = want; });
+  sc.stPat = k; sc.stHarm = ST_PATS.find(p => p[0] === k)[1] + ': ' + slots.map(i => sc.roles[i].role.toLowerCase()).join(' and ') + ' set from ' + sc.roles[iMain].role.toLowerCase();
+  return '';
+}
+function screenWheel(sc){
+  const M = stModel(sc), parts = stWheelParts(sc), iMain = sc.roles.findIndex(r => stKindOf(sc, r) === 'main');
+  const main = iMain >= 0 ? stPartCol(sc, sc.roles[iMain]) : null, mainOk = main && !main.metal && !isNeutral(main.hex);
+  const pat = sc.stPat && ST_PATS.find(p => p[0] === sc.stPat), rings = pat && mainOk ? stPatHues(pat[0], stHueOf(main.hex)) : [];
+  const msg = state.stMsg && state.stMsg.id === sc.id ? state.stMsg.text : '';
+  let h = studioSeg('wheel') + `<div class="sthead"><h2 class="display schname" style="margin:0">${esc(sc.name)}</h2></div>`;
+  h += `<div class="card stwcard"><div class="stwtop">${stWheelSvg(parts, rings)}
+      <button class="stwthumb" data-st="view" data-v="mini" aria-label="Back to the miniature"><canvas class="stthumb" width="112" height="168" aria-hidden="true"></canvas><span class="small">${esc(M.short)}</span></button></div>
+    ${parts.length ? `<ol class="stwkey">${parts.map((x, k) => `<li><span class="stwn">${k + 1}</span><i style="background:${esc(x.hex)}"></i><span class="grow"><b>${esc(x.role)}</b> <span class="muted user-text">${esc(x.name)}</span></span><span class="small muted">${stWarm(stHueOf(x.hex)) ? 'warm' : 'cool'}</span></li>`).join('')}</ol>`
+      : '<p class="small muted">None of the parts has a strong colour yet: they are metals, browns kept neutral, blacks, whites or greys.</p>'}
+    ${rings.length ? '<p class="small muted stwring">Dashed rings: where the pattern puts each colour.</p>' : ''}</div>`;
+  h += `<p class="stwh"><b>Try a pattern</b> <span class="small muted">The miniature repaints from ${sc.owned ? 'your paints' : esc(stBrand(sc)) + ' paints'}. ${(ST_HIST[sc.id] || []).length ? '' : 'Undo is on the Miniature page.'}</span></p>
+    <div class="chips stpats" role="group" aria-label="Colour pattern">${ST_PATS.map(([k, l]) => `<button class="chip" data-st="pat" data-k="${k}" aria-pressed="${!!pat && pat[0] === k}">${l}</button>`).join('')}</div>
+    <p class="small muted stpatnote" role="status">${esc(msg || (pat ? pat[2] : 'Each one keeps your ' + (iMain >= 0 ? sc.roles[iMain].role.toLowerCase() : 'main colour') + ' and changes the others to match.'))}</p>
+    <div class="stwacts"><button class="btn ghost" data-st="view" data-v="mini">See it on the miniature</button>${(ST_HIST[sc.id] || []).length ? `<button class="btn ghost stundobtn" data-st="undo" aria-label="Undo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>` : ''}</div>`;
+  /* balance, warm and cool, light and dark */
+  const G = stShares(sc);
+  if (!G){ const pr = studioLoad(M); if (pr) pr.then(() => { if (state.tab === 'colour' && state.stView === 'wheel') render(); }).catch(() => {}); }
+  let bal = '<p class="small muted">Working it out&hellip;</p>', balS = '';
+  if (G){ const top = G[0], pc = x => Math.round(x.share * 100);
+    const named = x => x.roles.join(' and ').toLowerCase();
+    balS = top.share >= .5 ? 'One colour leads' : top.share >= .35 ? 'Nearly' : 'Nothing leads';
+    bal = `<div class="stbal" role="img" aria-label="${esc(G.map(x => `${named(x)} ${pc(x)} percent`).join(', '))}">${G.filter(x => x.share >= .01).map(x => `<i style="flex:${x.share.toFixed(3)};background:${esc(x.hex)}"></i>`).join('')}</div>
+      <ul class="stballist">${G.filter(x => x.share >= .03).slice(0, 4).map(x => `<li><i style="background:${esc(x.hex)}"></i>${esc(cap(named(x)))} <span class="num">${pc(x)}%</span></li>`).join('')}</ul>
+      <p class="small muted" style="margin:.375rem 0 0">Painters aim for about 60 : 30 : 10 &mdash; one colour covering most of the model, a second less, a third just a little. ${top.share >= .5 ? `Here ${esc(named(top))} leads with ${pc(top)}%, so the model reads clearly.` : top.share >= .35 ? `${esc(cap(named(top)))} covers ${pc(top)}%. Giving it a little more, or matching a smaller part to it, would make the model read more clearly.` : `No colour covers more than ${pc(top)}%, so the eye has nowhere to rest. Try giving two parts the same colour.`} Counted from this miniature; the base is left out.</p>`; }
+  const wc = parts.slice(0, 3).map(x => ({ x, w:stWarm(stHueOf(x.hex)) }));
+  let wcT = 'Add a coloured paint to see this.', wcS = '';
+  if (wc.length === 1){ wcT = `${wc[0].x.role} is ${wc[0].w ? 'warm' : 'cool'}. Metals and neutrals round it out.`; wcS = wc[0].w ? 'Warm' : 'Cool'; }
+  else if (wc.length > 1){ const a = wc[0], b = wc[1], mixed = wc.some(y => y.w) && wc.some(y => !y.w);
+    wcS = a.w !== b.w ? 'Contrast' : a.w ? 'Both warm' : 'Both cool';
+    wcT = a.w !== b.w ? `${b.x.role} is ${b.w ? 'warm' : 'cool'} against a ${a.w ? 'warm' : 'cool'} ${a.x.role.toLowerCase()}, so it stands out.` : `${a.x.role} and ${b.x.role.toLowerCase()} are both ${a.w ? 'warm' : 'cool'}: calm and unified. For more punch, make the second colour the opposite temperature.`; }
+  const vn = valueNotes(sc);
+  h += `<div class="stfolds">`;
+  h += stFold('bal', 'Balance', balS, bal);
+  h += stFold('warm', 'Warm and cool', wcS, `<p class="small" style="margin:0">${esc(wcT)}</p><p class="small muted" style="margin:.375rem 0 0">Reds, oranges and yellows feel warm and come forward; blues, greens and purples feel cool and sit back.</p>`);
+  h += stFold('val', 'Light and dark', vn.length ? `${vn.length} to check` : 'Clear', `${vn.length ? `<ul class="schwarn">${vn.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : `<p class="small" style="margin:0">${esc(sc.roles.slice(0, 3).map(r => r.role).join(', ').replace(/, ([^,]*)$/, ' and $1'))} are clearly lighter or darker than each other, so they stay distinct from a distance.</p>`}
+      <button class="btn ghost sm" data-st="greyview" style="margin-top:.5rem">See it in grey</button>`);
+  return h + `</div>`;
+}
 /* --- v064: paint the miniature from a photo -------------------------------------
    The photo's colours (biggest first) are sorted into kinds: bright colours
    become the main and second colours, a brown the leather and ground, a very
@@ -7609,8 +7764,21 @@ function stPicPlaces(sc){
   arr(sc.armies).forEach(fid => data.minis.forEach(m => { if (m.fac === fid && !m.archived) units.add(m.id); }));
   return { recs, units:[...units].map(id => data.minis.find(m => m.id === id)).filter(Boolean) };
 }
+/* v065: what was last saved is kept apart from what is on screen. Shuffling or
+   changing a saved scheme never touches the saved version until Save is pressed;
+   "Back to saved" puts it back in one tap. */
+const stSavedOf = sc => JSON.stringify({ model:stModel(sc).id, roles:sc.roles.map(r => ({ mat:r.mat, pick:r.pick, hex:r.hex })), locks:arr(sc.locks).slice().sort() });
+function stKeepSaved(sc){ sc.savedState = { cmp:stSavedOf(sc), roles:JSON.parse(JSON.stringify(sc.roles)), locks:arr(sc.locks).slice(), model:stModel(sc).id, name:sc.name }; }
+const stDirty = sc => !!(sc.saved && sc.savedState && sc.savedState.cmp !== stSavedOf(sc));
+function stBackToSaved(sc){
+  const S = sc.savedState; if (!S) return false;
+  stRemember(sc);
+  if (S.model !== stModel(sc).id){ sc.byModel = sc.byModel || {}; sc.byModel[stModel(sc).id] = { roles:sc.roles, locks:arr(sc.locks) }; sc.model = S.model; }
+  sc.roles = JSON.parse(JSON.stringify(S.roles)); sc.locks = S.locks.slice(); sc.stHarm = ''; ST_CACHE.key = '';
+  return true;
+}
 async function stSave(sc, name){
-  sc.name = name; sc.saved = Date.now(); delete sc.firstAuto;
+  sc.name = name; sc.saved = Date.now(); delete sc.firstAuto; stKeepSaved(sc);
   const R = stSyncRecipe(sc);
   const blob = await stPicture(sc).catch(() => null);
   const old = sc.pic, P = stPicPlaces(sc);
@@ -7627,7 +7795,7 @@ function dlgSaveScheme(){
   const sc = schemeOf(state.schemeId); if (!sc) return;
   const facs = [...new Set(liveMinis().map(m => m.fac).filter(Boolean))].map(id => data.factions.find(f => f.id === id)).filter(Boolean).sort((a, b) => a.name.localeCompare(b.name));
   const us = arr(sc.units).map(id => data.minis.find(m => m.id === id)).filter(Boolean);
-  openDialog('Save scheme', `<label for="ssName">Name</label><input id="ssName" value="${esc(ST_DEFAULT_NAME.test(sc.name.trim()) ? '' : sc.name)}" placeholder="${esc(stModel(sc).name)} scheme" autocomplete="off">
+  openDialog(sc.saved ? 'Save changes' : 'Save scheme', `${sc.saved ? '<p class="small muted" style="margin-top:0">This replaces the saved version, and updates its recipe and picture.</p>' : ''}<label for="ssName">Name</label><input id="ssName" value="${esc(ST_DEFAULT_NAME.test(sc.name.trim()) ? '' : sc.name)}" placeholder="${esc(stModel(sc).name)} scheme" autocomplete="off">
     <p class="fsec">The picture kept with it</p><div class="sspic"><canvas id="ssPic" width="240" height="240" role="img" aria-label="${esc(stModel(sc).name)} in this scheme's paints"></canvas></div>
     ${facs.length ? `<p class="fsec" id="ssForL">Use for <span class="opt">optional</span></p><div class="chips" role="group" aria-labelledby="ssForL">${facs.map(f => `<button class="chip" data-ssfac="${esc(f.id)}" aria-pressed="${arr(sc.armies).includes(f.id)}">${esc(f.name)}</button>`).join('')}</div>` : ''}
     ${us.length ? `<p class="small muted">Also on: ${us.map(m => `<span class="user-text">${esc(m.name)}</span>`).join(', ')}.</p>` : ''}
@@ -7717,7 +7885,12 @@ document.addEventListener('click', e => {
     else { schSave(sc); keep(`[data-st="mode"][data-v="${t.dataset.v}"]`); } return; }
   if (a === 'model'){ if (stSwitchModel(sc, t.dataset.v)){ state.stMsg = null; const inDlg = !!t.closest('#dlg');
       schSave(sc); if (inDlg){ $('#dlg').close(); dlgStudioBig(); } keep(`[data-st="model"][data-v="${t.dataset.v}"]`); announce(stModel(sc).name + '. ' + sc.roles.map(r => r.role).join(', ') + '.'); } return; }
+  if (a === 'view'){ state.stView = t.dataset.v === 'wheel' ? 'wheel' : 'mini'; render(); window.scrollTo(0, 0); keep(`[data-st="view"][data-v="${state.stView}"]`); return; }
+  if (a === 'pat'){ const m = stPattern(sc, t.dataset.k); state.stMsg = { id:sc.id, text:m }; if (!m && state.stMode === 'clay') state.stMode = 'colour'; schSave(sc); keep(`[data-st="pat"][data-k="${t.dataset.k}"]`);
+    announce(m || sc.stHarm + '.'); return; }
+  if (a === 'greyview'){ state.stView = 'mini'; state.stMode = 'values'; render(); window.scrollTo(0, 0); keep('[data-st="mode"][data-v="values"]'); announce('Shown in grey, so you see only light and dark.'); return; }
   if (a === 'save') return dlgSaveScheme();
+  if (a === 'backsaved'){ if (stBackToSaved(sc)){ state.stMsg = null; schSave(sc); keep('[data-st="shuffle"]'); announce('Back to the saved scheme. Undo brings your changes back.'); toast('Back to the saved scheme.'); } return; }
   if (a === 'startcol'){ state.stStart = !state.stStart; render(); keep('[data-st="startcol"]'); return; }
   if (a === 'photocol'){ const P = state.schPhoto; if (!P) return; P.sel = P.sel === i ? null : i; render(); keep(`[data-st="photocol"][data-i="${i}"]`); return; }
   if (a === 'photoalt'){ const P = state.schPhoto; if (!P) return; P.alt = (P.alt || 0) + 1; stFromPhoto(sc, P.colours, P.alt); P.sel = null; schSave(sc); keep('[data-st="photoalt"]'); announce('Another arrangement of the photo colours.'); return; }
@@ -8456,7 +8629,7 @@ gl_FragColor=vec4(color*alpha,alpha);}`;
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v065';
+const APP_VERSION = 'v067';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -9897,6 +10070,7 @@ function availWords(r){
 const PALETTE_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.2 0 1.8-.9 1.8-1.8 0-1.3-1-1.6-1-2.7 0-.9.8-1.5 1.7-1.5H17a4 4 0 0 0 4-4c0-4.4-4-8-9-8Z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="15" cy="7.5" r="1"/></svg>';
 const EDIT_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4ZM13.5 6.5l4 4"/></svg>';
 const DUP_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>';
+const FLAG_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 21V4M6 4h11l-2.5 4L17 12H6"/></svg>';
 const BOOK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6c-2-1.5-5-2-8-1.5V19c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5V4.5c-3-.5-6 0-8 1.5ZM12 6v14.5"/></svg>';
 function heroCard(m, tab, i, n){
   const pid = arr(m.photos)[0];
@@ -11369,7 +11543,10 @@ function openGallery(i, from, kind, rid){
   state.gal = { id:m.id, kind:kind || 'mini', i:Math.max(0, Math.min(arr(m.photos).length - 1, i || 0)) };
   drawGallery(true);
 }
-const galRec = () => state.gal && (state.gal.kind === 'recipe' ? data.recipes.find(x => x.id === state.gal.id) : data.minis.find(x => x.id === state.gal.id));
+const galStep = () => { const r = data.recipes.find(x => x.id === state.gal.id), s = r && arr(r.steps).find(x => x.id === state.gal.sid); return s ? { r, s } : null; };
+const galRec = () => { if (!state.gal) return null;
+  if (state.gal.kind === 'step'){ const g = galStep(); return g ? { id:g.r.id, title:stepTitle(g.s) + (state.gal.f === 'refs' ? ' \u00b7 reference' : ' \u00b7 your photos'), photos:arr(g.s[state.gal.f]) } : null; }
+  return state.gal.kind === 'recipe' ? data.recipes.find(x => x.id === state.gal.id) : data.minis.find(x => x.id === state.gal.id); };
 const galName = m => m ? (m.name || m.title || '') : '';
 function closeGallery(){
   const g = document.getElementById('gal'); if (g) g.remove();
@@ -11381,7 +11558,7 @@ function closeGallery(){
 function drawGallery(first){
   const g0 = document.getElementById('gal'); if (g0) g0.remove();
   if (!state.gal) return;
-  const m = galRec(), ps = arr(m && m.photos), isRec = state.gal.kind === 'recipe';
+  const m = galRec(), ps = arr(m && m.photos), isRec = state.gal.kind === 'recipe' || state.gal.kind === 'step';
   if (!m || !ps.length){ closeGallery(); return; }
   const i = state.gal.i = Math.min(state.gal.i, ps.length - 1), n = ps.length;
   const g = document.createElement('div');
@@ -11429,6 +11606,8 @@ document.addEventListener('click', e => {
     else { delete data.settings.drytimers[k]; announce('Drying timer stopped.'); }
     save(); render(); const f = document.querySelector(`[data-drystop="${CSS.escape(sid)}"],[data-drystart="${CSS.escape(sid)}"]`); if (f) f.focus({ preventScroll:true }); return; }
   const rl = t.closest('[data-relink]'); if (rl){ dlgRelink(rl.dataset.relink, +rl.dataset.k); return; }
+  const spk = t.closest('[data-steppic]'); if (spk){ galBack = spk; state.gal = { kind:'step', id:state.openRecipe, sid:spk.dataset.steppic, f:spk.dataset.f, i:+spk.dataset.k || 0 }; drawGallery(true); return; }
+  const spa = t.closest('[data-steppicadd]'); if (spa){ const el = stepPicInput(); el.dataset.sid = spa.dataset.steppicadd; el.dataset.f = spa.dataset.f; el.click(); return; }
   const orf = t.closest('[data-recref]'); if (orf){ openGallery(+orf.dataset.recref, orf, 'recipe', state.openRecipe); return; }
   if (t.closest('[data-act="recRefAdd"]')){ refInput().click(); return; }
   const g = t.closest('#gal'); if (!g) return;
@@ -11436,6 +11615,14 @@ document.addEventListener('click', e => {
   const go = t.closest('[data-galgo]'); if (go) return galGo(+go.dataset.galgo);
   const to = t.closest('[data-galto]'); if (to){ state.gal.i = +to.dataset.galto; return drawGallery(); }
   const m = galRec(); if (!m) return closeGallery();
+  if (state.gal.kind === 'step'){ const G = galStep(), f = state.gal.f;
+    if (t.closest('[data-galadd]')){ const el = stepPicInput(); el.dataset.sid = state.gal.sid; el.dataset.f = f; closeGallery(); el.click(); return; }
+    if (t.closest('[data-galdel]')){ const pid = arr(G.s[f])[state.gal.i], k = state.gal.i; closeGallery();
+      openDialog('Remove this picture?', `<p style="margin-top:0">${f === 'refs' ? 'Reference picture' : 'Photo'} ${k + 1} of ${esc(stepTitle(G.s))} will be deleted from this phone and from your account.</p>`, () => {
+        G.s[f] = arr(G.s[f]).filter(x => x !== pid); G.r.updated = Date.now(); save(); forgetPhoto(pid).catch(() => {});
+        if (urlCache.has(pid)){ URL.revokeObjectURL(urlCache.get(pid)); urlCache.delete(pid); } render(); toast('Picture removed.'); announce('Picture removed.'); }, 'Remove picture', 'Keep it'); }
+    return;
+  }
   if (state.gal.kind === 'recipe'){
     if (t.closest('[data-galadd]')){ closeGallery(); refInput().click(); return; }
     if (t.closest('[data-galdel]')){ const pid = arr(m.photos)[state.gal.i], k = state.gal.i; closeGallery();
@@ -11535,9 +11722,10 @@ function paintList(){
    your latest scheme (or a first one, made for you). */
 function screenColour(){
   const s = state.sub;
-  if (s === 'hl') return screenHighlights();
-  if (s === 'shelf') return screenShelfColours();
-  if (s === 'swatchCompare') return screenCompare();
+  /* v067: highlights, your shelf by colour and the swatches live in Paints */
+  if (s === 'hl'){ state.tab = 'paints'; state.sub = null; state.pSeg = 'hl'; return screenPaints(); }
+  if (s === 'shelf'){ state.tab = 'paints'; state.sub = null; state.pSeg = 'shelf'; state.pView = 'colour'; return screenPaints(); }
+  if (s === 'swatchCompare'){ state.tab = 'paints'; return screenPaints(); }
   if (s === 'planner') return screenSchemes();
   let sc = schemeOf(state.schemeId);
   if (!sc){ sc = schemesList().slice().sort((a, b) => (b.updated || 0) - (a.updated || 0))[0];
@@ -11551,8 +11739,13 @@ function screenColour(){
 }
 function screenPaints(){
   /* colour tools reached from older links land in the Colour tab */
-  if (['swatchCompare', 'planner', 'scheme', 'shelf', 'hl'].includes(state.sub)){ state.tab = 'colour'; return screenColour(); }
+  if (state.sub === 'swatchCompare') return screenCompare();
+  if (state.sub === 'shelf'){ state.sub = null; state.pSeg = 'shelf'; state.pView = 'colour'; }
+  if (state.sub === 'hl'){ state.sub = null; state.pSeg = 'hl'; }
+  if (['planner', 'scheme'].includes(state.sub)){ state.tab = 'colour'; return screenColour(); }
   if (state.openPaint) return screenPaintDetail();
+  /* v067: My shelf | Highlights | Shopping */
+  if (state.pSeg === 'hl') return paintsSeg('hl') + screenHighlights();
 
   /* Add is in the top bar. The planner, the swatch comparison and adding
      several at once are in the ... menu; the stock filter is behind Filter. */
@@ -11560,13 +11753,13 @@ function screenPaints(){
   let h = '';
 
   if (!data.paints.length){
-    return h + emptyPlain(`<h3>No paints yet</h3>
+    return h + paintsSeg('shelf') + emptyPlain(`<h3>No paints yet</h3>
       <p>Add from <span class="num">${catalogue().rows.length.toLocaleString()}</span> paints in the catalogue, or enter your own. Your shelf, swatches and shopping list all start here.</p>
       <div class="gxacts"><button class="btn" data-act="addPaints">Add paints</button></div>`);
   }
 
   const F = pf(), nOn = pfOn();
-  h += addTop('addPaints', 'Add paints');
+  h += paintsSeg('shelf') + addTop('addPaints', 'Add paints');
   /* v059: colour tools have their own tab; the shopping list sits here */
   h += `<div class="findrow" style="margin-top:.875rem"><div class="field">
       <label for="pq" class="sr-only">Search your paints</label>
@@ -11578,11 +11771,9 @@ function screenPaints(){
     h += `<div class="chips">${state.pStock ? chip('stock', state.pStock) : ''}${F.brand ? chip('brand', F.brand) : ''}${F.range ? chip('range', F.range) : ''}${F.fam ? chip('fam', F.fam) : ''}
       <button class="linkbtn" data-act="clearPaintFilters">Clear filters</button></div>`;
   }
-  /* Always here: it is also the way to the wishlist and supplies, which
-     vanished whenever nothing happened to be running low (v011 to v014). */
-  const wn = arr(data.wishlist).length;
-  h += `<button class="shopline" data-act="shop"><span class="sl">Shopping list${nd.total ? ` &middot; <span class="num">${nd.total}</span> to buy` : ''}${wn ? ` &middot; wishlist <span class="num">${wn}</span>` : ' &amp; wishlist'}</span><span class="sr" aria-hidden="true">&rsaquo;</span></button>`;
-
+  /* v067: your shelf by colour lives here now, as a second way to look at the same paints */
+  h += `<div class="rmode pview" role="group" aria-label="Show your paints"><button data-act="pView" data-v="type" aria-pressed="${state.pView !== 'colour'}">List</button><button data-act="pView" data-v="colour" aria-pressed="${state.pView === 'colour'}">By colour</button></div>`;
+  if (state.pView === 'colour' && !state.pq.trim()) return h + screenShelfColours(true);
   const q = state.pq.trim().toLowerCase();
   const list = paintList();
   if (!list.length) return h + (q && q.length >= 3 ? notOwnedCards(q) : '') + `<div class="empty"><p>No paints of yours match${q?` &ldquo;${esc(state.pq)}&rdquo;`:''}.</p>
@@ -11681,7 +11872,7 @@ function screenPaintDetail(){
     <div class="segq pdstock" role="radiogroup" aria-labelledby="pdStockL">${STOCK.map(s => `<button type="button" role="radio" data-pdstock="${esc(s)}" aria-checked="${(p.stock || 'Have it') === s}">${esc(s)}</button>`).join('')}</div>`;
   h += `<div class="pdacts">
     <button data-act="pdPanel" data-v="alt" aria-expanded="${panel === 'alt'}"><span>Find alternatives</span><small>Closest from other brands</small></button>
-    <button data-act="pdPanel" data-v="lad" aria-expanded="${panel === 'lad'}"><span>Highlight and shadow</span><small>Lighter and darker paints of the same hue</small></button>
+    <button data-act="pdPanel" data-v="lad" aria-expanded="${panel === 'lad'}"><span>Shade and highlight</span><small>A darker and a lighter paint to go with it</small></button>
     <button data-act="pdPanel" data-v="rec" aria-expanded="${panel === 'rec'}"><span>Recipes using this</span><small><span class="num">${uses.length}</span> recipe${uses.length === 1 ? '' : 's'}</small></button>
     <button data-sch="new" data-from="paint" data-pid="${esc(p.id)}"><span>Use in a scheme</span><small>Starts a colour scheme from this paint</small></button></div>`;
   if (panel === 'alt'){
@@ -11695,14 +11886,14 @@ function screenPaintDetail(){
             ${x.mine ? `<span class="altmine">${OWNED_STOCK(x.mine.stock) ? 'You own this' : esc(x.mine.stock)}</span>` : ''}</li>`).join('')}</ul>`}
       <p class="small muted" style="margin:.75rem 0 0"><b>Estimates.</b> Matched on the colours makers publish, finish for finish. Real paints can differ; a swatch is the test.</p></div>`;
   }
-  if (panel === 'lad') h += `<div class="card pdpanel"><h3>Highlight and shadow</h3>${ladderHtml(p)}</div>`;
+  if (panel === 'lad') h += `<div class="card pdpanel"><h3>Shade and highlight</h3>${paintHlHtml(p)}</div>`;
   if (panel === 'rec') h += `<div class="card pdpanel"><h3>Recipes using this</h3>${uses.length ? `<ul class="pdrecs">${uses.map(r => `<li><button data-openrecipe="${esc(r.id)}">${recipeStrip(r, 'ustrip')}<span class="user-text">${esc(r.title)}</span><span aria-hidden="true">&rsaquo;</span></button></li>`).join('')}</ul>`
     : `<p class="small muted">Not in any recipe yet.</p>`}</div>`;
 
   /* A photographed swatch is optional: a small invitation, not half the page. */
-  if (!sws.length) h += `<p class="pdsw small"><span class="muted">The chip is the maker&rsquo;s estimate.</span> <button class="linkbtn" data-act="newSwatch">Photograph a swatch</button> <span class="muted">to see how it went on for you (optional).</span></p>`;
+  if (!sws.length) h += `<p class="pdsw small"><span class="muted">The chip is the maker&rsquo;s estimate.</span> <button class="linkbtn" data-act="newSwatch">Photograph a swatch</button> <span class="muted">to see how it went on for you, or</span> <button class="linkbtn" data-act="openCompare">compare colours</button><span class="muted">.</span></p>`;
   else {
-    h += `<div class="card"><div class="row spread"><h3 style="margin:0">Your swatches</h3><button class="btn sm ghost" data-act="newSwatch">Add one</button></div>`;
+    h += `<div class="card"><div class="row spread"><h3 style="margin:0">Your swatches</h3><span><button class="btn sm ghost" data-act="openCompare">Compare</button> <button class="btn sm ghost" data-act="newSwatch">Add one</button></span></div>`;
     sws.forEach((s, si) => {
       h += `<div class="row swrow">
         ${photoImg(s.photoId,'realswatch')}
@@ -11816,34 +12007,18 @@ function screenPlanner(){
   return h;
 }
 
+/* v067: the Colour tab is part of Recipes; its other pages live in Paints */
 function colourToolsNav(cur){
-  const b = (act, on, label) => `<button data-act="${act}"${on ? ' aria-current="page"' : ''}>${label}</button>`;
-  return `<nav class="segbar ctnav" aria-label="Colour tools">${b('openStudio', cur === 'planner' || cur === 'scheme', 'Studio')}${b('openHighlights', cur === 'hl', 'Highlights')}${b('openShelfColours', cur === 'shelf', 'Your shelf')}${b('openCompare', cur === 'compare', 'Swatches')}</nav>`;
+  if (cur === 'compare' || cur === 'shelf') return backBtn('paints', 'Paints');
+  if (cur === 'planner') return backBtn('colour', 'Studio');
+  return '';
 }
-function wheelSvg(sch, baseHex){
-  const cx = 110, cy = 110, r = 86;
-  let ring = '';
-  for (let a = 0; a < 360; a += 3){
-    const [r1,g1,b1] = hslRgb(a, .62, .52);
-    const x1 = cx + Math.cos((a-90)*Math.PI/180)*r, y1 = cy + Math.sin((a-90)*Math.PI/180)*r;
-    const x2 = cx + Math.cos((a+3-90)*Math.PI/180)*r, y2 = cy + Math.sin((a+3-90)*Math.PI/180)*r;
-    ring += `<path d="M${x1.toFixed(1)} ${y1.toFixed(1)}A${r} ${r} 0 0 1 ${x2.toFixed(1)} ${y2.toFixed(1)}"
-      stroke="${rgbHex(r1,g1,b1)}" stroke-width="15" fill="none"/>`;
-  }
-  let dots = '';
-  sch.forEach((c,i) => {
-    const [rr,gg,bb] = hexRgb(c.hex); const [hh] = rgbHsl(rr,gg,bb);
-    const rad = r - 26;
-    const x = cx + Math.cos((hh-90)*Math.PI/180)*rad, y = cy + Math.sin((hh-90)*Math.PI/180)*rad;
-    dots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="11" fill="${esc(c.hex)}"
-      stroke="var(--text)" stroke-width="1.5"/>
-      <text x="${x.toFixed(1)}" y="${(y+3.5).toFixed(1)}" text-anchor="middle" font-size="9"
-        fill="var(--bg)" font-weight="700">${i+1}</text>`;
-  });
-  return `<svg class="wheel" viewBox="0 0 220 220" width="220" height="220" role="img"
-    aria-label="Colour wheel showing where each colour in the scheme sits">${ring}${dots}</svg>`;
+/* v067: Paints has three parts: your shelf, highlights and the shopping list */
+function paintsSeg(cur){
+  const nd = needList(), n = nd.total + wantList().length;
+  const b = (v, label) => `<button data-act="pSeg" data-v="${v}"${v === cur ? ' aria-current="page"' : ''}>${label}</button>`;
+  return `<nav class="segbar ctnav pseg" aria-label="Paints">${b('shelf', 'My shelf')}${b('hl', 'Highlights')}${b('shop', `Shopping${n ? ` <span class="num">${n}</span>` : ''}`)}</nav>`;
 }
-
 /* ===========================================================================
    Recipes
    =========================================================================== */
@@ -11870,11 +12045,64 @@ function screenRecipes(){
   h += `<div class="rcards">`;
   shownR.forEach(r => {
     const used = data.links.filter(l => l.recipeId === r.id).length;
+    const lw = recLinkWords(r);
     h += `<button class="rcard" data-openrecipe="${esc(r.id)}">${recipeStrip(r, 'rstrip')}
       <span class="rin"><b class="user-text">${esc(r.title)}</b>
-      <span class="small muted">${r.category ? `<span class="user-text">${esc(cap(r.category))}</span> &middot; ` : ''}${arr(r.steps).length} step${arr(r.steps).length===1?'':'s'}${used?` &middot; on ${used} unit${used>1?'s':''}`:''}</span></span></button>`;
+      <span class="small muted">${r.category ? `<span class="user-text">${esc(cap(r.category))}</span> &middot; ` : ''}${arr(r.steps).length} step${arr(r.steps).length===1?'':'s'}${used && !lw?` &middot; on ${used} unit${used>1?'s':''}`:''}</span>${lw ? `<span class="small rclink">${FLAG_SVG}<span class="user-text">${esc(lw)}</span></span>` : ''}</span></button>`;
   });
   return h + `</div>`;
+}
+
+/* v067: what a recipe is linked to: armies (chosen, or the army of a linked unit) and units */
+function recLinks(r){
+  const ms = data.links.filter(l => l.recipeId === r.id).map(l => data.minis.find(m => m.id === l.miniId)).filter(Boolean);
+  /* until armies are chosen by hand, a linked unit's army counts */
+  const fids = [...new Set((Array.isArray(r.armies) ? r.armies : ms.map(m => m.fac)).filter(Boolean))];
+  return { ms, facs: fids.map(id => arr(data.factions).find(f => f.id === id)).filter(Boolean) };
+}
+function recLinkWords(r){
+  const L = recLinks(r); if (!L.facs.length && !L.ms.length) return '';
+  const a = L.facs.map(f => f.name).join(', ');
+  const u = L.ms.length ? `${L.ms.length} unit${L.ms.length === 1 ? '' : 's'}` : '';
+  return [a, u].filter(Boolean).join(' \u00b7 ');
+}
+function dlgRecipeLink(){
+  const r = data.recipes.find(x => x.id === state.openRecipe); if (!r) return;
+  const live = liveMinis(), facs = arr(data.factions).filter(f => live.some(m => m.fac === f.id));
+  const ms = live.slice().sort((a, b) => (facName(a.fac) || '').localeCompare(facName(b.fac) || '') || a.name.localeCompare(b.name));
+  const on = new Set(data.links.filter(l => l.recipeId === r.id).map(l => l.miniId));
+  const curF = new Set(recLinks(r).facs.map(f => f.id));
+  if (!facs.length && !ms.length){ openDialog('Link this recipe', `<p style="margin-top:0">Add some models to your collection first, then link the recipe to their army or units.</p>`, null, null, 'Close'); return; }
+  openDialog('Link this recipe',
+    `${facs.length ? `<p class="fsec">Armies</p><div class="linkgrid">${facs.map(f => `<label class="checkrow"><input type="checkbox" data-lfac="${esc(f.id)}"${curF.has(f.id) ? ' checked' : ''}><span class="ctext user-text">${esc(f.name)}</span></label>`).join('')}</div>` : ''}
+     <p class="fsec">Units</p><input type="search" id="lnkQ" placeholder="Search units" autocomplete="off" aria-label="Search units">
+     <div class="linkgrid" id="lnkUnits">${ms.map(m => `<label class="checkrow" data-nm="${esc(m.name.toLowerCase())}" data-fac="${esc(m.fac || '')}"><input type="checkbox" data-lunit="${esc(m.id)}"${on.has(m.id) ? ' checked' : ''}><span class="ctext"><span class="user-text">${esc(m.name)}</span> <span class="muted small">${esc(facName(m.fac) || '')}</span></span></label>`).join('')}</div>
+     <p class="small muted">A linked unit shows this recipe on its page.</p>`,
+    () => {
+      r.armies = $$('[data-lfac]').filter(x => x.checked).map(x => x.dataset.lfac);
+      const want = new Set($$('[data-lunit]').filter(x => x.checked).map(x => x.dataset.lunit));
+      data.links = data.links.filter(l => l.recipeId !== r.id || want.has(l.miniId));
+      want.forEach(id => { if (!data.links.some(l => l.recipeId === r.id && l.miniId === id)) data.links.push({ id:uid(), miniId:id, recipeId:r.id, area:'', notes:'' }); });
+      const sc = r.scheme && typeof schemeOf === 'function' ? schemeOf(r.scheme) : null;
+      if (sc){ sc.armies = r.armies.slice(); sc.units = [...want]; }
+      r.updated = Date.now(); save(); render(); toast('Links saved.'); announce('Links saved.');
+    }, 'Save');
+  $('#lnkQ').addEventListener('input', e => { const v = e.target.value.trim().toLowerCase(); $$('#lnkUnits [data-nm]').forEach(l => { l.hidden = !!v && l.dataset.nm.indexOf(v) === -1; }); });
+}
+
+/* v067: the paint page uses the same shade-base-highlight as the studio, so a
+   paint gets one answer wherever you ask */
+function paintHlHtml(p){
+  if (!validHex(p.hex)) return `<p class="small muted">There is no maker&rsquo;s colour for this paint, so nothing can be matched.</p>`;
+  let S = null; try { S = hlRow({ mine:p }, true); } catch (e) {}
+  if (!S) return `<p class="small muted">Nothing found.</p>`;
+  const tile = (x, i) => { if (x.none) return `<span class="sthl none"><i></i><small>${i === 2 ? 'Already the lightest' : 'Use a dark wash'}</small></span>`;
+    const inner = `<i style="background:${esc(x.show || choiceHex(x))}"></i><small class="user-text">${esc(choiceName(x))}${x.wash ? ' wash' : ''}</small><small class="sthlown">${i === 1 ? 'This paint' : x.own ? 'You have it' : 'To buy'}</small>`;
+    return x.mine && i !== 1 ? `<button class="sthl${x.buy ? ' buy' : ''}" data-openpaint="${esc(x.mine.id)}">${inner}</button>` : `<span class="sthl${i === 1 ? ' base' : ''}${x.buy ? ' buy' : ''}">${inner}</span>`; };
+  const buys = S.steps.filter((x, i) => i !== 1 && !x.none && x.buy && !(x.mine && x.mine.stock === 'Wishlist') && !onWishlist({ id:x.mine ? x.mine.id : '', name:choiceName(x), brand:x.mine ? x.mine.brand : x.row.b }));
+  return `<div class="sthlhead" aria-hidden="true"><small>Shade</small><small>Base</small><small>Highlight</small></div><div class="sthlrow pdhl">${S.steps.map(tile).join('')}</div>
+    ${buys.length ? `<button class="btn ghost sm" data-act="pdHlBuy" style="margin-top:.5rem">Add ${buys.length === 1 ? 'it' : 'both'} to my shopping list</button>` : ''}
+    <p class="small muted" style="margin:.5rem 0 0">Your paints first, then the same brand. Washes are shown as they look over this paint. Estimates.</p>`;
 }
 
 /* --- which of a recipe's paints you own (v024) ----------------------------
@@ -11902,7 +12130,7 @@ function recipePaints(r){
   }));
   return out;
 }
-const onWishlist = (x) => arr(data.wishlist).some(w => w && w.kind === 'paint' &&
+const onWishlist = (x) => (x.id && paintOf(x.id) && paintOf(x.id).stock === 'Wishlist') || arr(data.wishlist).some(w => w && w.kind === 'paint' &&
   (w.paintId === x.id || (w.name === x.name && (w.brand || '') === (x.brand || ''))));
 /* Missing paints that the one tap would add. Out paints are already on the
    Need tab of Shopping, so they are never added a second time. */
@@ -12080,6 +12308,26 @@ function refInput(){
     }); }
   return el;
 }
+/* v067: each step can carry your own photos of it and reference pictures */
+function stepPicsHtml(s, i){
+  const tile = (f, pid, k) => `<button class="rspic${f === 'refs' ? ' ref' : ''}" data-steppic="${esc(s.id)}" data-f="${f}" data-k="${k}" aria-label="${f === 'refs' ? 'Reference picture' : 'Your photo'} ${k + 1} for step ${i + 1}, open full screen">${photoImg(pid, 'ph')}${f === 'refs' ? '<small>Ref</small>' : ''}</button>`;
+  return `<span class="rspics">${arr(s.photos).map((pid, k) => tile('photos', pid, k)).join('')}${arr(s.refs).map((pid, k) => tile('refs', pid, k)).join('')}
+    <button class="rspadd" data-steppicadd="${esc(s.id)}" data-f="photos" aria-label="Add your photo of step ${i + 1}">${CAM_SVG}<span>Your photo</span></button><button class="rspadd" data-steppicadd="${esc(s.id)}" data-f="refs" aria-label="Add a reference picture for step ${i + 1}">${PLUS_SVG}<span>Reference</span></button></span>`;
+}
+function stepPicInput(){
+  let el = document.getElementById('stepPicIn');
+  if (!el){ el = document.createElement('input'); el.type = 'file'; el.accept = 'image/*'; el.multiple = true; el.hidden = true; el.id = 'stepPicIn'; document.body.append(el);
+    el.addEventListener('change', async () => {
+      const r = data.recipes.find(x => x.id === state.openRecipe), s = r && arr(r.steps).find(x => x.id === el.dataset.sid), f = el.dataset.f === 'refs' ? 'refs' : 'photos';
+      const files = Array.from(el.files || []); el.value = '';
+      if (!s || !files.length) return;
+      let added = 0;
+      for (const file of files){ try { const blob = await deadline(Promise.resolve(file.slice()), 45000, 'Reading ' + file.name); const id = uid(); await putPhoto(id, blob); s[f] = arr(s[f]).concat(id); added++; } catch (e) { console.warn('steppic', e.message); } }
+      r.updated = Date.now(); save(); const y = window.scrollY; render(); window.scrollTo(0, y);
+      const m = added ? `${added === 1 ? (f === 'refs' ? 'Reference picture' : 'Photo') : added + (f === 'refs' ? ' reference pictures' : ' photos')} added to ${stepTitle(s)}.` : 'That image could not be read.'; toast(m); announce(m);
+    }); }
+  return el;
+}
 function screenRecipeDetail(){
   const r = data.recipes.find(x => x.id === state.openRecipe);
   if (!r) return `<div class="empty"><p>That recipe no longer exists.</p>
@@ -12098,13 +12346,15 @@ function screenRecipeDetail(){
     ${r.category && !painting ? `<span class="rcat user-text">${esc(r.category)}</span>` : ''}</div>
     ${editing ? '' : `<button class="btn ghost sm" data-act="editRecipe">Edit</button>`}</div>`;
   if (!editing && !painting && r.desc) h += `<p class="user-text rdesc">${esc(r.desc)}</p>`;
-  /* v064: the recipe and the colour studio are linked both ways */
-  if (!editing && !painting){ const sc = r.scheme && typeof schemeOf === 'function' ? schemeOf(r.scheme) : null;
+  /* v067: what it is linked to, and the miniature it can be seen on */
+  if (!editing && !painting){ const L = recLinks(r);
+    h += `<div class="rlinks"><p class="rlinkh small"><b>Linked to</b></p><div class="chips">${L.facs.map(f => `<span class="chip static">${pennantImg(pennantFor('fac', f.id), 'cpen')}<span class="user-text">${esc(f.name)}</span></span>`).join('')}${L.ms.map(m => `<button class="chip" data-open="${esc(m.id)}"><span class="user-text">${esc(m.name)}</span></button>`).join('')}<button class="chip addchip" data-act="recLink">${L.facs.length || L.ms.length ? 'Change' : '+ Link to an army or unit'}</button></div></div>`;
+    const sc = r.scheme && typeof schemeOf === 'function' ? schemeOf(r.scheme) : null;
     h += sc ? `<div class="rscheme">${sc.pic ? photoImg(sc.pic, 'rschpic') : `<span class="rschstrip" aria-hidden="true">${sc.roles.map(x => `<i style="background:${esc(choiceHex(roleChoice(sc, x)) || x.hex)}"></i>`).join('')}</span>`}
-        <span class="grow"><small>Colour scheme</small><b class="user-text">${esc(sc.name)}</b>${sc.studio ? `<small>${esc(stModel(sc).name)}</small>` : ''}</span>
+        <span class="grow"><small>On a miniature</small><b class="user-text">${esc(sc.name)}</b>${sc.studio ? `<small>${esc(stModel(sc).name)}</small>` : ''}</span>
         <button class="btn ghost sm" data-sch="open" data-id="${esc(sc.id)}">Open in Studio</button></div>
-        ${r.stale ? `<p class="small rstale">You have changed this recipe since the scheme made it, so saving the scheme left your steps alone. <button class="linkbtn" data-act="recFromScheme">Replace the steps from the scheme</button></p>` : ''}`
-      : `<div class="rscheme none"><span class="grow small muted">See these paints on a miniature in the colour studio.</span><button class="btn ghost sm" data-act="recTryOn">Try on a miniature</button></div>`; }
+        ${r.stale ? `<p class="small rstale">You have changed these steps since the Studio made them, so saving there left your steps alone. <button class="linkbtn" data-act="recFromScheme">Replace the steps from the Studio</button></p>` : ''}`
+      : `<div class="rscheme none"><span class="grow small muted">See these colours on a miniature in the Studio. Shared and imported recipes work too.</span><button class="btn ghost sm" data-act="recTryOn">See it on a miniature</button></div>`; }
   if (!editing) h += `<div class="rmode" role="tablist" aria-label="How to view this recipe">
       <button role="tab" data-rmode="overview" aria-selected="${!painting}">Overview</button><button role="tab" data-rmode="painting" aria-selected="${painting}">Painting</button></div>`;
   if (!editing && needs.length){ const av = availWords(r);
@@ -12160,6 +12410,7 @@ function screenRecipeDetail(){
         ${names.length && (s.technique || names.length > 1) ?`<span class="rps">${names.join('<span class="rplus" aria-hidden="true">+</span>')}</span>`:''}
         ${instr ? `<span class="rins user-text">${esc(instr)}</span>` : ''}
         ${s.mix || dry ? `<span class="rmeta">${s.mix ? `<span class="user-text"><b>Mix</b> ${esc(s.mix)}</span>` : ''}${dry ? `<span class="user-text"><b>Dry</b> ${esc(dry)}</span>` : ''}</span>` : ''}
+        ${stepPicsHtml(s, i)}
         ${!editing && gone.length ? (painting
           ? gone.map(o => `<span class="rgone sm"><span>${esc(gonePaintName(o.x))}: no longer in your paints.</span>${relink(o)}</span>`).join('')
           : gone.map(o => `<span class="rgone"><span>${o.x.name ? `<span class="user-text">${esc(o.x.name)}</span> is no longer in your paints. The recipe keeps its name so you know what to use.` : 'A paint here is no longer in your paints, and its name was not kept.'}</span>${relink(o)}</span>`).join('')) : ''}</span>
@@ -12175,7 +12426,7 @@ function screenRecipeDetail(){
     ${doneN ? `<button class="linkbtn" data-act="rtickClear">Clear ticks</button>` : ''}</p>`;
   h += `</div>`;
 
-  if (!painting) h += recipeHaveCard(r);
+  /* v067: the paints list near the top already marks what is missing; no second list here */
 
   if (editing){
     h += `<div class="card"><h3>Details</h3>
@@ -12193,8 +12444,8 @@ function screenRecipeDetail(){
 /* ===========================================================================
    Render
    =========================================================================== */
-const TITLES = { inbox:'Photos to sort', home:'MiniManager', coll:'Collection', paints:'Paints', colour:'Colour', recipes:'Recipes', session:'Painting session',
-  shop:'Shopping', import:'Paste a list', account:'Account', privacy:'Privacy', pick:'Pick for me' };
+const TITLES = { inbox:'Photos to sort', home:'MiniManager', coll:'Collection', paints:'Paints', colour:'Studio', recipes:'Recipes', session:'Painting session',
+  shop:'Paints', import:'Paste a list', account:'Account', privacy:'Privacy', pick:'Pick for me' };
 /* v061: typed details are never thrown away. What a form held when it opened
    is remembered; leaving the page with anything different saves it first. */
 const MINI_F = ['eName','eTotal','eWf','eSys','eFac','eSysOwn','eFacOwn','eTags','eNotes','eBase','eUnit','ePrice','eAcq'], REC_F = ['rTitle','rCat','rDesc'];
@@ -12274,7 +12525,7 @@ function render(){
   $('#screenTitle').textContent = state.wel ? 'MiniManager' : state.tab === 'coll' ? collTitle() : (TITLES[state.tab] || 'MiniManager');
   if (bar) bar.classList.toggle('guildhome', state.tab === 'home');
   $$('#tabs button').forEach(b => {
-    if (b.dataset.tab === state.tab) b.setAttribute('aria-current','page');
+    if (b.dataset.tab === (state.tab === 'shop' ? 'paints' : state.tab)) b.setAttribute('aria-current','page');
     else b.removeAttribute('aria-current');
   });
   const slot = document.getElementById('syncslot');
@@ -12319,13 +12570,19 @@ function needList(){
   return { paints, supplies, total: paints.length + supplies.length };
 }
 
+/* v067: one Want list. Paints marked "Wishlist" anywhere in the app (the paint page,
+   a scheme's missing paints, a pasted list) show here too, beside things added by name. */
+function wantList(){
+  const w = arr(data.wishlist), ids = new Set(w.map(x => x.paintId).filter(Boolean));
+  return w.concat(arr(data.paints).filter(p => p.stock === 'Wishlist' && !ids.has(p.id)).map(p => ({ id:p.id, name:p.name, kind:'paint', brand:p.brand || '', hex:p.hex || '', note:[p.brand, p.range].filter(Boolean).join(' · '), paintId:p.id, _paint:true })));
+}
 function screenShop(){
   const need = needList();
-  const want = arr(data.wishlist);
+  const want = wantList();
   const tab = state.shopTab;
 
   const fromR = state.shopFrom && data.recipes.find(r => r.id === state.shopFrom);
-  let h = `${fromR ? `<button class="backlink" data-act="shopBack"><span aria-hidden="true">&lsaquo;</span> <span class="user-text">${esc(fromR.title)}</span></button>` : backBtn('home','Workbench')}
+  let h = `${fromR ? `<button class="backlink" data-act="shopBack"><span aria-hidden="true">&lsaquo;</span> <span class="user-text">${esc(fromR.title)}</span></button>` : ''}${paintsSeg('shop')}
     <h2 class="sr-only">Shopping</h2>
     <div class="tabs2" role="tablist" style="margin-top:.5rem">
       <button role="tab" data-shop="need" aria-selected="${tab==='need'}">Need
@@ -12379,7 +12636,7 @@ function screenShop(){
 }
 /* v061: a wanted paint that was bought goes onto the shelf. */
 function boughtWish(){
-  const want = arr(data.wishlist), got = want.filter(w => state.ticked && state.ticked[w.id]);
+  const want = wantList(), got = want.filter(w => state.ticked && state.ticked[w.id]);
   if (!got.length) return;
   const now = Date.now(), cat = catalogue().rows; let paints = 0, other = 0;
   got.forEach(w => {
@@ -12397,7 +12654,7 @@ function boughtWish(){
     } else other++;
     delete state.ticked[w.id];
   });
-  data.wishlist = want.filter(w => got.indexOf(w) === -1);
+  data.wishlist = arr(data.wishlist).filter(w => got.indexOf(w) === -1);
   save(); render();
   const bits = [];
   if (paints) bits.push(`${paints} paint${paints === 1 ? '' : 's'} added to your shelf`);
@@ -14118,7 +14375,15 @@ document.addEventListener('click', e => {
     if (a === 'quickSwatch'){ if (!data.paints.length){ toast('Add a paint first.'); return; } return startSwatch(null); }
     if (a === 'openPlanner'){ if ($('#dlg').open) $('#dlg').close(); if (act.dataset.id) state.planner.paintId = act.dataset.id; state.tab='colour'; state.sub='planner'; state.openPaint=null; render(); window.scrollTo(0,0); return; }
     if (a === 'openStudio'){ if ($('#dlg').open) $('#dlg').close(); state.tab='colour'; state.sub='scheme'; state.openPaint=null; render(); window.scrollTo(0,0); return; }
-    if (a === 'openHighlights'){ if ($('#dlg').open) $('#dlg').close(); state.tab='colour'; state.sub='hl'; state.openPaint=null; render(); window.scrollTo(0,0); return; }
+    if (a === 'openHighlights'){ if ($('#dlg').open) $('#dlg').close(); state.tab='paints'; state.sub=null; state.pSeg='hl'; state.openPaint=null; render(); window.scrollTo(0,0); return; }
+    if (a === 'pSeg'){ const v = act.dataset.v; state.openPaint = null; state.sub = null;
+      if (v === 'shop'){ state.tab = 'shop'; state.shopFrom = null; } else { state.tab = 'paints'; state.pSeg = v; }
+      render(); window.scrollTo(0, 0); const b = document.querySelector(`[data-act="pSeg"][data-v="${v}"]`); if (b) b.focus({ preventScroll:true }); return; }
+    if (a === 'recLink') return dlgRecipeLink();
+    if (a === 'pView'){ state.pView = act.dataset.v; render(); const b = document.querySelector(`[data-act="pView"][data-v="${act.dataset.v}"]`); if (b) b.focus(); return; }
+    if (a === 'pdHlBuy'){ const p = paintOf(state.openPaint); if (!p) return; const S = hlRow({ mine:p }, true);
+      const buys = S.steps.filter((x, i) => i !== 1 && !x.none && x.buy && !(x.mine && x.mine.stock === 'Wishlist') && !onWishlist({ id:x.mine ? x.mine.id : '', name:choiceName(x), brand:x.mine ? x.mine.brand : x.row.b }));
+      stAddToShop(buys, 'to go with ' + p.name); save(); render(); const m = `${buys.length} paint${buys.length === 1 ? '' : 's'} added to your shopping list.`; toast(m); announce(m); return; }
     if (a === 'hlShop'){ dlgHlShop(); return; }
     if (a === 'catOwn'){ const p = catToPaint(+act.dataset.ci, 'Have it'); if (p){ state.pq = ''; save(); render(); toast(p.name + ' added to your paints.'); announce(p.name + ' added to your paints.'); } return; }
     if (a === 'catWish'){ const r = catalogue().rows[+act.dataset.ci]; if (!r) return; if (!Array.isArray(data.wishlist)) data.wishlist = [];
@@ -14131,8 +14396,8 @@ document.addEventListener('click', e => {
     if (a === 'hlMore'){ const y = window.scrollY; state.hlN = (state.hlN || HL_PAGE) + HL_PAGE; render(); window.scrollTo(0, y); const c = document.querySelectorAll('.hlrow')[state.hlN - HL_PAGE]; if (c){ c.setAttribute('tabindex', '-1'); c.focus({ preventScroll:true }); } return; }
     if (a === 'hlView' || a === 'hlFam'){ state.hlN = 0; if (a === 'hlView') state.hlv = act.dataset.v; else state.hlFam = act.dataset.v; render(); const b = document.querySelector(`[data-act="${a}"][data-v="${act.dataset.v}"]`); if (b) b.focus(); return; }
     if (a === 'hlFilter'){ state.hlN = 0; state.hlf = act.dataset.v; render(); const b = document.querySelector(`[data-act="hlFilter"][data-v="${act.dataset.v}"]`); if (b) b.focus(); return; }
-    if (a === 'openShelfColours'){ if ($('#dlg').open) $('#dlg').close(); state.tab='colour'; state.sub='shelf'; state.openPaint=null; render(); window.scrollTo(0,0); return; }
-    if (a === 'openCompare'){ if ($('#dlg').open) $('#dlg').close(); state.tab='colour'; state.sub='swatchCompare'; state.openPaint=null; render(); window.scrollTo(0,0); return; }
+    if (a === 'openShelfColours'){ if ($('#dlg').open) $('#dlg').close(); state.tab='paints'; state.sub=null; state.pSeg='shelf'; state.pView='colour'; state.openPaint=null; render(); window.scrollTo(0,0); return; }
+    if (a === 'openCompare'){ if ($('#dlg').open) $('#dlg').close(); state.tab='paints'; state.sub='swatchCompare'; state.openPaint=null; render(); window.scrollTo(0,0); return; }
     if (a === 'clearq')     { state.q=''; render(); return; }
     if (a === 'clearpq')    { state.pq=''; render(); return; }
     if (a === 'clearFilters'){ state.q=''; state.fSys=''; state.fFac=''; state.fStage=''; state.sort=''; render(); return; }
@@ -14199,6 +14464,12 @@ document.addEventListener('click', e => {
     render(); return;
   }
   const dw = t.closest('[data-delwish]');
+  if (dw && !arr(data.wishlist).some(x => x.id === dw.dataset.delwish)){
+    /* a paint record marked Wishlist: dropped from the list; kept only if a recipe or scheme uses it */
+    const p = paintOf(dw.dataset.delwish); if (!p) return;
+    const used = data.recipes.some(r => arr(r.steps).some(x => arr(x.paintIds).includes(p.id))) || (typeof schemesList === 'function' && schemesList().some(sc => arr(sc.roles).some(r => r.pick && r.pick.id === p.id)));
+    if (used){ toast(p.name + ' is in a recipe or scheme, so it stays on the list. Mark it Have it on its page when you buy it.'); return; }
+    data.paints = data.paints.filter(x => x.id !== p.id); save(); render(); toast(p.name + ' removed.'); return; }
   if (dw){
     const w = arr(data.wishlist).find(x => x.id === dw.dataset.delwish);
     data.wishlist = arr(data.wishlist).filter(x => x.id !== dw.dataset.delwish);
