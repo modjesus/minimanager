@@ -2420,6 +2420,16 @@ button.stchip{border-color:var(--gold-line);background:none;font:inherit;font-si
 .stphhint{margin:.25rem 0 0;color:var(--text-2);font-size:.75rem}
 .stphbtns{display:flex;gap:.375rem;margin-bottom:.375rem}.stphbtns .btn{flex:1}
 .stzones.picking .stzone{border-style:dashed;border-color:var(--gold)}
+/* v064: recipes and the studio linked */
+.strecline{display:flex;align-items:center;gap:.625rem;width:100%;margin-top:.5rem;padding:.5rem .75rem;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text);font:inherit;text-align:left;cursor:pointer;min-height:var(--tap)}
+.strecline svg{width:1.25rem;height:1.25rem;color:var(--gold-ink)}.strecline .grow{display:grid;min-width:0}.strecline small{color:var(--text-2);font-size:.75rem}.strecline b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rscheme{display:flex;align-items:center;gap:.75rem;margin:.25rem 0 .75rem;padding:.5rem .625rem;border:1px solid var(--gold-line);border-radius:12px;background:var(--surface)}
+.rscheme .grow{display:grid;min-width:0}.rscheme small{font-size:.75rem;color:var(--text-2)}.rscheme b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rscheme.none{border-style:dashed}.rscheme .btn{flex:none;white-space:nowrap}
+.rschpic{width:3rem;height:3rem;border-radius:8px;object-fit:cover;flex:none;background:#0a1c2a}
+.rschstrip{display:flex;width:3rem;height:3rem;border-radius:8px;overflow:hidden;flex:none}.rschstrip i{flex:1}
+.rstale{margin:-.25rem 0 .75rem;color:var(--warning)}
+.rscheme{flex-wrap:wrap}.rscheme .grow{flex:1 1 8rem}.bigtext .rscheme .btn{white-space:normal;flex:1 1 100%}
 </style>
 <script type="importmap">
 { "imports": {
@@ -4662,7 +4672,7 @@ let syncState = { on:false, user:null, status:'off', pending:0, error:null,
      first, so a device signing in for the first time can read "ok" with a
      mostly empty local copy while the rest is still arriving. Anything that
      asks "is this collection empty?" has to wait for this instead. */
-  firstPullDone:false };
+  firstPullDone:false, settingsPulled:false };
 let pulledOnce = new Set();
 let remoteSeen = {};        /* ids the account has sent, per collection, this session */
 let remoteFp = {};          /* what the account holds for each of them */
@@ -4887,7 +4897,7 @@ function startSync(user){
   stopSync();
   syncState.on = true;
   syncState.user = user;
-  syncState.firstPullDone = false;
+  syncState.firstPullDone = false; syncState.settingsPulled = false;
   syncState.baselineReady = false;
   pulledOnce = new Set();
   remoteSeen = {}; remoteFp = {}; SYNC_COLLECTIONS.forEach(c => { remoteSeen[c] = new Set(); remoteFp[c] = {}; });
@@ -4933,8 +4943,11 @@ function startSync(user){
 
   unsubscribes.push(F.onSnapshot(F.doc(db, `users/${uid}/settings/app`), d => {
     const v = d.data();
+    if (!syncState.settingsPulled){ syncState.settingsPulled = true; setTimeout(() => { if (typeof render === 'function') render(); }, 0); }
     if (v){
       const { updated, ...rest } = v;
+      /* v064: "the quick start has been offered" is never lost to an older copy */
+      ['welOffered', 'setupDone'].forEach(k => { if (data.settings && data.settings[k] && !rest[k]) rest[k] = data.settings[k]; });
       if (JSON.stringify(rest) !== JSON.stringify(data.settings)){
         data.settings = rest; saveLocalOnly();
         if (lastPushed){ lastPushed._settings = snapshotOf(data)._settings; saveBaseline(); }
@@ -6607,7 +6620,17 @@ async function photoPalette(file){
   const count = cent.map((_, j) => lab.filter(v => v === j).length);
   const colours = cent.map((q, j) => ({ hex:labHex(q), n:count[j] })).filter(o => o.n).sort((a, b) => b.n - a.n).map(o => o.hex)
     .filter((h, i, a) => a.findIndex(o => deltaE(hexLab(o), hexLab(h)) < 3) === i);
-  return { url, colours, canvas:c };
+  /* v064: a colour that fills the edges of the photo but little of its middle is
+     the backdrop, not the model, so it is left out */
+  const edge = [], mid = [];
+  for (let y = 0; y < c.height; y++) for (let x2 = 0; x2 < c.width; x2++){ const i = (y * c.width + x2) * 4, l = () => rgbLab(d[i], d[i + 1], d[i + 2]);
+    if (x2 <= 3 || x2 >= c.width - 4 || y <= 3 || y >= c.height - 4) edge.push(l());
+    else if (Math.abs(x2 / c.width - .5) < .2 && Math.abs(y / c.height - .5) < .2) mid.push(l()); }
+  const share = (set, h) => { if (!set.length) return 0; const L = hexLab(h); return set.filter(e => (e[0]-L[0])**2 + (e[1]-L[1])**2 + (e[2]-L[2])**2 < 144).length / set.length; };
+  const back = h => { const e = share(edge, h); return e > .2 && share(mid, h) < e * .4; };
+  let model = colours.filter(h => !back(h));
+  if (model.length < 3) model = model.concat(colours.filter(back)).slice(0, Math.min(3, colours.length));
+  return { url, colours:model, canvas:c };
 }
 /* Lab back to a hex colour (D65). */
 function labHex(L){
@@ -6695,20 +6718,8 @@ function dlgSchemeRecipe(){
      <p class="small muted">Paints you do not have go on your shopping list as Wishlist.</p>`,
     () => {
       const t = $('#srName').value.trim(); if (!t){ fieldErr('srName', NAME_REQUIRED); return false; }
-      const idsOf = c => c.mine ? [c.mine.id] : pickedIds({ items:[{ ci:c.ci }] });
-      const step = (c, tech, note) => { const ids = idsOf(c); return { id:uid(), technique:tech, paintIds:ids, paintNames:namesFor(ids), mix:'', dry:'', notes:note }; };
-      const hl = !!($('#srHl') && $('#srHl').checked), steps = [];
-      /* v063: base, then shade, then highlight, part by part; parts sharing a paint share a base step */
-      const done = new Set();
-      sc.roles.forEach(r => { const c = roleChoice(sc, r); if (!c) return;
-        if (!hl){ steps.push(step(c, '', r.role)); return; }
-        const S = hlRow(c, true), base = S.steps[1], k = hlKey(base);
-        if (done.has(k)){ const st = steps.find(x => x.baseKey === k); if (st) st.notes += ', ' + r.role; return; }
-        done.add(k); const b = step(c, 'Basecoat', r.role); b.baseKey = k; steps.push(b);
-        if (!S.steps[0].none) steps.push(step(S.steps[0], S.steps[0].wash ? 'Wash' : 'Shade', r.role + (S.steps[0].wash ? ': recesses' : ': deepest areas')));
-        if (!S.steps[2].none) steps.push(step(S.steps[2], 'Highlight', r.role + ': raised edges')); });
-      steps.forEach(x => delete x.baseKey);
-      const rec = { id:uid(), title:t, category:'', tags:'', desc:`Made from the colour scheme "${sc.name}".`, steps, visibility:'private', created:Date.now(), scheme:sc.id, photos: sc.pic ? [sc.pic] : [] };
+      const steps = stRecipeSteps(sc, !!($('#srHl') && $('#srHl').checked));
+      const rec = { id:uid(), title:t, category:'', tags:'', desc:`Made from the colour scheme "${sc.name}".`, steps, visibility:'private', created:Date.now(), scheme:sc.id, photos: sc.pic ? [sc.pic] : [], stepsSig:stStepsSig(steps) };
       data.recipes.push(rec);
       if ($('#srLink') && $('#srLink').checked) us.forEach(m => { if (!data.links.some(l => l.miniId === m.id && l.recipeId === rec.id)) data.links.push({ miniId:m.id, recipeId:rec.id, area:'' }); });
       save(); state.tab = 'recipes'; state.openRecipe = rec.id; state.sub = null; state.recipeMode = 'overview'; render(); window.scrollTo(0, 0);
@@ -7414,6 +7425,7 @@ function screenStudio(sc){
     <div class="stzones${sc.roles.length > 8 ? ' nine' : ''}${P && P.sel != null ? ' picking' : ''}">${sc.roles.map((r, i) => studioSwatch(sc, r, i)).join('')}</div>
     <button class="btn ghost stsave" data-st="save"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/></svg> Save scheme</button>
     ${sc.saved ? `<p class="small muted stsaved">Saved ${esc(fmtDay(localISO(new Date(sc.saved))))}${sc.pic ? ' with a picture of the painted miniature' : ''}.</p>` : ''}
+    ${(() => { const R = stRecipeOf(sc); return R ? `<button class="strecline" data-openrecipe="${esc(R.id)}"><span>${BOOK_SVG}</span><span class="grow"><small>Recipe</small><b class="user-text">${esc(R.title)}</b></span><span class="small">${arr(R.steps).length} steps &rsaquo;</span></button>` : '<p class="small muted stsaved">Saving also makes a recipe with shade and highlight steps.</p>'; })()}
     <p class="small muted stnote">One fixed view. Screen colours are estimates from makers&rsquo; published colours, not real paint.</p></div>`;
   /* the extras, folded */
   const hlRows = stHlRows(sc), hlBuy = stHlBuys(sc, hlRows);
@@ -7443,9 +7455,11 @@ function screenStudio(sc){
    arrangement gives every unlocked part a real paint. */
 function stFromPhoto(sc, cols, alt){
   const info = cols.map(h => { const [L, A, B] = hexLab(h), C = Math.hypot(A, B), hue = (Math.atan2(B, A) * 180 / Math.PI + 360) % 360; return { h, L, C, hue }; });
-  const chroma = info.filter(x => x.C >= 14 && x.L > 18), brown = info.filter(x => x.C >= 6 && x.C < 40 && x.hue > 35 && x.hue < 95 && x.L < 55), darks = info.filter(x => x.L < 28).sort((a, b) => a.L - b.L);
+  const chroma = info.filter(x => x.C >= 9 && x.L > 19), brown = info.filter(x => x.C >= 6 && x.C < 40 && x.hue > 35 && x.hue < 95 && x.L < 55), darks = info.filter(x => x.L < 28).sort((a, b) => a.L - b.L);
   const light = info.filter(x => x.L >= 70 && x.C < 18);
-  let pool = chroma.length ? chroma : info;
+  /* browns are kept for leather and ground when there are other colours to lead with */
+  const bright = chroma.filter(x => brown.indexOf(x) === -1);
+  let pool = bright.length >= 2 ? bright : chroma.length ? chroma : info;
   /* arrangement: rotate which colour leads and which supports */
   const n = Math.max(1, pool.length), k = (alt || 0) % (n * Math.max(1, n - 1));
   const iMain = Math.floor(k / Math.max(1, n - 1)) % n, rest = pool.filter((_, j) => j !== iMain);
@@ -7455,8 +7469,13 @@ function stFromPhoto(sc, cols, alt){
   if (darks[0]) { want.dark = darks[0].h; want.rim = darks[0].h; }
   if (light[0] && light[0] !== second) want.bone = light[0].h;
   stRemember(sc); delete sc.firstAuto;
+  /* the main and second colours never end up as the same paint */
+  const usedMain = {};
   sc.roles.forEach((r, i) => { if (arr(sc.locks).includes(r.mat)) return; const kd = stKindOf(sc, r), hx = want[kd]; if (!hx) return;
-    const c = stPhotoPaint(sc, hx, stKindFinish(kd)); if (c) stSetPaint(sc, i, c); else r.hex = hx; });
+    let c = stPhotoPaint(sc, hx, stKindFinish(kd));
+    if (kd === 'accent' && c && usedMain.k === stKey(c)){ const alt = matchColour(hx, { brand:stBrand(sc), finish:'' }).find(x => stKey(x) !== usedMain.k); if (alt) c = alt; }
+    if (kd === 'main' && c) usedMain.k = stKey(c);
+    if (c) stSetPaint(sc, i, c); else r.hex = hx; });
   sc.start = { hex:main.h, paintId:'' }; sc.stHarm = 'From your photo';
 }
 /* the paint for a photo colour: yours if it is close, otherwise the closest the brand makes */
@@ -7511,6 +7530,57 @@ function stAddToShop(items, why){
     data.wishlist.push({ id:uid(), name, kind:'paint', brand, note:[brand, why].filter(Boolean).join(' · '), price:null, paintId:x.mine ? x.mine.id : '', hex:choiceHex(x), created:Date.now(), updated:Date.now() }); });
 }
 
+/* --- v064: the scheme and its recipe ------------------------------------------------
+   Steps: base, shade, highlight, part by part; parts sharing a paint share a base step.
+   stepsSig remembers what the studio last wrote, so a recipe you have edited by hand
+   is never overwritten without asking. */
+function stRecipeSteps(sc, hl){
+  const idsOf = c => c.mine ? [c.mine.id] : pickedIds({ items:[{ ci:c.ci }] });
+  const step = (c, tech, note) => { const ids = idsOf(c); return { id:uid(), technique:tech, paintIds:ids, paintNames:namesFor(ids), mix:'', dry:'', notes:note }; };
+  const steps = [], done = new Set();
+  sc.roles.forEach(r => { const c = roleChoice(sc, r); if (!c) return;
+    if (!hl){ steps.push(step(c, '', r.role)); return; }
+    let S = null; try { S = hlRow(c, true); } catch (e) {}
+    const k = S ? hlKey(S.steps[1]) : r.mat;
+    if (done.has(k)){ const st = steps.find(x => x.baseKey === k); if (st) st.notes += ', ' + r.role; return; }
+    done.add(k); const b = step(c, 'Basecoat', r.role); b.baseKey = k; steps.push(b);
+    if (S && !S.steps[0].none) steps.push(step(S.steps[0], S.steps[0].wash ? 'Wash' : 'Shade', r.role + (S.steps[0].wash ? ': recesses' : ': deepest areas')));
+    if (S && !S.steps[2].none) steps.push(step(S.steps[2], 'Highlight', r.role + ': raised edges')); });
+  steps.forEach(x => delete x.baseKey);
+  return steps;
+}
+const stStepsSig = steps => JSON.stringify(arr(steps).map(x => [x.technique || '', arr(x.paintIds).join('+'), x.notes || '', x.mix || '', x.dry || '']));
+const stRecipeOf = sc => data.recipes.find(r => r.scheme === sc.id) || null;
+/* Saving a scheme makes its recipe, or brings it up to date */
+function stSyncRecipe(sc, force){
+  let rec = stRecipeOf(sc);
+  const steps = stRecipeSteps(sc, true);
+  if (!rec){
+    rec = { id:uid(), title:sc.name, category:'', tags:'', desc:`Made from the colour scheme "${sc.name}".`, steps, visibility:'private', created:Date.now(), updated:Date.now(), scheme:sc.id, photos:[], stepsSig:stStepsSig(steps) };
+    data.recipes.push(rec);
+    arr(sc.units).forEach(id => { if (!data.links.some(l => l.miniId === id && l.recipeId === rec.id)) data.links.push({ miniId:id, recipeId:rec.id, area:'' }); });
+    return { rec, made:true };
+  }
+  const untouched = rec.stepsSig && rec.stepsSig === stStepsSig(rec.steps);
+  if (untouched || force){ rec.steps = steps; rec.stepsSig = stStepsSig(steps); rec.updated = Date.now(); rec.stale = false; return { rec, updated:true }; }
+  rec.stale = true; rec.updated = Date.now();
+  return { rec, kept:true };
+}
+/* A recipe's paints, tried on a miniature: base coats first, matched to parts by name, the rest in order */
+function stSchemeFromRecipe(r){
+  const sc = newScheme('recipe'); sc.name = r.title; sc.fromRecipe = r.id; delete sc.firstAuto;
+  if (!r.scheme || !schemeOf(r.scheme)) r.scheme = sc.id;
+  const steps = arr(r.steps).filter(x => !/wash|shade|highlight|glaze|edge|dry ?brush/i.test(x.technique || ''));
+  const items = []; steps.forEach(x => stepPaints(x).forEach(p => { if (p.paint && validHex(p.paint.hex)) items.push({ p:p.paint, note:(x.notes || '') + ' ' + (x.technique || '') }); }));
+  const used = new Set(), done = new Set();
+  sc.roles.forEach((role, i) => { const word = role.role.split(' ')[0];
+    const k = items.findIndex((it, j) => !used.has(j) && new RegExp('\\b' + word + '\\b', 'i').test(it.note)); if (k >= 0){ used.add(k); done.add(i); stSetPaint(sc, i, { mine:items[k].p }); } });
+  sc.roles.forEach((role, i) => { if (done.has(i)) return; const metal = stKindFinish(stKindOf(sc, role)) === 'metal';
+    const k = items.findIndex((it, j) => !used.has(j) && (finOf(it.p) === 'metal') === metal); if (k >= 0){ used.add(k); done.add(i); stSetPaint(sc, i, { mine:items[k].p }); } });
+  sc.stHarm = 'From the recipe ' + r.title;
+  return sc;
+}
+
 /* --- v063: the saved picture: the miniature in the scheme's paints ---------------- */
 async function stPicture(sc){
   const M = stModel(sc), D = await studioLoad(M);
@@ -7541,6 +7611,7 @@ function stPicPlaces(sc){
 }
 async function stSave(sc, name){
   sc.name = name; sc.saved = Date.now(); delete sc.firstAuto;
+  const R = stSyncRecipe(sc);
   const blob = await stPicture(sc).catch(() => null);
   const old = sc.pic, P = stPicPlaces(sc);
   if (blob){ const id = uid(); await putPhoto(id, blob); sc.pic = id;
@@ -7550,7 +7621,7 @@ async function stSave(sc, name){
     /* the old picture comes off anything it was put on */
     if (old){ data.recipes.forEach(r => { if (arr(r.photos).includes(old)) r.photos = r.photos.filter(x => x !== old); }); data.minis.forEach(m => { if (arr(m.photos).includes(old)) m.photos = m.photos.filter(x => x !== old); }); }
   }
-  return { pic:!!blob, recs:P.recs.length, units:P.units.length };
+  return { pic:!!blob, recs:P.recs.length, units:P.units.length, R };
 }
 function dlgSaveScheme(){
   const sc = schemeOf(state.schemeId); if (!sc) return;
@@ -7560,10 +7631,12 @@ function dlgSaveScheme(){
     <p class="fsec">The picture kept with it</p><div class="sspic"><canvas id="ssPic" width="240" height="240" role="img" aria-label="${esc(stModel(sc).name)} in this scheme's paints"></canvas></div>
     ${facs.length ? `<p class="fsec" id="ssForL">Use for <span class="opt">optional</span></p><div class="chips" role="group" aria-labelledby="ssForL">${facs.map(f => `<button class="chip" data-ssfac="${esc(f.id)}" aria-pressed="${arr(sc.armies).includes(f.id)}">${esc(f.name)}</button>`).join('')}</div>` : ''}
     ${us.length ? `<p class="small muted">Also on: ${us.map(m => `<span class="user-text">${esc(m.name)}</span>`).join(', ')}.</p>` : ''}
-    <p class="small muted">The picture also goes on the units it is used for${data.recipes.some(r => r.scheme === sc.id) ? ' and the recipe made from it' : ''}, as a reference.</p>`,
+    <p class="small muted">${stRecipeOf(sc) ? 'Its recipe is brought up to date' : 'A recipe is made from it, with shade and highlight steps'}. The picture goes on the recipe and on the units it is used for, as a reference.</p>`,
     () => { const n = $('#ssName').value.trim() || $('#ssName').placeholder;
       $$('#dlg [data-ssfac]').forEach(b => { const on = b.getAttribute('aria-pressed') === 'true', id = b.dataset.ssfac; sc.armies = arr(sc.armies).filter(x => x !== id).concat(on ? [id] : []); });
-      stSave(sc, n).then(r => { schSave(sc); const bits = [r.pic ? 'Saved with a picture' : 'Saved']; if (r.units) bits.push(`on ${r.units} unit${r.units === 1 ? '' : 's'}`); if (r.recs) bits.push(`and its recipe`);
+      stSave(sc, n).then(r => { schSave(sc); const bits = [r.pic ? 'Saved with a picture' : 'Saved'];
+        if (r.R && r.R.made) bits.push('and a recipe made'); else if (r.R && r.R.updated) bits.push('and its recipe updated'); else if (r.R && r.R.kept) bits.push('(your edited recipe was left as it is)');
+        if (r.units) bits.push(`on ${r.units} unit${r.units === 1 ? '' : 's'}`);
         const m = bits.join(' ') + '.'; toast(m); announce(m); });
     }, 'Save scheme');
   const cv = $('#ssPic'); stPicture(sc).then(b => { if (!b || !cv) return; const im = new Image(); im.onload = () => { cv.getContext('2d').drawImage(im, 0, 0, cv.width, cv.height); URL.revokeObjectURL(im.src); }; im.src = URL.createObjectURL(b); });
@@ -8383,7 +8456,7 @@ gl_FragColor=vec4(color*alpha,alpha);}`;
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v064';
+const APP_VERSION = 'v065';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -10114,12 +10187,18 @@ function maybeStartSetup(){
   if (authGate !== 'in') return;
   /* Signed in: wait until the account's data has arrived. A guest has nothing to wait for
      (v049 fix: this used to wait for ever, so guests were never offered the quick start). */
-  if (!guestMode && !syncState.firstPullDone) return;
+  if (!guestMode && (!syncState.firstPullDone || !syncState.settingsPulled)) return;
   setupChecked = true;
-  /* v049: after signing in (or choosing to try without an account), everyone is offered the
-     quick start once per account, including people who already have a collection. */
-  if (data.settings.welOffered) return;
-  data.settings.welOffered = true; save();
+  /* v064: the quick start is only for an empty collection, offered once. Anyone signing in
+     to an account that already has models or paints goes straight to their Workbench.
+     It is remembered on the account and on this device. */
+  const devKey = 'mm.welOffered.' + (guestMode ? 'guest' : (deviceOwner() || 'me'));
+  let seenHere = false; try { seenHere = localStorage.getItem(devKey) === '1'; } catch (e) {}
+  const hasStuff = liveMinis().length > 0 || arr(data.paints).length > 0;
+  if (data.settings.welOffered || data.settings.setupDone || seenHere || hasStuff){
+    if (!data.settings.welOffered && hasStuff){ data.settings.welOffered = true; save(); }
+    return; }
+  data.settings.welOffered = true; save(); try { localStorage.setItem(devKey, '1'); } catch (e) {}
   startWelcome();
 }
 
@@ -12019,6 +12098,13 @@ function screenRecipeDetail(){
     ${r.category && !painting ? `<span class="rcat user-text">${esc(r.category)}</span>` : ''}</div>
     ${editing ? '' : `<button class="btn ghost sm" data-act="editRecipe">Edit</button>`}</div>`;
   if (!editing && !painting && r.desc) h += `<p class="user-text rdesc">${esc(r.desc)}</p>`;
+  /* v064: the recipe and the colour studio are linked both ways */
+  if (!editing && !painting){ const sc = r.scheme && typeof schemeOf === 'function' ? schemeOf(r.scheme) : null;
+    h += sc ? `<div class="rscheme">${sc.pic ? photoImg(sc.pic, 'rschpic') : `<span class="rschstrip" aria-hidden="true">${sc.roles.map(x => `<i style="background:${esc(choiceHex(roleChoice(sc, x)) || x.hex)}"></i>`).join('')}</span>`}
+        <span class="grow"><small>Colour scheme</small><b class="user-text">${esc(sc.name)}</b>${sc.studio ? `<small>${esc(stModel(sc).name)}</small>` : ''}</span>
+        <button class="btn ghost sm" data-sch="open" data-id="${esc(sc.id)}">Open in Studio</button></div>
+        ${r.stale ? `<p class="small rstale">You have changed this recipe since the scheme made it, so saving the scheme left your steps alone. <button class="linkbtn" data-act="recFromScheme">Replace the steps from the scheme</button></p>` : ''}`
+      : `<div class="rscheme none"><span class="grow small muted">See these paints on a miniature in the colour studio.</span><button class="btn ghost sm" data-act="recTryOn">Try on a miniature</button></div>`; }
   if (!editing) h += `<div class="rmode" role="tablist" aria-label="How to view this recipe">
       <button role="tab" data-rmode="overview" aria-selected="${!painting}">Overview</button><button role="tab" data-rmode="painting" aria-selected="${painting}">Painting</button></div>`;
   if (!editing && needs.length){ const av = availWords(r);
@@ -14038,6 +14124,9 @@ document.addEventListener('click', e => {
     if (a === 'catWish'){ const r = catalogue().rows[+act.dataset.ci]; if (!r) return; if (!Array.isArray(data.wishlist)) data.wishlist = [];
       data.wishlist.push({ id:uid(), name:r.n, kind:'paint', brand:r.b, note:[r.b, r.rg].filter(Boolean).join(' · '), price:null, hex:r.hex, created:Date.now(), updated:Date.now() });
       save(); render(); toast(r.n + ' added to your shopping list.'); announce(r.n + ' added to your shopping list.'); return; }
+    if (a === 'recTryOn'){ const r = data.recipes.find(x => x.id === state.openRecipe); if (!r) return; const sc = stSchemeFromRecipe(r); save(); render(); window.scrollTo(0, 0); announce('The recipe\'s paints on the miniature.'); return; }
+    if (a === 'recFromScheme'){ const r = data.recipes.find(x => x.id === state.openRecipe), sc = r && schemeOf(r.scheme); if (!sc) return;
+      openDialog('Replace the steps?', `<p>The steps become the scheme&rsquo;s paints again, with a shade and highlight for each part. Your notes, techniques and drying times on the current steps are replaced.</p>`, () => { stSyncRecipe(sc, true); save(); render(); toast('Steps replaced from the scheme.'); }, 'Replace the steps', 'Keep mine'); return; }
     if (a === 'benchAll'){ state.benchAll = true; const y = window.scrollY; render(); window.scrollTo(0, y); return; }
     if (a === 'hlMore'){ const y = window.scrollY; state.hlN = (state.hlN || HL_PAGE) + HL_PAGE; render(); window.scrollTo(0, y); const c = document.querySelectorAll('.hlrow')[state.hlN - HL_PAGE]; if (c){ c.setAttribute('tabindex', '-1'); c.focus({ preventScroll:true }); } return; }
     if (a === 'hlView' || a === 'hlFam'){ state.hlN = 0; if (a === 'hlView') state.hlv = act.dataset.v; else state.hlFam = act.dataset.v; render(); const b = document.querySelector(`[data-act="${a}"][data-v="${act.dataset.v}"]`); if (b) b.focus(); return; }
