@@ -8869,7 +8869,7 @@ gl_FragColor=vec4(color*alpha,alpha);}`;
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v075';
+const APP_VERSION = 'v076';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -15786,6 +15786,14 @@ body.diceopen{overflow:hidden}
 #dice .dzstage canvas,#dice .dzstage .dzstill{position:absolute;inset:0;width:100%;height:100%;display:block}
 #dice .dzstill{object-fit:contain;transition:opacity .4s}
 #dice .dzstill.gone{opacity:0}
+/* v076: choose your die with arrows on the tray (only once the 3D tray is up) */
+#dice .dzpick:not(.ready){display:none}
+#dice .dzarr{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:999px;border:1px solid var(--dz-line);background:color-mix(in srgb,var(--dz-bg) 70%,transparent);color:var(--dz-ink);font:inherit;font-size:1.6rem;line-height:1;display:grid;place-items:center;cursor:pointer;padding:0 0 3px;z-index:2}
+#dice .dzarr.prev{left:6px}#dice .dzarr.next{right:6px}
+#dice .dzarr:hover{background:var(--dz-surface)}
+#dice .dzname{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);padding:4px 12px;border-radius:999px;background:color-mix(in srgb,var(--dz-bg) 75%,transparent);border:1px solid var(--dz-line);color:var(--dz-text);font-size:.8125rem;white-space:nowrap;z-index:2}
+#dice .dzdots{position:absolute;left:0;right:0;bottom:9px;display:flex;gap:6px;justify-content:center;z-index:2}
+#dice .dzdots i{width:6px;height:6px;border-radius:9px;background:var(--dz-line)}#dice .dzdots i.on{background:var(--dz-gold)}
 #dice .dzload{position:absolute;left:0;right:0;bottom:6px;margin:0;text-align:center;font-size:.75rem;color:var(--dz-text2)}
 @keyframes dzchoose{0%,100%{opacity:.55}50%{opacity:1}}
 #dice .dzstage.choosing .dzstill{animation:dzchoose 1s ease-in-out infinite}
@@ -15862,9 +15870,15 @@ const HTML = `
   <p class="dzkick" data-for="reveal" hidden>THE GUILD HAS CHOSEN</p>
   <h2 id="dzHReveal" class="user-text" data-for="reveal" tabindex="-1" hidden></h2>
 
-  <div class="dzstage" id="dzStage" data-for="set roll" aria-hidden="true">
-    <img class="dzstill" id="dzStill" src="dice/still.webp" alt="">
-    <p class="dzload" id="dzLoad"></p>
+  <div class="dzstage" id="dzStage" data-for="set roll">
+    <img class="dzstill" id="dzStill" src="dice/still.webp" alt="" aria-hidden="true">
+    <p class="dzload" id="dzLoad" aria-hidden="true"></p>
+    <div class="dzpick" id="dzPick" data-for="set" role="group" aria-label="Your die">
+      <button type="button" class="dzarr prev" id="dzPrev" aria-label="Previous die">&lsaquo;</button>
+      <button type="button" class="dzarr next" id="dzNext2" aria-label="Next die">&rsaquo;</button>
+      <span class="dzname" id="dzName" aria-live="polite"></span>
+      <span class="dzdots" id="dzDots" aria-hidden="true"></span>
+    </div>
   </div>
 
   <div class="dzpre" role="group" aria-label="How to choose" data-for="set">
@@ -16156,14 +16170,21 @@ async function start3d(){
   scene.add(new THREE.HemisphereLight(0xC9D2E4, 0x1A1C22, 0.35));
 
   const loader = new GLTFLoader();
-  const [t, d] = await Promise.all([loader.loadAsync('dice/tray.glb'), loader.loadAsync('dice/die.glb')]);
+  /* v076: Joe's dice. Only the chosen one loads; the others load when picked. */
+  const DIES = [['guild', 'Guild', 'die.glb'], ['ivory-bone', 'Ivory Bone', 'ivory-bone.glb'], ['chaos-rune', 'Chaos Rune', 'chaos-rune.glb'],
+                ['sci-fi', 'Sci-Fi', 'sci-fi.glb'], ['norse-runes', 'Norse Runes', 'norse-runes.glb'], ['nautical-sailor', 'Nautical', 'nautical-sailor.glb']];
+  const S0 = (typeof data !== 'undefined' && data.settings && data.settings.dieSkin) || 'guild';
+  let dieIx = Math.max(0, DIES.findIndex(x => x[0] === S0));
+  const dieCache = new Map();
+  const prepDie = gl => { const m = gl.scene.children.find(o => /^MM_Die/.test(o.name || '')) || gl.scene.children[0];
+    m.position.set(0, 0, 0); m.quaternion.identity(); m.traverse(o => { if (o.isMesh){ o.castShadow = true; o.receiveShadow = true; } }); return m; };
+  const loadDie = i => { const k = DIES[i][0]; if (!dieCache.has(k)) dieCache.set(k, loader.loadAsync('dice/' + DIES[i][2]).then(prepDie).catch(e => { dieCache.delete(k); throw e; })); return dieCache.get(k); };
+  const [t, d] = await Promise.all([loader.loadAsync('dice/tray.glb'), loadDie(dieIx)]);
   t.scene.traverse(o => { if (o.isMesh){ o.receiveShadow = true; o.castShadow = true;
     /* the brass roughness map also feeds metalness in glTF; keep the brass fully metallic */
     if (o.material && o.material.name === 'MM_Brass'){ o.material.metalnessMap = null; o.material.metalness = 1; o.material.needsUpdate = true; } } });
   scene.add(t.scene);
-  const die = new THREE.Group(); const dieMesh = d.scene.getObjectByName('MM_Die') || d.scene.children[0];
-  dieMesh.position.set(0, 0, 0); dieMesh.quaternion.identity(); dieMesh.traverse(o => { if (o.isMesh){ o.castShadow = true; o.receiveShadow = true; } });
-  die.add(dieMesh); scene.add(die);
+  const die = new THREE.Group(); die.add(d); scene.add(die);
   const cv = document.createElement('canvas'); cv.width = cv.height = 128; { const c = cv.getContext('2d'), g = c.createRadialGradient(64, 64, 0, 64, 64, 64);
     g.addColorStop(0, 'rgba(0,0,0,.7)'); g.addColorStop(.5, 'rgba(0,0,0,.35)'); g.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = g; c.fillRect(0, 0, 128, 128); }
   const blob = new THREE.Mesh(new THREE.PlaneGeometry(0.036, 0.036), new THREE.MeshBasicMaterial({ map:new THREE.CanvasTexture(cv), transparent:true, depthWrite:false }));
@@ -16208,7 +16229,7 @@ async function start3d(){
   function rest(){ body.setBodyType(RAPIER.RigidBodyType.Dynamic, true); body.setTranslation(REST.p, true); body.setRotation(REST.q, true); body.setLinvel({ x:0, y:0, z:0 }, true); body.setAngvel({ x:0, y:0, z:0 }, true); body.sleep(); place(REST.p, REST.q); draw(); }
 
   frame(); rest();
-  stage.prepend(renderer.domElement); q('#dzStill').classList.add('gone'); L('');
+  renderer.domElement.setAttribute('aria-hidden', 'true'); stage.prepend(renderer.domElement); q('#dzStill').classList.add('gone'); L('');
   new ResizeObserver(() => { frame(); draw(); }).observe(stage);
 
   /* One animation loop, only while something moves.
@@ -16283,7 +16304,23 @@ async function start3d(){
     const qq = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, yaw, 0)); body.setTranslation(pp, true); body.setRotation(qq, true);
     body.setLinvel({ x:0, y:0, z:0 }, true); body.setAngvel({ x:0, y:0, z:0 }, true); place(pp, qq); draw(); }
   document.addEventListener('visibilitychange', () => { if (!document.hidden && root && !root.hidden) draw(); });
-  tray3d = { shake, release, skip, rest:() => { if (screen !== 'roll' && !holding){ mode = 'idle'; rest(); } } };
+  /* choosing the die: arrows on the tray swap the model in place; remembered in settings */
+  const pick = q('#dzPick'), nameEl = q('#dzName');
+  let pickTok = 0;
+  const label = (i, busy) => { nameEl.textContent = DIES[i][1] + (busy ? '…' : '');
+    q('#dzDots').innerHTML = DIES.map((x, j) => `<i${j === i ? ' class="on"' : ''}></i>`).join(''); };
+  async function setDie(i){
+    if (mode !== 'idle' || holding) return;
+    i = (i + DIES.length) % DIES.length; const tok = ++pickTok; label(i, !dieCache.has(DIES[i][0]));
+    let m; try { m = await loadDie(i); } catch (e) { if (tok === pickTok){ label(dieIx); nameEl.textContent = DIES[dieIx][1] + ' (that die could not load)'; } return; }
+    if (tok !== pickTok) return;
+    dieIx = i; die.clear(); die.add(m); label(i); draw();
+    if (typeof data !== 'undefined' && data.settings){ data.settings.dieSkin = DIES[i][0]; if (typeof save === 'function') save(); }
+  }
+  q('#dzPrev').addEventListener('click', () => setDie(dieIx - 1));
+  q('#dzNext2').addEventListener('click', () => setDie(dieIx + 1));
+  label(dieIx); pick.classList.add('ready');
+  tray3d = { shake, release, skip, setDie, die:() => DIES[dieIx][0], rest:() => { if (screen !== 'roll' && !holding){ mode = 'idle'; rest(); } } };
   window.__tray3d = true;
 }
 })();
