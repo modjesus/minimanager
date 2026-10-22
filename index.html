@@ -2526,6 +2526,9 @@ img.phmiss{object-fit:cover}
 .acctrow{display:flex;align-items:center;gap:.75rem}
 .acctid{flex:1;min-width:0;overflow-wrap:anywhere}
 .acctrow .btn{flex-shrink:0}
+/* v077: New scheme beside the name in Studio */
+.sthead{display:flex;flex-wrap:nowrap;align-items:center;gap:.5rem}.sthead .schname{flex:1;min-width:0}
+.stnew{flex-shrink:0;white-space:nowrap;display:inline-flex;align-items:center;gap:.375rem}.stnew svg{width:18px;height:18px;flex:none}
 .ctnav.pseg button,.ctnav.stseg button{font-size:.75rem!important;letter-spacing:.02em}
 .sthlrow.pdhl{grid-template-columns:repeat(3,minmax(0,1fr))}.pdpanel .sthlhead{grid-template-columns:repeat(3,minmax(0,1fr))}
 button.sthl{background:none;border:0;color:inherit;font:inherit;cursor:pointer;padding:0}.sthlown{font-size:.75rem!important;opacity:.9}
@@ -7552,6 +7555,7 @@ function screenStudio(sc){
   if (state.stView === 'wheel') return screenWheel(sc);
   let h = studioSeg('mini') + `
     <div class="sthead"><label for="schName" class="sr-only">Scheme name</label><input id="schName" class="schname display" value="${esc(sc.name)}" data-schf="name">
+      <button class="btn ghost sm stnew" data-sch="new" data-from="colour" aria-label="New scheme">${PLUS_SVG}<span aria-hidden="true">New</span></button>
 </div>`;
   h += `<div class="studio">${P ? stPhotoBar(sc, P) : ''}${studioViewer(false)}`;
   if ((state.stMode || 'colour') === 'values'){ const n = valueNotes(sc);
@@ -8869,7 +8873,7 @@ gl_FragColor=vec4(color*alpha,alpha);}`;
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v076';
+const APP_VERSION = 'v077';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -15970,6 +15974,7 @@ function open(from){
   buildFilters(); updateCount();
   q('#dzHint').textContent = HINT;
   root.hidden = false; root.scrollTop = 0; document.body.classList.add('diceopen');
+  { const cu = q('#dzCustom'); if (cu) cu.open = false; }   /* v077: always starts folded; only a tap on it (or Adjust the pool) opens it */
   show('set', q('#dzHSet'));
   tray3d ? tray3d.rest() : setTimeout(() => { if (!root.hidden) load3d(); }, 60);
 }
@@ -16176,8 +16181,14 @@ async function start3d(){
   const S0 = (typeof data !== 'undefined' && data.settings && data.settings.dieSkin) || 'guild';
   let dieIx = Math.max(0, DIES.findIndex(x => x[0] === S0));
   const dieCache = new Map();
+  /* v077: the Guild die's body, finished like the original die's gloss resin and lifted from near-black (Joe: "too black"). */
+  const FINISH = { metal:0, rough:0.22, cc:0.7, ccRough:0.08, lift:6 };   /* Joe chose B, deep charcoal (22 Oct) */
+  const finishBody = o => { const s = o.material; if (!s || !/^guild-die_Body/.test(s.name || '')) return;
+    const m = new THREE.MeshPhysicalMaterial({ name:s.name, map:s.map, normalMap:s.normalMap, normalScale:s.normalScale, roughnessMap:s.roughnessMap, side:s.side,
+      metalness:FINISH.metal, roughness:FINISH.rough, clearcoat:FINISH.cc, clearcoatRoughness:FINISH.ccRough });
+    m.color.setScalar(FINISH.lift); o.material = m; s.dispose(); };
   const prepDie = gl => { const m = gl.scene.children.find(o => /^MM_Die/.test(o.name || '')) || gl.scene.children[0];
-    m.position.set(0, 0, 0); m.quaternion.identity(); m.traverse(o => { if (o.isMesh){ o.castShadow = true; o.receiveShadow = true; } }); return m; };
+    m.position.set(0, 0, 0); m.quaternion.identity(); m.traverse(o => { if (o.isMesh){ o.castShadow = true; o.receiveShadow = true; finishBody(o); } }); return m; };
   const loadDie = i => { const k = DIES[i][0]; if (!dieCache.has(k)) dieCache.set(k, loader.loadAsync('dice/' + DIES[i][2]).then(prepDie).catch(e => { dieCache.delete(k); throw e; })); return dieCache.get(k); };
   const [t, d] = await Promise.all([loader.loadAsync('dice/tray.glb'), loadDie(dieIx)]);
   t.scene.traverse(o => { if (o.isMesh){ o.receiveShadow = true; o.castShadow = true;
