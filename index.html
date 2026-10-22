@@ -2529,6 +2529,26 @@ img.phmiss{object-fit:cover}
 /* v077: New scheme beside the name in Studio */
 .sthead{display:flex;flex-wrap:nowrap;align-items:center;gap:.5rem}.sthead .schname{flex:1;min-width:0}
 .stnew{flex-shrink:0;white-space:nowrap;display:inline-flex;align-items:center;gap:.375rem}.stnew svg{width:18px;height:18px;flex:none}
+/* v078: big armies fold by unit type */
+.afold{border-bottom:1px solid var(--border);padding:.25rem 0 .75rem}
+.afh{display:flex;align-items:center;gap:.5rem;width:100%;min-height:var(--tap);background:none;border:0;padding:.5rem 0;color:var(--text);font:inherit;text-align:left;cursor:pointer}
+.afn{font-family:var(--f-display);font-size:1.25rem;flex:1;min-width:0;overflow-wrap:anywhere}
+.afh{flex-wrap:wrap;row-gap:0}.afc{order:3;flex-basis:100%;min-width:0}.afch{order:2;flex-shrink:0;color:var(--text-2);font-size:1.25rem;transition:transform .2s}.afold.open .afch{transform:rotate(90deg)}
+.afbar{height:4px;border-radius:4px;background:var(--border);overflow:hidden}.afbar i{display:block;height:100%;background:var(--gold)}
+.afstrip{display:flex;gap:4px;margin-top:.5rem;align-items:center}.afimg{width:44px;height:44px;border-radius:6px;object-fit:cover;flex:none;background:var(--surface)}
+.afmore{font-size:.8125rem;color:var(--text-2);padding-left:.25rem}
+.afbody .ehead.shelf h2{font-size:1rem}
+@media (prefers-reduced-motion: reduce){ .afch{transition:none} }
+/* v078: photo labels and dates */
+.uthw{display:inline-grid;justify-items:center;align-content:start;gap:3px;vertical-align:top}
+.uthcap{font-size:.6875rem;line-height:1.25;color:var(--text-2);text-align:center;max-width:64px;overflow-wrap:anywhere}.uthcap.fin{color:var(--gold-ink)}
+.uthumbs{align-items:flex-start}
+.galmeta{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.5rem;padding:.5rem .25rem 0;color:#EEF2F7}
+.galkind{display:inline-flex;border:1px solid #24405F;border-radius:999px;overflow:hidden}
+.galkind button{background:none;border:0;color:#EEF2F7;font:inherit;font-size:.8125rem;min-height:40px;padding:0 .75rem;cursor:pointer}
+.galkind button[aria-checked="true"]{background:var(--gold);color:#13233a;font-weight:600}
+.galkind button:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+.galday{white-space:nowrap}.galday .linkbtn{color:#EEF2F7}
 .ctnav.pseg button,.ctnav.stseg button{font-size:.75rem!important;letter-spacing:.02em}
 .sthlrow.pdhl{grid-template-columns:repeat(3,minmax(0,1fr))}.pdpanel .sthlhead{grid-template-columns:repeat(3,minmax(0,1fr))}
 button.sthl{background:none;border:0;color:inherit;font:inherit;cursor:pointer;padding:0}.sthlown{font-size:.75rem!important;opacity:.9}
@@ -5329,7 +5349,7 @@ async function inboxAdd(fileList, fromCamera){
       if (!(await readable(blob))) throw new Error(isHeic(f) ? 'heic' : 'image');
       const id = uid(); await putPhoto(id, blob);
       added.push({ id, at:Date.now() });
-      setInbox(inboxList().concat({ id, at:Date.now() })); save();   /* each one is kept as soon as it is in */
+      setInbox(inboxList().concat({ id, at:Date.now(), taken:f.lastModified || Date.now() })); save();   /* each one is kept as soon as it is in */
     } catch (err){
       UP.failed.push({ file:f, name:f.name || 'Photo', why: err.message === 'heic' ? 'HEIC photo this browser cannot open. Convert it to JPEG, or pick it on your phone, which converts it for you.'
         : err.message === 'empty' ? 'The file is empty.' : err.message === 'image' ? 'Not a photo this browser can open.'
@@ -5626,6 +5646,8 @@ async function fileSave(retry){
       if (FS.to === 'mini'){
         if (!arr(target.photos).includes(pid)) target.photos = arr(target.photos).concat(pid);
         if (FS.kind){ target.photoKind = Object.assign({}, target.photoKind, { [pid]:FS.kind.toLowerCase() }); }
+        { const it = inboxList().find(x => x.id === pid); if (it && typeof dayOfTime === 'function' && !(target.photoAt || {})[pid]) target.photoAt = Object.assign({}, target.photoAt, { [pid]:dayOfTime(it.taken || it.at) }); }
+        if (typeof applyCover === 'function') applyCover(target);
         target.updated = Date.now();
       } else if (FS.to === 'paint'){
         if (!arr(data.swatches).some(s => s.photoId === pid)) data.swatches.push({ id:uid(), paintId:target.id, undercoatId:'', photoId:pid, needs:true, created:Date.now() });
@@ -8873,7 +8895,7 @@ gl_FragColor=vec4(color*alpha,alpha);}`;
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v077';
+const APP_VERSION = 'v078';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -11214,6 +11236,42 @@ function screenGame(){
   return h;
 }
 
+/* v078: an army of more than 20 units is shown as one folding section per
+   unit type (Joe chose D), each with its progress and a strip of covers.
+   Which sections are open is remembered per army on this device. */
+const ARMY_FOLD_AT = 20;
+const UTYPE_ORDER = ['Character', 'Infantry', 'Cavalry', 'Beast', 'Monster', 'Swarm', 'Vehicle', 'Artillery', 'Flyer', 'Warmachine'];
+const UTYPE_PLURAL = { Character:'Characters', Beast:'Beasts', Monster:'Monsters', Swarm:'Swarms', Vehicle:'Vehicles', Flyer:'Flyers', Warmachine:'War machines' };
+const afoldGet = () => { try { return JSON.parse(localStorage.getItem('mm.afold') || '{}') || {}; } catch (e) { return {}; } };
+const afoldOpen = (key, t) => arr(afoldGet()[key]).includes(t);
+function afoldToggle(key, t){ const all = afoldGet(), cur = arr(all[key]);
+  all[key] = cur.includes(t) ? cur.filter(x => x !== t) : cur.concat(t);
+  try { localStorage.setItem('mm.afold', JSON.stringify(all)); } catch (e) {} }
+function armySections(g, shelf){
+  const typeOf = m => String(m.unit || '').trim(), groups = new Map();
+  g.minis.forEach(m => { const t = typeOf(m) || '~none'; if (!groups.has(t)) groups.set(t, []); groups.get(t).push(m); });
+  const rank = t => t === '~none' ? 1000 : isTerrain({ unit:t }) ? 1001 : UTYPE_ORDER.indexOf(t) >= 0 ? UTYPE_ORDER.indexOf(t) : 500;
+  const keys = [...groups.keys()].sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
+  const ph = welSrc('placeholder');
+  return keys.map(t => {
+    const ms = groups.get(t), open = afoldOpen(g.key, t) || state.selecting && ms.some(m => state.sel.has(m.id));
+    const label = t === '~none' ? 'No unit type' : UTYPE_PLURAL[t] || t;
+    const mod = ms.reduce((a, m) => a + (Number(m.total) || 1), 0), dn = ms.reduce((a, m) => a + (isDone(m) ? (Number(m.total) || 1) : Math.min(Number(m.done) || 0, Number(m.total) || 1)), 0);
+    const id = 'af-' + String(t).replace(/[^\w-]/g, '_');
+    let o = `<section class="afold${open ? ' open' : ''}"><button class="afh" data-act="afold" data-k="${esc(t)}" aria-expanded="${open}" aria-controls="${id}">
+        <span class="afn user-text">${esc(label)}</span><span class="small muted afc"><span class="num">${ms.length}</span> unit${ms.length === 1 ? '' : 's'} &middot; <span class="num">${dn}</span> of <span class="num">${mod}</span> finished</span><span class="afch" aria-hidden="true">&rsaquo;</span></button>
+      <div class="afbar" aria-hidden="true"><i style="width:${mod ? Math.round(100 * dn / mod) : 0}%"></i></div>`;
+    if (open){
+      const bench = ms.filter(isStarted).sort((p, q) => unitProgress(q) - unitProgress(p) || (q.updated || 0) - (p.updated || 0));
+      const waiting = ms.filter(m => allUnbuilt(m) && !isDone(m)).sort((p, q) => (p.acquired || '9999').localeCompare(q.acquired || '9999'));
+      const done = ms.filter(isDone).sort((p, q) => (q.updated || 0) - (p.updated || 0));
+      o += `<div class="afbody" id="${id}">${shelf('On the bench', bench, true)}${shelf('Still to build', waiting, false)}${shelf('Finished', done, true)}</div>`;
+    } else {
+      o += `<div class="afstrip" id="${id}" aria-hidden="true">${ms.slice(0, 6).map(m => { const pid = arr(m.photos)[0]; return pid ? photoImg(pid, 'afimg') : `<img class="afimg" src="${ph}" alt="">`; }).join('')}${ms.length > 6 ? `<span class="afmore">+${ms.length - 6}</span>` : ''}</div>`;
+    }
+    return o + `</section>`;
+  }).join('');
+}
 function screenArmy(){
   const g = armyGroups().find(x => x.key === state.openArmy);
   const sysId = (state.openArmy || '').split('|')[0];
@@ -11265,9 +11323,12 @@ function screenArmy(){
     }
     return o;
   };
-  h += shelf('On the bench', bench, true);
-  h += shelf(`Still to build`, waiting, false);
-  h += shelf('Finished', done, true);
+  if (g.minis.length > ARMY_FOLD_AT) h += armySections(g, shelf);
+  else {
+    h += shelf('On the bench', bench, true);
+    h += shelf(`Still to build`, waiting, false);
+    h += shelf('Finished', done, true);
+  }
   if (state.selecting){
     const n = state.sel.size;
     h += `<div class="selbar" role="region" aria-label="Selected units">
@@ -11739,8 +11800,8 @@ function screenMini(){
   if (!fin) h += recBlock + (tools ? `<div class="utools">${tools}</div>` : '');
 
   /* Photos: a strip to jump between them, and one more tile to add another. */
-  h += `<div class="uthumbs" role="group" aria-label="Photos">${photos.map((pid, i) =>
-    `<button class="uthumb" data-gal="${i}" aria-label="Open photo ${i + 1} of ${photos.length}">${photoImg(pid)}</button>`).join('')}
+  h += `<div class="uthumbs" role="group" aria-label="Photos">${photos.map((pid, i) => { const k = pkindOf(m, pid), dd = shortDay(photoDay(m, pid)), cap = [pkindLabel(k), dd].filter(Boolean);
+    return `<span class="uthw"><button class="uthumb" data-gal="${i}" aria-label="Open photo ${i + 1} of ${photos.length}${cap.length ? ': ' + esc(cap.join(', ')) : ''}${i === 0 && photos.length > 1 ? ', cover' : ''}">${photoImg(pid)}</button>${cap.length ? `<span class="uthcap${k === 'finished' ? ' fin' : ''}" aria-hidden="true">${cap.map(esc).join('<br>')}</span>` : ''}</span>`; }).join('')}
     <button class="uthumb add" data-act="addPhotos" aria-label="Add a photo of ${esc(m.name)}"><span aria-hidden="true">+</span>${photos.length ? '' : '<b>Add a photo</b>'}</button></div>`;
 
   if (fin) h += recBlock;
@@ -11851,6 +11912,28 @@ function recipeStrip(r, cls){
    Full screen, one photo at a time. Swipe, the arrows or the arrow keys move
    along; Escape or the cross closes it and puts you back where you were. */
 let galBack = null;
+/* v078: each unit photo can say what it shows (In progress, Finished or
+   Reference; the same labels Photos to sort uses, in m.photoKind) and when it
+   was taken (m.photoAt, a day). The cover is the newest Finished photo, unless
+   one was chosen with Make cover photo (m.coverPick). The cover is kept first
+   in m.photos, as before, so every screen that shows a cover still works. */
+const PKIND = [['progress', 'In progress'], ['finished', 'Finished'], ['reference', 'Reference']];
+const pkindOf = (m, pid) => ((m.photoKind || {})[pid]) || '';
+const pkindLabel = k => (PKIND.find(x => x[0] === k) || [, ''])[1];
+const photoDay = (m, pid) => ((m.photoAt || {})[pid]) || '';
+function setPhotoMeta(m, pid, kind, day){
+  if (kind !== undefined){ m.photoKind = Object.assign({}, m.photoKind); if (kind) m.photoKind[pid] = kind; else delete m.photoKind[pid]; }
+  if (day !== undefined){ m.photoAt = Object.assign({}, m.photoAt); if (day) m.photoAt[pid] = day; else delete m.photoAt[pid]; }
+}
+function applyCover(m){
+  const ps = arr(m.photos); if (ps.length < 2) return;
+  let c = m.coverPick && ps.includes(m.coverPick) ? m.coverPick : '';
+  if (!c){ const fin = ps.map((pid, i) => ({ pid, i, d:photoDay(m, pid) })).filter(x => pkindOf(m, x.pid) === 'finished');
+    fin.sort((a, b) => (b.d || '').localeCompare(a.d || '') || b.i - a.i); c = fin.length ? fin[0].pid : ''; }
+  if (c && ps[0] !== c) m.photos = [c].concat(ps.filter(x => x !== c));
+}
+const dayOfTime = t => { const d = new Date(t); return isNaN(d) ? '' : localISO(d); };
+const shortDay = iso => { if (!iso) return ''; const d = new Date(iso + 'T12:00:00'); return isNaN(d) ? '' : d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year: d.getFullYear() === new Date().getFullYear() ? undefined : 'numeric' }); };
 function openGallery(i, from, kind, rid){
   /* v044: the same viewer shows a recipe's reference images */
   const m = kind === 'recipe' ? data.recipes.find(x => x.id === rid) : data.minis.find(x => x.id === state.openMini);
@@ -11885,6 +11968,9 @@ function drawGallery(first){
     <div class="galmid">${photoImg(ps[i], 'galimg')}
       ${n > 1 ? `<button class="galbtn galnav l" data-galgo="-1" aria-label="Previous photo">&lsaquo;</button><button class="galbtn galnav r" data-galgo="1" aria-label="Next photo">&rsaquo;</button>` : ''}</div>
     <div class="galbot">${n > 1 ? `<div class="galstrip">${ps.map((pid, j) => `<button data-galto="${j}" aria-label="Photo ${j + 1}"${j === i ? ' aria-current="true"' : ''}>${photoImg(pid)}</button>`).join('')}</div>` : ''}
+      ${isRec ? '' : (() => { const pid = ps[i], k = pkindOf(m, pid), d = photoDay(m, pid);
+        return `<div class="galmeta"><div class="galkind" role="radiogroup" aria-label="What this photo shows">${PKIND.map(([v, l]) => `<button type="button" role="radio" data-galkind="${v}" aria-checked="${k === v}">${l}</button>`).join('')}</div>
+          <span class="small galday">${d ? esc(shortDay(d)) : 'No date'} &middot; <button class="linkbtn" data-galday>${d ? 'Change' : 'Add date'}</button></span></div>`; })()}
       <div class="galacts">${isRec ? '' : i ? `<button class="linkbtn" data-galcover>Make cover photo</button>` : `<span class="small">Cover photo</span>`}
         <button class="linkbtn" data-galadd>${isRec ? 'Add image' : 'Add photo'}</button><button class="linkbtn" data-galdel>Remove</button></div></div>`;
   document.body.appendChild(g); document.body.classList.add('galopen');
@@ -11951,7 +12037,18 @@ document.addEventListener('click', e => {
         if (urlCache.has(pid)){ URL.revokeObjectURL(urlCache.get(pid)); urlCache.delete(pid); } render(); toast('Image removed.'); announce('Image removed.'); }, 'Remove image', 'Keep it'); }
     return;
   }
-  if (t.closest('[data-galcover]')){ const ps = arr(m.photos).slice(), pid = ps.splice(state.gal.i, 1)[0]; m.photos = [pid].concat(ps); m.updated = Date.now();
+  const gk = t.closest('[data-galkind]');
+  if (gk && state.gal.kind === 'mini'){ const pid = arr(m.photos)[state.gal.i], v = gk.dataset.galkind;
+    setPhotoMeta(m, pid, pkindOf(m, pid) === v ? '' : v); applyCover(m); m.updated = Date.now(); save();
+    state.gal.i = Math.max(0, arr(m.photos).indexOf(pid)); render(); drawGallery();
+    const f = document.querySelector(`#gal [data-galkind="${v}"]`); if (f) f.focus({ preventScroll:true });
+    announce(pkindOf(m, pid) ? 'Marked ' + pkindLabel(v) + '.' + (arr(m.photos)[0] === pid && arr(m.photos).length > 1 ? ' It is now the cover photo.' : '') : 'Label cleared.'); return; }
+  if (t.closest('[data-galday]') && state.gal.kind === 'mini'){ const pid = arr(m.photos)[state.gal.i];
+    openDialog('When was this photo taken?', `<label for="galDayIn">Date</label><input id="galDayIn" type="date" value="${esc(photoDay(m, pid))}" max="${esc(localISO(new Date()))}">`, () => {
+      const v = ($('#galDayIn').value || '').trim(); setPhotoMeta(m, pid, undefined, /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : ''); applyCover(m); m.updated = Date.now(); save();
+      if (state.gal){ state.gal.i = Math.max(0, arr(m.photos).indexOf(pid)); render(); drawGallery(); } else render(); }, 'Save', 'Cancel');
+    return; }
+  if (t.closest('[data-galcover]')){ const ps = arr(m.photos).slice(), pid = ps.splice(state.gal.i, 1)[0]; m.photos = [pid].concat(ps); m.coverPick = pid; m.updated = Date.now();
     save(); state.gal.i = 0; render(); drawGallery(); toast('Cover photo changed.'); return; }
   if (t.closest('[data-galadd]')){ closeGallery(); $('#photoIn').click(); return; }
   if (t.closest('[data-galdel]')){ const pid = arr(m.photos)[state.gal.i], k = state.gal.i;
@@ -14695,6 +14792,8 @@ document.addEventListener('click', e => {
     if (a === 'editStages'){ const m = state.openMini && data.minis.find(x => x.id === state.openMini);
       if ($('#dlg').open) $('#dlg').close(); return dlgStages(m && wfOf(m) ? wfOf(m).id : 'std'); }
     if (a === 'addMany'){ if ($('#dlg').open) $('#dlg').close(); return dlgAddMany(); }
+    if (a === 'afold'){ const k = act.dataset.k; afoldToggle(state.openArmy, k); render();
+      const b = [...document.querySelectorAll('[data-act="afold"]')].find(x => x.dataset.k === k); if (b) b.focus({ preventScroll:true }); return; }
     if (a === 'selectOn'){ state.selecting = true; state.sel = new Set(); state.selArmy = state.openArmy; render(); return; }
     if (a === 'selectOff'){ state.selecting = false; state.sel = new Set(); render(); return; }
     if (a === 'bulkStage') return dlgBulkStage();
@@ -15042,7 +15141,7 @@ function duplicateMini(){
   const c = JSON.parse(JSON.stringify(m));
   c.id = uid(); c.photos = []; c.done = 0; c.stage = stagesOf(m)[0];
   delete c.at; delete c.atSig; delete c.archived; delete c.pinned; delete c.log; delete c.paintMins;
-  delete c.frame; delete c.photoKind;
+  delete c.frame; delete c.photoKind; delete c.photoAt; delete c.coverPick;
   c.acquired = ''; c.created = c.updated = Date.now();
   data.minis.push(c); save();
   state.openMini = c.id; state.openArchive = false; render(); window.scrollTo(0,0);
@@ -15310,6 +15409,7 @@ function dlgJoinBack(){
       nNames.forEach((s, i) => { if (nc[i]) mc[mNames.indexOf(s)] += nc[i]; });
       m.total = (Number(m.total) || 1) + k; setCounts(m, mc);
       m.photos = arr(m.photos).concat(arr(n.photos));
+      m.photoKind = Object.assign({}, n.photoKind, m.photoKind); m.photoAt = Object.assign({}, n.photoAt, m.photoAt);
       m.updated = Date.now();
       data.links.filter(l => l.miniId === n.id).forEach(l => {
         if (data.links.some(x => x.miniId === m.id && x.recipeId === l.recipeId)) data.links = data.links.filter(x => x !== l);
@@ -15420,9 +15520,10 @@ async function addPhotos(fileList){
       const id = uid(); await putPhoto(id, blob);
       if (!Array.isArray(m.photos)) m.photos = [];
       m.photos.push(id); added++;
+      setPhotoMeta(m, id, isDone(m) ? 'finished' : 'progress', dayOfTime(f.lastModified || Date.now()));
     } catch (err){ failed++; console.warn('photo failed', f && f.name, err.message); }
   }
-  m.updated = Date.now(); save(); busy = false; render();
+  applyCover(m); m.updated = Date.now(); save(); busy = false; render();
   $('#photoIn').value = '';
   if (added && !failed)     toast(added === 1 ? 'Photo added.' : added + ' photos added.');
   else if (added && failed) toast(added + ' added, ' + failed + ' could not be read.');
@@ -15449,6 +15550,7 @@ async function captureSwatch(fileList){
 function removePhoto(pid){
   const m = data.minis.find(x => x.id === state.openMini); if (!m) return;
   m.photos = arr(m.photos).filter(x => x !== pid);
+  setPhotoMeta(m, pid, '', ''); if (m.coverPick === pid) delete m.coverPick; applyCover(m);
   m.updated = Date.now(); save();
   forgetPhoto(pid).catch(err => toast('Removed from the entry, but the file could not be deleted: ' + err.message));
   if (urlCache.has(pid)){ URL.revokeObjectURL(urlCache.get(pid)); urlCache.delete(pid); }
