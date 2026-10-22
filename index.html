@@ -8869,7 +8869,7 @@ gl_FragColor=vec4(color*alpha,alpha);}`;
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v074';
+const APP_VERSION = 'v075';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -10211,13 +10211,21 @@ function screenHome(){
   if (c.entries !== 0) h += '<!--WBACTS-->';
   if (c.entries === 0){
     /* v070: three ways in, plainly; paints can wait */
-    const ic = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${MED_ICON[k]}</svg>`;
+    /* v075: Joe's own icons (MiniManager-Onboarding-SVG-Icons.zip, 22 Oct 2026):
+       checked clipboard, document with incoming arrow, camera. Drawn in his brass;
+       here the stroke follows the theme's gold so it stays readable in light mode. */
+    const SETUP_ICON = {
+      tick: '<path d="M11 5H7a2 2 0 0 0-2 2v20a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-4"/><path d="M12 3h8l1 5H11l1-5Z"/><path d="m9 14 2 2 3-4m3 3h6M9 22l2 2 3-4m3 3h6"/>',
+      paste: '<path d="M8 11V5a2 2 0 0 1 2-2h11l6 6v18a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2v-4"/><path d="M21 3v6h6M3 17h13m-4-4 4 4-4 4M19 16h4m-4 5h4m-11 4h11"/>',
+      photo: '<path d="M4 10h6l2-4h8l2 4h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V12a2 2 0 0 1 2-2Z"/><circle cx="16" cy="19" r="6"/><path d="M13 19a3 3 0 0 1 3-3m9-2h1"/>'
+    };
+    const ic = k => `<svg class="setic" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SETUP_ICON[k]}</svg>`;
     const opt = (act, k, t, sub) => `<button class="setopt" data-act="${act}">${ic(k)}<span class="grow"><b>${t}</b><small>${sub}</small></span><span class="ch" aria-hidden="true">&rsaquo;</span></button>`;
     return h + emptyFrame(`${emptyPen('spare-navy')}<h3>Set up your collection</h3>
       <p>Three ways in. Pick whichever is quickest for you.</p>
-      <div class="setopts">${opt('addModels', 'laurel', 'Tick from a list', 'Choose your game and army, tick your units')}
-        ${opt('openImport', 'tools', 'Paste a list', 'From a spreadsheet, an army builder or your notes')}
-        ${opt('setupPhotos', 'cam', 'Photograph them', 'Take photos now, sort them into units later')}</div>
+      <div class="setopts">${opt('addModels', 'tick', 'Tick from a list', 'Choose your game and army, tick your units')}
+        ${opt('openImport', 'paste', 'Paste a list', 'From a spreadsheet, an army builder or your notes')}
+        ${opt('setupPhotos', 'photo', 'Photograph them', 'Take photos now, sort them into units later')}</div>
       <p class="small muted setlater">Paints can come later: <button class="linkbtn" data-act="addPaints">add paints</button></p>`);
   }
   /* The Guild Workbench (v031). Three lists share one framed card: what you
