@@ -8895,7 +8895,7 @@ gl_FragColor=vec4(color*alpha,alpha);}`;
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v079';
+const APP_VERSION = 'v080';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -9489,10 +9489,18 @@ const BURST_FINISH = { count:90, spread:190, duration:1600, twinkle:0.5 };
 /* Sparks from the unit's own Move models on button when it is on screen
    after the save; otherwise from where the confirm button was. */
 function burstForMove(m, okRect, finished){
-  const b = document.querySelector(`#app [data-act="moveOn"][data-id="${CSS.escape(m.id)}"]`);
-  const r = b && b.getBoundingClientRect();
-  const seen = r && r.bottom > 0 && r.top < innerHeight - 60;
-  mmBurst(seen ? b : okRect, finished ? BURST_FINISH : BURST_MOVE);
+  const go = () => {
+    const b = document.querySelector(`#app [data-act="moveOn"][data-id="${CSS.escape(m.id)}"]`);
+    const r = b && b.getBoundingClientRect();
+    const seen = r && r.bottom > 0 && r.top < innerHeight - 60;
+    mmBurst(seen ? b : okRect, finished ? BURST_FINISH : BURST_MOVE);
+  };
+  /* v080: a closing sheet stays in the browser's top layer, above everything
+     including the sparks, until its slide-out ends. Wait for it to close. */
+  const d = document.getElementById('dlg');
+  if (d && d.open){ let done = false; const once = () => { if (done) return; done = true; requestAnimationFrame(go); };
+    d.addEventListener('close', once, { once:true }); setTimeout(once, 900); }
+  else go();
 }
 
 function logMove(m, from, to, n, on){
