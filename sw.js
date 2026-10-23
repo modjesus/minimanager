@@ -4,7 +4,7 @@
 
    CACHE must change on every release. If it does not, browsers keep serving
    the old index.html and the release is invisible. */
-const CACHE = 'minimanager-v078';
+const CACHE = 'minimanager-v079';
 const SHELL = ['./', './index.html'];
 
 self.addEventListener('install', e => {
