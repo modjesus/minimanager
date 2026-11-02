@@ -2474,7 +2474,7 @@ button.stchip{border-color:var(--gold-line);background:none;font:inherit;font-si
 .uscheme .grow{display:grid;text-align:left;min-width:0}.uscheme .grow small{font-size:.75rem}
 .sslevel{margin:.5rem 0}
 .wtile .wrg{display:block;color:var(--text-2);font-size:.75rem;line-height:1.2;margin-top:.125rem}
-.wbtop{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr) minmax(0,1fr);gap:.5rem;margin:.25rem 0 .875rem}
+.wbtop{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:.5rem;margin:.25rem 0 .875rem}
 .wbtop .btn{display:flex;align-items:center;justify-content:center;gap:.375rem;min-height:46px;padding:.25rem .375rem;white-space:nowrap;font-size:.9375rem}.wbtop .btn svg{width:1.125rem;height:1.125rem;flex:none}
 .bigtext .wbtop{grid-template-columns:1fr}.bigtext .wbtop .btn{white-space:normal}
 .guestbar.g1{display:flex;align-items:center;gap:.5rem;padding:.375rem .5rem .375rem .75rem;font-size:.875rem;margin-bottom:.5rem}.guestbar.g1>span{flex:1;min-width:0}.guestbar.g1 .iconbtn{flex:none}
@@ -2549,6 +2549,8 @@ img.phmiss{object-fit:cover}
 .galkind button[aria-checked="true"]{background:var(--gold);color:#13233a;font-weight:600}
 .galkind button:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
 .galday{white-space:nowrap}.galday .linkbtn{color:#EEF2F7}
+/* v082: a "New" tag on a brand chip */
+.chip .newtag{font-size:.625rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#13233a;background:var(--gold);border-radius:4px;padding:1px 4px;margin-left:.25rem}
 .ctnav.pseg button,.ctnav.stseg button{font-size:.75rem!important;letter-spacing:.02em}
 .sthlrow.pdhl{grid-template-columns:repeat(3,minmax(0,1fr))}.pdpanel .sthlhead{grid-template-columns:repeat(3,minmax(0,1fr))}
 button.sthl{background:none;border:0;color:inherit;font:inherit;cursor:pointer;padding:0}.sthlown{font-size:.75rem!important;opacity:.9}
@@ -8419,6 +8421,9 @@ function startAdd(mode){
   if (mode === 'paints'){
     const cnt = {}, cat = catalogue(); data.paints.forEach(p => { if (p.brand && OWNED_STOCK(p.stock)) cnt[p.brand] = (cnt[p.brand] || 0) + 1; });
     w.brands = Object.keys(cnt).filter(b => cat.brands.indexOf(b) !== -1).sort((a, b) => cnt[b] - cnt[a]);
+    /* v082: Warhammer (Tone Pro) offered next to Citadel, marked New, until you own one */
+    if (w.brands.length && cat.brands.indexOf('Warhammer') !== -1 && w.brands.indexOf('Warhammer') === -1){
+      const at = w.brands.indexOf('Citadel'); w.brands.splice(at === -1 ? 1 : at + 1, 0, 'Warhammer'); w.newBrands = ['Warhammer']; }
     w.step = w.brands.length ? 2 : 1;
   } else {
     const recent = f => Math.max(0, ...data.minis.filter(m => m.fac === f.id).map(m => m.updated || 0));
@@ -8529,20 +8534,28 @@ function welPaints(){
   if (w.brands.indexOf(w.brand) === -1) w.brand = w.brands[0];
   const nPick = b => Object.keys(w.picked).filter(ci => cat[ci].b === b).length;
   let h = welHead(w.mode ? 'Your brands' : 'Paints &middot; 2 of 2', 'Tick what you own') +
-    (w.brands.length > 1 || w.mode ? `<div class="chips welsw" role="group" aria-label="Brand">${w.brands.map(b => `<button class="chip" data-wpbrand="${esc(b)}" aria-pressed="${w.brand === b}">${esc(b)} <span class="n">${nPick(b)}</span></button>`).join('')}${w.mode ? '<button class="chip" data-wel="gostep" data-s="1">+ Another brand</button>' : ''}</div>` : '') +
+    (w.brands.length > 1 || w.mode ? `<div class="chips welsw" role="group" aria-label="Brand">${w.brands.map(b => `<button class="chip" data-wpbrand="${esc(b)}" aria-pressed="${w.brand === b}">${esc(b)} <span class="n">${nPick(b)}</span>${arr(w.newBrands).indexOf(b) !== -1 ? '<span class="newtag">New</span>' : ''}</button>`).join('')}${w.mode ? '<button class="chip" data-wel="gostep" data-s="1">+ Another brand</button>' : ''}</div>` : '') +
     `<div class="wsearch"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><label for="wq" class="sr-only">Search ${esc(w.brand)} paints</label><input id="wq" type="search" placeholder="Search ${esc(w.brand)}&hellip;" value="${esc(w.q)}" autocomplete="off"></div>`;
   const rows = welCatRows(w.brand);
   /* v069: in search results each paint says which range it is (Base, Air, Spray...) */
-  let showRg = false;
+  let showRg = false, showBrand = false;
   const tile = ci => { const r = cat[ci], own = welOwned(r), on = own || !!w.picked[ci];
-    return `<button class="wtile" data-wpaint="${ci}" aria-pressed="${on}"${own ? ' disabled' : ''}><span class="sw${finOf({ name:r.n, brand:r.b, range:r.rg }) === 'metal' ? ' metal' : ''}" style="background-color:#${esc(r.hex.replace('#', ''))};--c:${esc(r.hex)}"></span><span class="nm">${esc(r.n)}</span>${showRg ? `<small class="wrg">${esc(r.rg || 'Other')}</small>` : ''}${own ? '<small>Yours</small>' : ''}${on ? `<span class="tick" aria-hidden="true">&#10003;</span>` : ''}</button>`; };
+    return `<button class="wtile" data-wpaint="${ci}" aria-pressed="${on}"${own ? ' disabled' : ''}><span class="sw${finOf({ name:r.n, brand:r.b, range:r.rg }) === 'metal' ? ' metal' : ''}" style="background-color:#${esc(r.hex.replace('#', ''))};--c:${esc(r.hex)}"></span><span class="nm">${esc(r.n)}</span>${showRg ? `<small class="wrg">${showBrand ? esc(r.b) + ' &middot; ' : ''}${esc(r.rg || 'Other')}</small>` : ''}${own ? '<small>Yours</small>' : ''}${on ? `<span class="tick" aria-hidden="true">&#10003;</span>` : ''}</button>`; };
   const q = w.q.trim().toLowerCase();
   if (q){
     /* main ranges before airbrush, spray and discontinued ones */
     const hits = rows.filter(ci => (cat[ci].n + ' ' + cat[ci].rg + ' ' + cat[ci].c).toLowerCase().indexOf(q) !== -1)
       .sort((a, b) => (LESSER.test(cat[a].rg || '') - LESSER.test(cat[b].rg || '')) || cat[a].n.localeCompare(cat[b].n)).slice(0, 90);
     showRg = true;
-    h += hits.length ? `<div class="wgrid">${hits.map(tile).join('')}</div>` : `<p class="small muted">Nothing in ${esc(w.brand)} matches.</p>`;
+    if (hits.length) h += `<div class="wgrid">${hits.map(tile).join('')}</div>`;
+    else {
+      /* v082: nothing in this maker, so look in every maker (Tone Pro was hard to find) */
+      const all = []; for (let ci = 0; ci < cat.length && all.length < 60; ci++){ const r = cat[ci]; if (r.b !== w.brand && (r.n + ' ' + r.b + ' ' + r.rg + ' ' + r.c).toLowerCase().indexOf(q) !== -1) all.push(ci); }
+      all.sort((a, b) => (LESSER.test(cat[a].rg || '') - LESSER.test(cat[b].rg || '')) || cat[a].b.localeCompare(cat[b].b) || cat[a].n.localeCompare(cat[b].n, undefined, { numeric:true }));
+      showBrand = true;
+      h += all.length ? `<p class="small muted welother" role="status">Nothing in ${esc(w.brand)}. <b>Found in other makers:</b></p><div class="wgrid">${all.map(tile).join('')}</div>`
+        : `<p class="small muted">Nothing in ${esc(w.brand)} or any other maker matches.</p>`;
+    }
   } else {
     const ranges = [...new Set(rows.map(ci => cat[ci].rg || 'Other'))];
     ranges.sort((a, b) => (LESSER.test(a) - LESSER.test(b)) || (rows.filter(ci => cat[ci].rg === b).length - rows.filter(ci => cat[ci].rg === a).length));
@@ -8896,7 +8909,7 @@ gl_FragColor=vec4(color*alpha,alpha);}`;
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v081';
+const APP_VERSION = 'v082';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -9586,13 +9599,17 @@ function sessionStrip(heroM){
   let h = `<div class="sect"><h3>Painting session</h3>${tot ? `<span class="small muted">${esc(fmtDur(tot))} painted</span>` : ''}</div>`;
   const waiting = toAssign().slice(0, 3).map(x => `<button class="toassign" data-act="assignOpen" data-id="${esc(x.id)}">
       <span class="tx"><b>${esc(fmtDur(x.mins))} to share out</b><small>Painted ${esc(new Date(Number(x.at) || Date.now()).toLocaleDateString('en-GB', { day:'numeric', month:'short' }))}. Choose what it was for.</small></span></button>`).join('');
+  if (s && state.tab === 'home') return waiting ? h + waiting : '';   /* v082: the top row shows the running clock */
   if (s){
     return h + `<button class="sess on" data-act="sessOpen"><span class="play" aria-hidden="true">${s.pausedAt ? PLAY_SVG : PAUSE_SVG}</span>
       <span class="tx"><b>${s.pausedAt ? 'Paused' : 'Painting'}${m ? ` <span class="user-text">${esc(m.name)}</span>` : ''}</b><small>${m ? 'Open the session' : 'You&rsquo;ll choose what it was for when you finish'}</small></span>
       <span class="time num" data-sessclock>${fmtClock(sessMs(s))}</span></button>` + waiting;
   }
   const free = `<button class="btn ghost sessfree" data-act="sessStartFree">Start the clock, choose later</button>`;
-  if (!m || state.tab === 'home') return h + free + waiting;   /* v047: the Workbench card has Start painting */
+  /* v082: on the Workbench the top row has the clock and the card has Continue
+     painting, so this box only appears for time still to be shared out. */
+  if (state.tab === 'home') return waiting ? h + waiting : '';
+  if (!m) return h + free + waiting;
   const R = unitRecipes(m)[0];
   return h + `<button class="sess" data-act="sessStart" data-id="${esc(m.id)}"><span class="play" aria-hidden="true">${PLAY_SVG}</span>
     <span class="tx"><b>Start painting <span class="user-text">${esc(m.name)}</span></b>
@@ -9604,6 +9621,7 @@ const PLUS_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M
 const DICE_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="3.5"/><circle cx="8.5" cy="8.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="15.5" cy="8.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="8.5" cy="15.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="15.5" cy="15.5" r="1.3" fill="currentColor" stroke="none"/></svg>';
 const addTop = (act, label) => `<div class="addtop"><button class="btn" data-act="${act}">${PLUS_SVG}${label}</button></div>`;
 const PLAY_SVG = '<svg viewBox="0 0 24 24" width="18" height="18"><path d="M7 4v16l13-8Z" fill="currentColor"/></svg>';
+const CLOCK_SVG = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9.5 2.5h5"/></svg>';
 const PAUSE_SVG = '<svg viewBox="0 0 24 24" width="18" height="18"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" fill="currentColor"/></svg>';
 function screenSession(){
   const s = sessNow();
@@ -9675,7 +9693,12 @@ function screenSession(){
 function sessStart(id, how){
   const m = data.minis.find(x => x.id === id); if (!m) return;
   const R = unitRecipes(m)[0], n = Number(m.total) || 1;
-  if (!how && R && n > 1) return dlgSessHow(m, R.r.id);
+  /* v082: asked once per unit; after that it starts the way you painted it last
+     time (one at a time picks the next model not finished), and Change in the
+     session still switches it. */
+  if (!how && R && n > 1){ const was = m.sessHow;
+    if (was === 'batch' || was === 'single') how = { mode:was, model: was === 'single' ? nextModel(m, R.r.id) : 0 };
+    else return dlgSessHow(m, R.r.id); }
   const h = how || {};
   data.settings.session = { miniId:m.id, start:Date.now(), pausedMs:0, pausedAt:0, recipeId: R ? R.r.id : '',
     mode: h.mode === 'single' ? 'single' : 'batch', model: h.mode === 'single' ? Math.min(n, Math.max(1, h.model || 1)) : 0 };
@@ -9701,7 +9724,8 @@ function dlgSessHow(m, rid, fromSession){
   openDialog(fromSession ? 'Change how you are painting' : 'How are you painting these?', body(), () => {
     if (!pick.mode){ toast('Choose the whole batch or one model at a time.'); return false; }
     const model = Number(($('#shN') || {}).value) || 1;
-    if (fromSession){ const s = sessNow(); if (s){ s.mode = pick.mode; s.model = pick.mode === 'single' ? model : 0; save(); render(); announce(pick.mode === 'single' ? `Painting model ${model} of ${n}.` : 'Painting the whole batch.'); } return; }
+    if (fromSession){ const s = sessNow(); if (s){ s.mode = pick.mode; s.model = pick.mode === 'single' ? model : 0; m.sessHow = pick.mode; save(); render(); announce(pick.mode === 'single' ? `Painting model ${model} of ${n}.` : 'Painting the whole batch.'); } return; }
+    m.sessHow = pick.mode; m.updated = Date.now();   /* v082: remembered for next time */
     sessStart(m.id, { mode:pick.mode, model });
   }, fromSession ? 'Save' : 'Start painting');
   const dl = $('#dlg');
@@ -10287,9 +10311,8 @@ function screenHome(){
   h += `</div><div class="wbside">` + sessionStrip(heroM) + activityList() + `</div></div>`;
   { const s = sessNow();
     const paint = s ? `<button class="btn gold" data-act="sessOpen">${s.pausedAt ? PLAY_SVG : PAUSE_SVG}<span>${s.pausedAt ? 'Paused' : 'Painting'} <span class="num" data-sessclock>${fmtClock(sessMs(s))}</span></span></button>`
-      : heroM ? `<button class="btn gold" data-act="sessStart" data-id="${esc(heroM.id)}" aria-label="Start painting ${esc(heroM.name)}">${PLAY_SVG}<span>Start painting</span></button>`
-      : `<button class="btn gold" data-act="sessStartFree">${PLAY_SVG}<span>Start painting</span></button>`;
-    h = h.replace('<!--WBACTS-->', `<div class="wbtop"><button class="btn ghost" data-act="addModels">${PLUS_SVG}<span>Add<span class="sr-only"> models</span></span></button>${paint}<button class="btn ghost" data-act="dice">${DICE_SVG}<span>Roll<span class="sr-only"> the dice</span></span></button></div>`); }
+      : `<button class="btn ghost" data-act="sessStartFree" aria-label="Start the clock, choose what you painted later">${CLOCK_SVG}<span>Start the clock</span></button>`;
+    h = h.replace('<!--WBACTS-->', `<div class="wbtop">${paint}<button class="btn ghost" data-act="dice">${DICE_SVG}<span>Roll<span class="sr-only"> the dice</span></span></button></div>`); }
   /* The shelf (v038): every unit on the bench as a photo card you swipe
      through, with filters for game, army and stage. */
   h += benchShelf(L.bench);
@@ -10456,7 +10479,7 @@ function progStrip(c){
   return `<div class="wbprog">
     <div class="t"><span><b class="num">${nf(c.done)}</b>of <span class="num">${nf(c.total)}</span> model${c.total === 1 ? '' : 's'} finished</span><span class="num">${pct}% &middot; ${nf(c.total - c.done)} to go</span></div>
     <div class="bar" role="progressbar" aria-label="Models finished" aria-valuemin="0" aria-valuemax="${c.total}" aria-valuenow="${c.done}" aria-valuetext="${c.done} of ${c.total} models finished, ${pct}%"><i style="width:${pct}%"></i></div>
-    <div class="mini"><span>${ic('brush')}<b class="num">${nf(c.started)}</b> model${c.started === 1 ? '' : 's'} on the bench</span><span>${ic('tools')}<b class="num">${nf(c.backlog)}</b> to build</span><button class="linkbtn plink" data-tab-go="paints">${ic('pot')}<b class="num">${nf(c.paints)}</b> paint${c.paints === 1 ? '' : 's'}</button>${c.terrain ? `<span><b class="num">${c.terrain}</b> terrain</span>` : ''}</div></div>`;
+    <div class="mini"><span>${ic('brush')}<b class="num">${nf(c.started)}</b> model${c.started === 1 ? '' : 's'} on the bench</span><span>${ic('tools')}<b class="num">${nf(c.backlog)}</b> to build</span><button class="linkbtn plink" data-tab-go="paints">${ic('pot')}<b class="num">${nf(c.paints)}</b> paint${c.paints === 1 ? '' : 's'}</button>${(() => { const t = totalPainted(); return t ? `<span class="ptime">${CLOCK_SVG}<b class="num">${esc(fmtDur(t))}</b> painted</span>` : ''; })()}${c.terrain ? `<span><b class="num">${c.terrain}</b> terrain</span>` : ''}</div></div>`;
 }
 function medallions(c){
   const one = (ic, n, t, cls, act) => `<${act ? `button data-tab-go="${act}"` : 'div'} class="med${cls ? ' ' + cls : ''}">
