@@ -2580,6 +2580,9 @@ img.phmiss{object-fit:cover}
 .pgpile b{display:block;font-family:var(--f-display);font-weight:400;font-size:1.75rem;line-height:1.15}.pgpile small{color:var(--text-2);font-size:.75rem;overflow-wrap:anywhere}.pgpile .up{color:#7FC48F}
 .pgnote{margin:.5rem 0 1rem}
 .pgtitle:focus,.pgtitle:focus-visible{outline:none}
+/* v084: one + Photo per recipe step */
+.spchoose{display:grid;gap:.5rem}.spchoose .btn{justify-content:flex-start;gap:.75rem;text-align:left;min-height:56px}
+.spchoose .btn svg{width:20px;height:20px;flex:none}.spchoose .btn span{display:grid}.spchoose small{font-weight:400;font-size:.75rem;opacity:.8}
 .ctnav.pseg button,.ctnav.stseg button{font-size:.75rem!important;letter-spacing:.02em}
 .sthlrow.pdhl{grid-template-columns:repeat(3,minmax(0,1fr))}.pdpanel .sthlhead{grid-template-columns:repeat(3,minmax(0,1fr))}
 button.sthl{background:none;border:0;color:inherit;font:inherit;cursor:pointer;padding:0}.sthlown{font-size:.75rem!important;opacity:.9}
@@ -7616,7 +7619,7 @@ function screenStudio(sc){
     h += n.length ? `<ul class="schwarn">${n.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : `<p class="small muted" style="margin:.375rem 0 0">Armour, cloth and trim are clearly lighter or darker than each other, so they stay distinct.</p>`; }
   h += `<div class="stshuf"><button class="btn gold stshufbtn" data-st="shuffle"><svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path d="M3 6h3c5 0 6 12 11 12h4m-4-4 4 4-4 4M3 18h3c2 0 4-3 6-6s3-6 5-6h4m-4-4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Shuffle</button>
       <button class="btn ghost stphbtn" data-sch="photo" aria-label="Paint it from a photo">${CAM_SVG}<span>Photo</span></button>
-      <button class="btn ghost stphbtn" data-st="startcol" aria-expanded="${!!state.stStart}" aria-label="Start from a colour"><span class="stcoldot" style="background:${esc((sc.start && validHex(sc.start.hex)) ? sc.start.hex : sc.roles[0].hex)}"></span><span>Colour</span></button>
+      <button class="btn ghost stphbtn" data-st="startcol" aria-expanded="${!!state.stStart}" aria-label="Start from a colour"><span class="stcoldot" style="background:${esc((sc.start && validHex(sc.start.hex)) ? sc.start.hex : sc.roles[0].hex)}"></span><span>Start from</span></button>
       <button class="btn ghost stundobtn" data-st="undo" aria-label="Undo"${(ST_HIST[sc.id] || []).length ? '' : ' disabled'}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button></div>
     ${stDirty(sc) ? `<div class="stdirty" role="status"><span><b>Changed since you saved it.</b> Your saved scheme is safe until you save again.</span><span class="stdirtyb"><button class="btn ghost sm" data-st="backsaved">Back to saved</button><button class="btn ghost sm" data-st="save">Save changes</button></span></div>` : ''}
     ${state.stStart ? `<div class="ststart">${stStartBody(sc)}</div>` : ''}
@@ -8938,7 +8941,7 @@ gl_FragColor=vec4(color*alpha,alpha);}`;
      IndexedDB     'mm-photos'  photo and swatch blobs (large)
    =========================================================================== */
 
-const APP_VERSION = 'v083';
+const APP_VERSION = 'v084';
 
 /* --- helpers. Declared above everything that calls them: const does not
        hoist, so a helper below a renderer is a crash. --------------------- */
@@ -11429,7 +11432,9 @@ function armySections(g, shelf){
 function screenArmy(){
   const g = armyGroups().find(x => x.key === state.openArmy);
   const sysId = (state.openArmy || '').split('|')[0];
-  let h = backLink('backGame', gameLabel(sysId || NO_SYS_ID));
+  /* v084: when the game has only this army, Back goes straight to Collection */
+  const soleArmy = !!g && armyGroups().filter(x => (x.sys || NO_SYS_ID) === (g.sys || NO_SYS_ID)).length === 1;
+  let h = soleArmy ? backLink('backGames', 'Collection') : backLink('backGame', gameLabel(sysId || NO_SYS_ID));
   if (!g) return h + `<div class="empty"><p>That ${groupWord(sysId)} no longer has anything in it.</p></div>`;
   h += addTop('addModels', 'Add to this ' + groupWord(sysId));
 
@@ -11444,7 +11449,6 @@ function screenArmy(){
           s.priced ? ` &middot; ${esc(money(s.spent))} spent` : ''}</div></div>
     </div>
     <div class="armytools">
-      <button class="linkbtn" data-act="addModels">Add models</button>
       ${g.minis.length > 1 ? `<button class="linkbtn" data-act="${state.selecting ? 'selectOff' : 'selectOn'}">${state.selecting ? 'Done selecting' : 'Select several'}</button>` : ''}
     </div>
     <hr class="keyline">`;
@@ -12167,6 +12171,13 @@ document.addEventListener('click', e => {
     save(); render(); const f = document.querySelector(`[data-drystop="${CSS.escape(sid)}"],[data-drystart="${CSS.escape(sid)}"]`); if (f) f.focus({ preventScroll:true }); return; }
   const rl = t.closest('[data-relink]'); if (rl){ dlgRelink(rl.dataset.relink, +rl.dataset.k); return; }
   const spk = t.closest('[data-steppic]'); if (spk){ galBack = spk; state.gal = { kind:'step', id:state.openRecipe, sid:spk.dataset.steppic, f:spk.dataset.f, i:+spk.dataset.k || 0 }; drawGallery(true); return; }
+  /* v084: one + Photo per step; it asks which kind, then opens the picker */
+  const spk2 = t.closest('[data-steppicask]');
+  if (spk2){ const sid = spk2.dataset.steppicask, n = spk2.dataset.n;
+    openDialog(`Add to step ${n}`, `<div class="spchoose"><button class="btn" data-spkind="photos">${CAM_SVG}<span>Your photo<small>of how yours turned out</small></span></button>
+      <button class="btn ghost" data-spkind="refs">${PLUS_SVG}<span>Reference picture<small>an example to aim for</small></span></button></div>`, null, null, 'Cancel');
+    $$('#dlg [data-spkind]').forEach(b => b.addEventListener('click', () => { $('#dlg').close(); const el = stepPicInput(); el.dataset.sid = sid; el.dataset.f = b.dataset.spkind; el.click(); }));
+    return; }
   const spa = t.closest('[data-steppicadd]'); if (spa){ const el = stepPicInput(); el.dataset.sid = spa.dataset.steppicadd; el.dataset.f = spa.dataset.f; el.click(); return; }
   const orf = t.closest('[data-recref]'); if (orf){ openGallery(+orf.dataset.recref, orf, 'recipe', state.openRecipe); return; }
   if (t.closest('[data-act="recRefAdd"]')){ refInput().click(); return; }
@@ -12905,7 +12916,7 @@ function refInput(){
 function stepPicsHtml(s, i){
   const tile = (f, pid, k) => `<button class="rspic${f === 'refs' ? ' ref' : ''}" data-steppic="${esc(s.id)}" data-f="${f}" data-k="${k}" aria-label="${f === 'refs' ? 'Reference picture' : 'Your photo'} ${k + 1} for step ${i + 1}, open full screen">${photoImg(pid, 'ph')}${f === 'refs' ? '<small>Ref</small>' : ''}</button>`;
   return `<span class="rspics">${arr(s.photos).map((pid, k) => tile('photos', pid, k)).join('')}${arr(s.refs).map((pid, k) => tile('refs', pid, k)).join('')}
-    <button class="rspadd" data-steppicadd="${esc(s.id)}" data-f="photos" aria-label="Add your photo of step ${i + 1}">${CAM_SVG}<span>Your photo</span></button><button class="rspadd" data-steppicadd="${esc(s.id)}" data-f="refs" aria-label="Add a reference picture for step ${i + 1}">${PLUS_SVG}<span>Reference</span></button></span>`;
+    <button class="rspadd one" data-steppicask="${esc(s.id)}" data-n="${i + 1}" aria-label="Add a photo to step ${i + 1}">${PLUS_SVG}<span>Photo</span></button></span>`;
 }
 function stepPicInput(){
   let el = document.getElementById('stepPicIn');
@@ -15073,7 +15084,10 @@ document.addEventListener('click', e => {
   }
 
   const og = t.closest('[data-opengame]');
-  if (og){ navGo('fwd', () => { state.openGame = og.dataset.opengame; state.openArmy = null; render(); window.scrollTo(0,0); }); return; }
+  if (og){ navGo('fwd', () => { state.openGame = og.dataset.opengame;
+    /* v084: a game with just one army opens straight to that army */
+    const only = armyGroups().filter(g => (g.sys || NO_SYS_ID) === og.dataset.opengame);
+    state.openArmy = only.length === 1 ? only[0].key : null; render(); window.scrollTo(0,0); }); return; }
   /* From anywhere — Home, search results — opening an army lands inside the
      Collection with its game behind it, so the way back makes sense. */
   const oa = t.closest('[data-openarmy]');
